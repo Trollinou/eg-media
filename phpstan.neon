@@ -1,0 +1,19 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+parameters:
+    level: 6
+    phpVersion: 80400 # Force l'analyse pour PHP 8.4
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - eg-media.php
+        - includes/
+    excludePaths:
+        - includes/lib/
+    scanDirectories:
+        - includes/lib/fpdi/src/
+    bootstrapFiles:
+        - tests/phpstan/bootstrap.php
+        - includes/lib/fpdf/fpdf.php
+        - includes/lib/fpdi/src/autoload.php
+    scanFiles:
+        - eg-media.php

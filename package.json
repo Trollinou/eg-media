@@ -1,0 +1,15 @@
+{
+  "name": "eg-media",
+  "version": "1.0.0",
+  "description": "Gestionnaire de Média by EG",
+  "main": "eg-media.php",
+  "scripts": {
+    "package": "node script/package.cjs"
+  },
+  "devDependencies": {
+    "adm-zip": "^0.5.14",
+    "minimatch": "^9.0.5"
+  },
+  "author": "EG",
+  "license": "Proprietary"
+}
