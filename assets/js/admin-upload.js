@@ -268,9 +268,6 @@
             }
 
             bulkSelectors.forEach(function (selector) {
-                const isAction2 = selector.name === 'action2';
-                const suffix = isAction2 ? '2' : '';
-
                 const container = document.createElement('span');
                 container.className = 'eg-media-bulk-assign-fields';
                 container.style.display = 'none';
@@ -279,12 +276,12 @@
                 container.style.marginRight = '8px';
 
                 container.innerHTML = `
-                    <select name="eg_media_bulk_gallery${suffix}" class="eg-media-bulk-gallery-select" style="vertical-align: middle; height: 30px;">
+                    <select name="eg_media_bulk_gallery" class="eg-media-bulk-gallery-select" style="vertical-align: middle; height: 30px;">
                         ${optionsHtml}
                     </select>
                     <span style="font-size: 13px; color: #646970; margin: 0 4px; vertical-align: middle;">ou</span>
                     <input type="text" 
-                           name="eg_media_bulk_new_gallery${suffix}" 
+                           name="eg_media_bulk_new_gallery" 
                            class="eg-media-bulk-new-gallery-input" 
                            placeholder="${translate('Nouvelle galerie...', 'eg-media')}" 
                            style="vertical-align: middle; height: 30px; line-height: 30px; font-size: 13px; padding: 0 8px;" />
@@ -299,54 +296,47 @@
                         container.style.display = 'none';
                     }
                 });
+            });
 
-                const selectField = container.querySelector('.eg-media-bulk-gallery-select');
-                const inputField = container.querySelector('.eg-media-bulk-new-gallery-input');
+            // Synchroniser les valeurs entre les deux blocs (haut et bas)
+            const selects = document.querySelectorAll('.eg-media-bulk-gallery-select');
+            const inputs = document.querySelectorAll('.eg-media-bulk-new-gallery-input');
 
-                selectField.addEventListener('change', function () {
-                    if (this.value !== '') {
-                        inputField.value = '';
-                    }
-                });
-                inputField.addEventListener('input', function () {
-                    if (this.value !== '') {
-                        selectField.value = '';
+            selects.forEach(function (select) {
+                select.addEventListener('change', function () {
+                    const currentVal = this.value;
+                    // Mettre à jour l'autre select
+                    selects.forEach(function (s) {
+                        if (s !== select) {
+                            s.value = currentVal;
+                        }
+                    });
+                    // Vider les inputs de texte de création
+                    if (currentVal !== '') {
+                        inputs.forEach(function (i) {
+                            i.value = '';
+                        });
                     }
                 });
             });
 
-            const form = document.getElementById('posts-filter');
-            if (form) {
-                form.addEventListener('submit', function () {
-                    const actionSelector = document.querySelector('select[name="action"]');
-                    const action2Selector = document.querySelector('select[name="action2"]');
-                    const actionVal = actionSelector ? actionSelector.value : '';
-                    const action2Val = action2Selector ? action2Selector.value : '';
-                    const isTop = actionVal === 'eg_media_bulk_assign';
-                    const isBottom = action2Val === 'eg_media_bulk_assign';
-
-                    if (isTop || isBottom) {
-                        const suffix = isBottom ? '2' : '';
-                        const galleryField = document.querySelector(`select[name="eg_media_bulk_gallery${suffix}"]`);
-                        const newGalleryField = document.querySelector(`input[name="eg_media_bulk_new_gallery${suffix}"]`);
-                        
-                        const galleryVal = galleryField ? galleryField.value : '';
-                        const newGalleryVal = newGalleryField ? newGalleryField.value : '';
-
-                        const hiddenGal = document.createElement('input');
-                        hiddenGal.type = 'hidden';
-                        hiddenGal.name = 'eg_media_bulk_gallery';
-                        hiddenGal.value = galleryVal;
-                        form.appendChild(hiddenGal);
-
-                        const hiddenNew = document.createElement('input');
-                        hiddenNew.type = 'hidden';
-                        hiddenNew.name = 'eg_media_bulk_new_gallery';
-                        hiddenNew.value = newGalleryVal;
-                        form.appendChild(hiddenNew);
+            inputs.forEach(function (input) {
+                input.addEventListener('input', function () {
+                    const currentVal = this.value;
+                    // Mettre à jour l'autre input
+                    inputs.forEach(function (i) {
+                        if (i !== input) {
+                            i.value = currentVal;
+                        }
+                    });
+                    // Vider les selects
+                    if (currentVal !== '') {
+                        selects.forEach(function (s) {
+                            s.value = '';
+                        });
                     }
                 });
-            }
+            });
         }
 
         initBulkActionsListMode();
