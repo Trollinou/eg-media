@@ -244,7 +244,7 @@
                     this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
                         controller: this.controller,
                         model:      this.collection.props,
-                        priority:   -80
+                        priority:   -50
                     }).render());
                 }
             });
