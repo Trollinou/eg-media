@@ -118,6 +118,12 @@ class MediaUpload {
 				'galleries' => $galleries_data,
 			]
 		);
+
+		// Style inline pour adapter la largeur des filtres dans le modal d'images et les faire tenir sur une seule ligne.
+		wp_add_inline_style(
+			'common',
+			'.media-modal select.attachment-filters { width: 31% !important; margin-right: 2% !important; }'
+		);
 	}
 
 	/**
