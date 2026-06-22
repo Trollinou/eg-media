@@ -21,6 +21,7 @@ class MediaFilter {
 	public function register(): void {
 		add_action( 'restrict_manage_posts', [ $this, 'add_gallery_dropdown' ], 10, 1 );
 		add_action( 'parse_query', [ $this, 'filter_attachments_query' ], 10, 1 );
+		add_filter( 'ajax_query_attachments_args', [ $this, 'filter_ajax_attachments_query' ], 10, 1 );
 	}
 
 	/**
@@ -113,5 +114,42 @@ class MediaFilter {
 		}
 
 		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Modifie les arguments de la requête AJAX pour filtrer par galerie dans le mode grille.
+	 *
+	 * @param array<string, mixed> $query_args Arguments de la requête WP_Query.
+	 * @return array<string, mixed> Arguments de la requête modifiés.
+	 */
+	public function filter_ajax_attachments_query( array $query_args ): array {
+		$query = isset( $_POST['query'] ) && is_array( $_POST['query'] ) ? $_POST['query'] : [];
+		$gallery_id = isset( $query['eg_media_gallery_filter'] ) ? (string) $query['eg_media_gallery_filter'] : '';
+
+		if ( '' === $gallery_id ) {
+			return $query_args;
+		}
+
+		if ( ! isset( $query_args['tax_query'] ) || ! is_array( $query_args['tax_query'] ) ) {
+			$query_args['tax_query'] = [];
+		}
+
+		if ( 'orphan' === $gallery_id ) {
+			$query_args['tax_query'][] = [
+				'taxonomy' => 'eg_media_gallery',
+				'operator' => 'NOT EXISTS',
+			];
+		} else {
+			$term_id = (int) $gallery_id;
+			if ( $term_id > 0 ) {
+				$query_args['tax_query'][] = [
+					'taxonomy' => 'eg_media_gallery',
+					'field'    => 'term_id',
+					'terms'    => $term_id,
+				];
+			}
+		}
+
+		return $query_args;
 	}
 }

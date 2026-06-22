@@ -75,6 +75,31 @@ class MediaUpload {
 			EG_MEDIA_VERSION,
 			true
 		);
+
+		$terms = get_terms( [
+			'taxonomy'   => 'eg_media_gallery',
+			'hide_empty' => false,
+		] );
+
+		$galleries_data = [];
+		if ( is_array( $terms ) ) {
+			foreach ( $terms as $term ) {
+				if ( $term instanceof \WP_Term ) {
+					$galleries_data[] = [
+						'term_id' => $term->term_id,
+						'name'    => $term->name,
+					];
+				}
+			}
+		}
+
+		wp_localize_script(
+			'eg-media-admin-upload',
+			'egMediaUploadData',
+			[
+				'galleries' => $galleries_data,
+			]
+		);
 	}
 
 	/**
