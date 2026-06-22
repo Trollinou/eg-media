@@ -40,18 +40,26 @@ class MediaUpload {
 			<label for="eg_media_target_gallery" style="font-weight: 600; display: block; margin-bottom: 8px;">
 				<?php esc_html_e( 'Associer les fichiers importés à cette galerie :', 'eg-media' ); ?>
 			</label>
-			<select name="eg_media_target_gallery" id="eg_media_target_gallery" style="max-width: 300px; width: 100%;">
-				<option value=""><?php esc_html_e( '— Aucune galerie par défaut —', 'eg-media' ); ?></option>
-				<?php foreach ( $galleries as $gallery ) : ?>
-					<?php if ( $gallery instanceof \WP_Term ) : ?>
-						<option value="<?php echo esc_attr( (string) $gallery->term_id ); ?>">
-							<?php echo esc_html( $gallery->name ); ?>
-						</option>
-					<?php endif; ?>
-				<?php endforeach; ?>
-			</select>
+			<div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+				<select name="eg_media_target_gallery" id="eg_media_target_gallery" style="max-width: 300px; width: 100%;">
+					<option value=""><?php esc_html_e( '— Aucune galerie par défaut —', 'eg-media' ); ?></option>
+					<?php foreach ( $galleries as $gallery ) : ?>
+						<?php if ( $gallery instanceof \WP_Term ) : ?>
+							<option value="<?php echo esc_attr( (string) $gallery->term_id ); ?>">
+								<?php echo esc_html( $gallery->name ); ?>
+							</option>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</select>
+				<span style="font-size: 13px; color: #646970;"><?php esc_html_e( 'ou', 'eg-media' ); ?></span>
+				<input type="text" 
+					   name="eg_media_new_target_gallery" 
+					   id="eg_media_new_target_gallery" 
+					   placeholder="<?php esc_attr_e( 'Créer et associer à une nouvelle galerie...', 'eg-media' ); ?>" 
+					   style="max-width: 300px; width: 100%; height: 30px;" />
+			</div>
 			<p class="description" style="margin: 4px 0 0 0; font-style: italic;">
-				<?php esc_html_e( 'Tous les fichiers téléversés dans cette session seront automatiquement associés à la galerie sélectionnée.', 'eg-media' ); ?>
+				<?php esc_html_e( 'Sélectionnez une galerie existante ou tapez un nom pour en créer une nouvelle lors du téléversement.', 'eg-media' ); ?>
 			</p>
 		</div>
 		<?php
@@ -109,20 +117,36 @@ class MediaUpload {
 	 * @return void
 	 */
 	public function save_uploaded_media_gallery( int $post_id ): void {
-		// Vérifier si le paramètre ciblant la galerie est défini.
-		$target_gallery = filter_input( INPUT_POST, 'eg_media_target_gallery', FILTER_DEFAULT );
-		if ( null === $target_gallery || '' === $target_gallery ) {
-			return;
-		}
-
 		// Sécurisation : s'assurer que l'utilisateur a les droits d'import de fichiers.
 		if ( ! current_user_can( 'upload_files' ) ) {
 			return;
 		}
 
-		$gallery_id = (int) $target_gallery;
-		if ( $gallery_id > 0 ) {
-			wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
+		// 1. Vérifier si une nouvelle galerie doit être créée à la volée.
+		$new_gallery = filter_input( INPUT_POST, 'eg_media_new_target_gallery', FILTER_DEFAULT );
+		if ( null !== $new_gallery && '' !== trim( (string) $new_gallery ) ) {
+			$new_gallery_name = sanitize_text_field( (string) $new_gallery );
+			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
+
+			if ( ! is_wp_error( $term_info ) && is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+				$gallery_id = (int) $term_info['term_id'];
+				wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
+			} elseif ( is_wp_error( $term_info ) && 'term_exists' === $term_info->get_error_code() ) {
+				$existing_term_id = (int) $term_info->get_error_data();
+				if ( $existing_term_id > 0 ) {
+					wp_set_object_terms( $post_id, $existing_term_id, 'eg_media_gallery' );
+				}
+			}
+			return;
+		}
+
+		// 2. Sinon, vérifier si une galerie existante est sélectionnée.
+		$target_gallery = filter_input( INPUT_POST, 'eg_media_target_gallery', FILTER_DEFAULT );
+		if ( null !== $target_gallery && '' !== $target_gallery ) {
+			$gallery_id = (int) $target_gallery;
+			if ( $gallery_id > 0 ) {
+				wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
+			}
 		}
 	}
 }
