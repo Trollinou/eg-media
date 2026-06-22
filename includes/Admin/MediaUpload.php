@@ -122,7 +122,7 @@ class MediaUpload {
 		// Style inline pour adapter la largeur des filtres dans le modal d'images et les faire tenir sur une seule ligne.
 		wp_add_inline_style(
 			'common',
-			'.media-modal select.attachment-filters { width: 31% !important; margin-right: 2% !important; }'
+			'.media-modal .media-frame .media-toolbar-secondary { max-width: 85% !important; } .media-modal select.attachment-filters { width: 30% !important; margin-right: 2% !important; }'
 		);
 	}
 
