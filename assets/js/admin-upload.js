@@ -241,6 +241,16 @@
                 createToolbar: function () {
                     OriginalAttachmentsBrowser.prototype.createToolbar.apply(this, arguments);
 
+                    if (wp.media.view.Label) {
+                        this.toolbar.set('egMediaGalleryFilterLabel', new wp.media.view.Label({
+                            value:      'Filtrer par galerie',
+                            attributes: {
+                                'for':  'media-attachment-eg-media-gallery-filter'
+                            },
+                            priority:   -51
+                        }).render());
+                    }
+
                     this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
                         controller: this.controller,
                         model:      this.collection.props,

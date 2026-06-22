@@ -89,7 +89,7 @@ class MediaUpload {
 		wp_enqueue_script(
 			'eg-media-admin-upload',
 			plugins_url( 'assets/js/admin-upload.js', dirname( __FILE__, 3 ) . '/eg-media.php' ),
-			[ 'jquery' ],
+			[ 'jquery', 'media-views' ],
 			EG_MEDIA_VERSION,
 			true
 		);
