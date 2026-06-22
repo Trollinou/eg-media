@@ -10,11 +10,80 @@
             const state = wp.media.frame.state();
             if (state) {
                 const library = state.get('library');
-                if (library && library.props && typeof library.props.trigger === 'function') {
-                    library.props.trigger('change');
+                if (library) {
+                    if (typeof library.doEscapedQuery === 'function') {
+                        library.doEscapedQuery();
+                    } else if (library.props && typeof library.props.trigger === 'function') {
+                        library.props.trigger('change');
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Recharge la liste des galeries depuis le serveur et met à jour les sélecteurs HTML.
+     */
+    function refreshGallerySelectors() {
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+
+        jQuery.post(ajaxurl, {
+            action: 'eg_media_get_galleries'
+        }, function(response) {
+            if (response.success && Array.isArray(response.data)) {
+                const galleries = response.data;
+
+                // Mettre à jour la variable globale pour Backbone
+                if (window.egMediaUploadData) {
+                    window.egMediaUploadData.galleries = galleries;
+                }
+
+                // 1. Mettre à jour le sélecteur d'upload par défaut
+                const uploadSelect = document.getElementById('eg_media_target_gallery');
+                if (uploadSelect) {
+                    const currentVal = uploadSelect.value;
+                    const newGalleryInput = document.getElementById('eg_media_new_target_gallery');
+                    let targetVal = currentVal;
+
+                    // Si on vient de créer une nouvelle galerie avec du texte
+                    if (newGalleryInput && newGalleryInput.value.trim() !== '') {
+                        const createdName = newGalleryInput.value.trim().toLowerCase();
+                        // Trouver l'ID de la galerie créée correspondante
+                        const match = galleries.find(function(g) {
+                            return g.name.toLowerCase() === createdName;
+                        });
+                        if (match) {
+                            targetVal = String(match.term_id);
+                        }
+                        // Vider le champ de saisie
+                        newGalleryInput.value = '';
+                    }
+
+                    // Reconstruire les options
+                    let optionsHtml = '<option value="">— Aucune galerie par défaut —</option>';
+                    galleries.forEach(function(gallery) {
+                        optionsHtml += `<option value="${gallery.term_id}">${gallery.name}</option>`;
+                    });
+                    uploadSelect.innerHTML = optionsHtml;
+                    uploadSelect.value = targetVal;
+                }
+
+                // 2. Mettre à jour le sélecteur Bulk Assign (mode liste)
+                const bulkSelects = document.querySelectorAll('.eg-media-bulk-gallery-select');
+                bulkSelects.forEach(function(select) {
+                    const currentVal = select.value;
+                    let optionsHtml = '<option value="">— Choisir une galerie —</option>';
+                    optionsHtml += '<option value="orphan">— Sans affectation —</option>';
+                    galleries.forEach(function(gallery) {
+                        optionsHtml += `<option value="${gallery.term_id}">${gallery.name}</option>`;
+                    });
+                    select.innerHTML = optionsHtml;
+                    select.value = currentVal;
+                });
+            }
+        });
     }
 
     // Surcharge immédiate de wp.Uploader pour intercepter toutes les instanciations futures.
@@ -48,7 +117,10 @@
 
                 // Rafraîchir la vue de la bibliothèque une fois les uploads terminés
                 instance.uploader.bind('UploadComplete', function () {
-                    setTimeout(refreshMediaLibrary, 500);
+                    setTimeout(function () {
+                        refreshMediaLibrary();
+                        refreshGallerySelectors();
+                    }, 500);
                 });
             }
 
@@ -129,7 +201,10 @@
 
                 // Rafraîchir la vue lors de la complétion pour l'uploader de page
                 uploader.bind('UploadComplete', function () {
-                    setTimeout(refreshMediaLibrary, 500);
+                    setTimeout(function () {
+                        refreshMediaLibrary();
+                        refreshGallerySelectors();
+                    }, 500);
                 });
 
                 uploader._egMediaBound = true;
@@ -152,7 +227,10 @@
                     });
 
                     wpUp.bind('UploadComplete', function () {
-                        setTimeout(refreshMediaLibrary, 500);
+                        setTimeout(function () {
+                            refreshMediaLibrary();
+                            refreshGallerySelectors();
+                        }, 500);
                     });
 
                     wpUp._egMediaBound = true;

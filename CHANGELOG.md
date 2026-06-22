@@ -5,6 +5,21 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.4] - 2026-06-22
+
+### Added
+- Implémentation d'une action AJAX sécurisée `eg_media_get_galleries` pour l'actualisation dynamique du sélecteur de galeries.
+- Mise à jour automatique des listes déroulantes de galeries à la fin des téléversements groupés (`UploadComplete`) avec pré-sélection automatique de la galerie créée à la volée.
+- Implémentation du mode plein écran sur la visionneuse (toggled au clic sur la photo principale, avec bouton de fermeture "X" dans le coin supérieur droit).
+
+### Changed
+- Augmentation de la limite de mémoire PHP pour le traitement d'images à `512M` via le filtre WordPress `image_memory_limit` afin d'éviter les crashs lors d'imports groupés.
+- Ajout d'un fallback d'optimisation robuste utilisant `WP_Image_Editor` natif de WordPress si l'extension `Imagick` n'est pas présente sur le serveur.
+- Correction d'un bug Backbone JS (`TypeError`) lors du rafraîchissement de la bibliothèque de médias en utilisant `library.doEscapedQuery()`.
+- Harmonisation visuelle de la visionneuse avec le thème (vignettes rectangulaires avec `aspect-ratio: 3/2` et `border-radius: 4px`, couleurs d'accentuation calquées sur la palette du thème).
+- Correction du bug visuel de superposition/empilement d'images (notamment sous Safari/WebKit) en détruisant et recréant l'élément image du DOM à chaque changement, éliminant ainsi les caches GPU.
+- Ajustement du diaporama pour désactiver la mise en pause automatique au survol de la souris lorsque la visionneuse est en plein écran.
+
 ## [1.0.3] - 2026-06-22
 
 ### Added

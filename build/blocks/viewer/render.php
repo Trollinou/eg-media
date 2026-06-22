@@ -67,6 +67,8 @@ $first_image_alt  = get_post_meta( $first_attachment->ID, '_wp_attachment_image_
 	 data-slideshow="<?php echo $slideshow ? 'true' : 'false'; ?>" 
 	 data-tempo="<?php echo esc_attr( (string) $tempo ); ?>">
 	
+	<button class="eg-viewer__close" aria-label="<?php esc_attr_e( 'Fermer le plein écran', 'eg-media' ); ?>">&times;</button>
+
 	<div class="eg-viewer__main">
 		<img class="eg-viewer__main-image" src="<?php echo esc_url( $first_image_src ); ?>" alt="<?php echo esc_attr( (string) $first_image_alt ); ?>" />
 	</div>

@@ -78,11 +78,48 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const imgEl = activeThumb.querySelector( 'img' );
 			const newAlt = imgEl ? imgEl.alt : '';
 
-			mainImage.style.opacity = '0';
+			const mainContainer = viewer.querySelector( '.eg-viewer__main' );
+			if ( ! mainContainer ) {
+				return;
+			}
+
+			const currentImg = mainContainer.querySelector( '.eg-viewer__main-image' );
+			if ( currentImg ) {
+				currentImg.style.opacity = '0';
+			}
+
 			setTimeout( () => {
-				mainImage.src = newSrc;
-				mainImage.alt = newAlt;
-				mainImage.style.opacity = '1';
+				// Détruire physiquement l'ancienne image pour forcer Safari à effacer son cache matériel
+				if ( currentImg ) {
+					currentImg.remove();
+				}
+
+				// Nettoyer d'éventuelles images dupliquées résiduelles
+				const extraImages = mainContainer.querySelectorAll( 'img' );
+				extraImages.forEach( ( img ) => {
+					img.remove();
+				} );
+
+				// Créer un nouvel élément img vierge
+				const newImg = document.createElement( 'img' );
+				newImg.className = 'eg-viewer__main-image';
+				newImg.style.opacity = '0';
+				newImg.style.cursor = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer ? 'zoom-out' : 'zoom-in';
+				
+				// Ré-attacher l'écouteur de clic pour le plein écran
+				newImg.addEventListener( 'click', toggleFullscreen );
+
+				// Précharger et afficher l'image propre
+				const tempImg = new Image();
+				tempImg.onload = () => {
+					newImg.src = newSrc;
+					newImg.alt = newAlt;
+					mainContainer.appendChild( newImg );
+					// Forcer un reflow pour déclencher l'animation d'opacité
+					newImg.offsetHeight;
+					newImg.style.opacity = '1';
+				};
+				tempImg.src = newSrc;
 			}, 150 );
 
 			// Mettre à jour les classes actives
@@ -168,12 +205,98 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			}
 		};
 
+		// 5. Gestion du plein écran (HTML5 Fullscreen API)
+		const closeBtn = viewer.querySelector( '.eg-viewer__close' );
+
+		const toggleFullscreen = () => {
+			if ( ! document.fullscreenElement && ! document.webkitFullscreenElement ) {
+				if ( viewer.requestFullscreen ) {
+					viewer.requestFullscreen();
+				} else if ( viewer.webkitRequestFullscreen ) {
+					viewer.webkitRequestFullscreen();
+				} else if ( viewer.msRequestFullscreen ) {
+					viewer.msRequestFullscreen();
+				}
+			} else {
+				if ( document.exitFullscreen ) {
+					document.exitFullscreen();
+				} else if ( document.webkitExitFullscreen ) {
+					document.webkitExitFullscreen();
+				} else if ( document.msExitFullscreen ) {
+					document.msExitFullscreen();
+				}
+			}
+		};
+
+		if ( mainImage ) {
+			mainImage.addEventListener( 'click', toggleFullscreen );
+			mainImage.style.cursor = 'zoom-in';
+		}
+
+		if ( closeBtn ) {
+			closeBtn.addEventListener( 'click', ( e ) => {
+				e.stopPropagation();
+				if ( document.fullscreenElement || document.webkitFullscreenElement ) {
+					if ( document.exitFullscreen ) {
+						document.exitFullscreen();
+					} else if ( document.webkitExitFullscreen ) {
+						document.webkitExitFullscreen();
+					}
+				}
+			} );
+		}
+
+		const handleFullscreenChange = () => {
+			const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+			const currentImg = viewer.querySelector( '.eg-viewer__main-image' );
+			if ( isFull ) {
+				viewer.classList.add( 'eg-viewer--fullscreen' );
+				if ( currentImg ) {
+					currentImg.style.cursor = 'zoom-out';
+				}
+				// Forcer le redémarrage du diaporama en plein écran (la souris survole forcément l'écran)
+				if ( isSlideshow ) {
+					startSlideshow();
+				}
+			} else {
+				viewer.classList.remove( 'eg-viewer--fullscreen' );
+				if ( currentImg ) {
+					currentImg.style.cursor = 'zoom-in';
+				}
+				// Si on quitte le plein écran, vérifier si la souris survole toujours la visionneuse
+				if ( isSlideshow ) {
+					if ( viewer.matches( ':hover' ) ) {
+						stopSlideshow();
+					} else {
+						startSlideshow();
+					}
+				}
+			}
+			setTimeout( () => {
+				initThumbnailWidths();
+				updateTrackPosition();
+			}, 100 );
+		};
+
+		document.addEventListener( 'fullscreenchange', handleFullscreenChange );
+		document.addEventListener( 'webkitfullscreenchange', handleFullscreenChange );
+
 		if ( isSlideshow ) {
 			startSlideshow();
 
-			// Pause au survol
-			viewer.addEventListener( 'mouseenter', stopSlideshow );
-			viewer.addEventListener( 'mouseleave', startSlideshow );
+			// Pause au survol uniquement hors plein écran
+			viewer.addEventListener( 'mouseenter', () => {
+				const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+				if ( ! isFull ) {
+					stopSlideshow();
+				}
+			} );
+			viewer.addEventListener( 'mouseleave', () => {
+				const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+				if ( ! isFull ) {
+					startSlideshow();
+				}
+			} );
 		}
 	} );
 } );

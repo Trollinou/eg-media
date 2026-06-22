@@ -3,7 +3,7 @@
  * Plugin Name:       EG Media Manager
  * Plugin URI:        https://example.com/eg-media
  * Description:       Gestionnaire de Média by EG
- * Version:           1.0.3
+ * Version:           1.0.4
  * Requires at least: 6.0
  * Requires PHP:      8.4
  * Author:            EG
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Version du plugin.
-define( 'EG_MEDIA_VERSION', '1.0.3' );
+define( 'EG_MEDIA_VERSION', '1.0.4' );
 
 // Autoloader SPL natif.
 spl_autoload_register( function ( string $class ) : void {
@@ -46,6 +46,11 @@ spl_autoload_register( function ( string $class ) : void {
 	if ( file_exists( $file ) ) {
 		require $file;
 	}
+} );
+
+// Augmenter la limite de mémoire pour le traitement d'images sous WordPress (évite les crashs lors d'uploads en lot).
+add_filter( 'image_memory_limit', function () : string {
+	return '512M';
 } );
 
 // Initialiser et démarrer les services.

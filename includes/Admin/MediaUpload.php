@@ -25,6 +25,7 @@ class MediaUpload {
 		add_filter( 'handle_bulk_actions-upload', [ $this, 'handle_bulk_actions' ], 10, 3 );
 		add_action( 'admin_notices', [ $this, 'show_bulk_action_notice' ] );
 		add_action( 'admin_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'wp_ajax_eg_media_get_galleries', [ $this, 'ajax_get_galleries' ] );
 	}
 
 	/**
@@ -139,14 +140,16 @@ class MediaUpload {
 			$new_gallery_name = sanitize_text_field( (string) $new_gallery );
 			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-			if ( ! is_wp_error( $term_info ) && is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+			if ( is_wp_error( $term_info ) ) {
+				if ( 'term_exists' === $term_info->get_error_code() ) {
+					$existing_term_id = (int) $term_info->get_error_data();
+					if ( $existing_term_id > 0 ) {
+						wp_set_object_terms( $post_id, $existing_term_id, 'eg_media_gallery' );
+					}
+				}
+			} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
 				$gallery_id = (int) $term_info['term_id'];
 				wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
-			} elseif ( is_wp_error( $term_info ) && 'term_exists' === $term_info->get_error_code() ) {
-				$existing_term_id = (int) $term_info->get_error_data();
-				if ( $existing_term_id > 0 ) {
-					wp_set_object_terms( $post_id, $existing_term_id, 'eg_media_gallery' );
-				}
 			}
 			return;
 		}
@@ -195,13 +198,15 @@ class MediaUpload {
 			$new_gallery_name = sanitize_text_field( $new_gallery );
 			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-			if ( ! is_wp_error( $term_info ) && is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
-				$final_gallery_id = (int) $term_info['term_id'];
-			} elseif ( is_wp_error( $term_info ) && 'term_exists' === $term_info->get_error_code() ) {
-				$existing_term_id = (int) $term_info->get_error_data();
-				if ( $existing_term_id > 0 ) {
-					$final_gallery_id = $existing_term_id;
+			if ( is_wp_error( $term_info ) ) {
+				if ( 'term_exists' === $term_info->get_error_code() ) {
+					$existing_term_id = (int) $term_info->get_error_data();
+					if ( $existing_term_id > 0 ) {
+						$final_gallery_id = $existing_term_id;
+					}
 				}
+			} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+				$final_gallery_id = (int) $term_info['term_id'];
 			}
 		}
 		// 2. Sinon, si sélection d'une galerie existante
@@ -312,5 +317,35 @@ class MediaUpload {
 			}
 		</style>
 		<?php
+	}
+
+	/**
+	 * Récupère la liste des galeries en AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_galleries(): void {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( 'Forbidden', 403 );
+		}
+
+		$terms = get_terms( [
+			'taxonomy'   => 'eg_media_gallery',
+			'hide_empty' => false,
+		] );
+
+		$galleries_data = [];
+		if ( is_array( $terms ) ) {
+			foreach ( $terms as $term ) {
+				if ( $term instanceof \WP_Term ) {
+					$galleries_data[] = [
+						'term_id' => $term->term_id,
+						'name'    => $term->name,
+					];
+				}
+			}
+		}
+
+		wp_send_json_success( $galleries_data );
 	}
 }

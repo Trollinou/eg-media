@@ -92,8 +92,7 @@ class Processor {
 		}
 
 		if ( ! class_exists( 'Imagick' ) ) {
-			error_log( "EG Media Manager : Le traitement d'image a été ignoré car la classe native 'Imagick' n'est pas installée." );
-			return null;
+			return $this->optimize_image_file_fallback( $file_path );
 		}
 
 		try {
@@ -174,6 +173,62 @@ class Processor {
 			error_log( "EG Media Manager - Erreur Imagick lors du traitement de {$file_path} : " . $e->getMessage() );
 		} catch ( \Exception $e ) {
 			error_log( "EG Media Manager - Erreur générale lors du traitement de {$file_path} : " . $e->getMessage() );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Optimise un fichier image spécifique sur le disque avec WP_Image_Editor en tant que fallback (GD/Imagick WP).
+	 *
+	 * @param string $file_path Chemin absolu du fichier.
+	 * @return int|null Nombre d'octets économisés, ou null en cas d'erreur/non applicable.
+	 */
+	public function optimize_image_file_fallback( string $file_path ) : ?int {
+		if ( '' === $file_path || ! file_exists( $file_path ) ) {
+			return null;
+		}
+
+		$editor = wp_get_image_editor( $file_path );
+		if ( is_wp_error( $editor ) ) {
+			error_log( "EG Media Manager - Fallback : Impossible d'obtenir l'éditeur d'image pour {$file_path} : " . $editor->get_error_message() );
+			return null;
+		}
+
+		try {
+			clearstatcache( true, $file_path );
+			$original_size = (int) @filesize( $file_path );
+
+			// Récupération des options avec valeurs par défaut.
+			$max_width          = (int) get_option( 'eg_media_resize_max_width', 2000 );
+			$compression_qty    = (int) get_option( 'eg_media_compression_quality', 80 );
+
+			$size = $editor->get_size();
+			if ( is_array( $size ) && isset( $size['width'] ) && $max_width > 0 && $size['width'] > $max_width ) {
+				$editor->resize( $max_width, null );
+			}
+
+			// Appliquer la qualité de compression
+			$editor->set_quality( $compression_qty );
+
+			// Sauvegarder
+			$saved = $editor->save( $file_path );
+			if ( is_wp_error( $saved ) ) {
+				error_log( "EG Media Manager - Fallback : Échec de la sauvegarde de l'image {$file_path} : " . $saved->get_error_message() );
+				return null;
+			}
+
+			// Libérer la mémoire
+			unset( $editor );
+
+			// Forcer le recalcul de la taille sur le disque.
+			clearstatcache( true, $file_path );
+			$new_size = (int) @filesize( $file_path );
+
+			return $original_size - $new_size;
+
+		} catch ( \Exception $e ) {
+			error_log( "EG Media Manager - Fallback : Erreur lors du traitement de {$file_path} : " . $e->getMessage() );
 		}
 
 		return null;

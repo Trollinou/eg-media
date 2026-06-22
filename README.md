@@ -36,10 +36,11 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Actions Groupées** : Option d'action groupée "Associer à une galerie" disponible dans le mode liste pour traiter plusieurs médias simultanément.
 
 ### 4. Bloc Gutenberg dynamique "Visionneuse de Galerie"
-- **Rendu Premium 90/10** : Affichage responsive avec 90% de la hauteur pour l'image principale active et 10% pour une bande de miniatures circulaires.
-- **Vanilla JS ES2021** : Script sans dépendance externe gérant le calcul du ratio d'aspect naturel des miniatures pour éviter les déformations (supports portraits/paysages).
+- **Rendu Premium 90/10** : Affichage responsive avec 90% de la hauteur pour l'image principale active et 10% pour une bande de miniatures rectangulaires (ratio 3:2 avec coins arrondis).
+- **Mode Plein Écran Immersif** : Passage en plein écran natif (HTML5 API) d'un clic sur la photo principale, avec affichage d'un bouton de fermeture "X" adapté à la charte graphique et gestion de la sortie (clic "X" ou touche Échap).
+- **Vanilla JS ES2021** : Script sans dépendance externe gérant le calcul du ratio d'aspect naturel des miniatures pour éviter les déformations (supports portraits/paysages), et élimination des superpositions d'images par régénération de noeuds DOM sous Safari.
 - **Logique Circulaire** : Défilement infini des miniatures et navigation circulaire fluide (le clic "Précédent" sur la première image redirige automatiquement vers la dernière).
-- **Diaporama Intelligent** : Diaporama automatique avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`).
+- **Diaporama Intelligent** : Diaporama automatique avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`) uniquement en dehors du mode plein écran (lecture continue en plein écran).
 - **Tri Avancé** : Possibilité de trier les images de la galerie par nom de fichier ou par date de prise de vue (EXIF avec fallback sur la date de dépôt WordPress), dans le sens ascendant ou descendant.
 
 ### 5. Tableau de Bord d'Administration
