@@ -12,10 +12,13 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Implémentation de la sélection d'une galerie par défaut ou de la création rapide d'une nouvelle galerie directement lors des téléversements groupés (Bulk) au-dessus de la zone de drag-and-drop.
 - Script JavaScript en Vanilla JS pour intercepter les requêtes d'envoi et associer les fichiers importés à la galerie ciblée en surchargeant globalement le comportement de `wp.Uploader`.
 - Rafraîchissement automatique de la bibliothèque de médias Backbone à la fin des téléversements pour assurer l'affichage immédiat des images importées avec le filtre de galerie actif.
+- Implémentation d'une action groupée native `"Associer à une galerie"` en mode liste (avec sélection de galerie existante ou création rapide d'une nouvelle galerie depuis le formulaire global).
+- Support du filtrage de galerie dans le modal "Image mise en avant" (ou autres boutons d'upload d'images) sur les écrans d'édition d'articles et pages.
 
 ### Changed
 - Amélioration de l'ergonomie en déplaçant dynamiquement le sélecteur de galerie au-dessus de la zone de drag-and-drop.
 - Remplacement du droit `edit_post` par `upload_files` pour permettre l'assignation de taxonomie lors de la création initiale de l'attachement via le hook `add_attachment` (même si Imagick n'est pas installé sur l'environnement de développement).
+- Chargement étendu du script d'administration aux pages de création/édition d'articles (`post.php` et `post-new.php`).
 
 ## [1.0.1] - 2026-06-21
 
