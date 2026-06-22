@@ -5,6 +5,13 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.2] - 2026-06-22
+
+### Added
+- Implémentation du filtrage par galerie dans la liste de médias (avec l'option "Sans affectation" pour isoler les images orphelines).
+- Implémentation de la sélection d'une galerie par défaut lors des téléversements groupés (Bulk) au-dessus de la zone de drag-and-drop.
+- Script JavaScript en Vanilla JS pour intercepter les requêtes d'envoi et associer les fichiers importés à la galerie ciblée.
+
 ## [1.0.1] - 2026-06-21
 
 ### Added
