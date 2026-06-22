@@ -2,6 +2,21 @@
  * Script d'administration pour intercepter le téléversement et ajouter la galerie ciblée.
  */
 (function () {
+    /**
+     * Force le rechargement de la bibliothèque de médias Backbone pour afficher les nouveaux éléments filtrés.
+     */
+    function refreshMediaLibrary() {
+        if (typeof wp !== 'undefined' && wp.media && wp.media.frame) {
+            const state = wp.media.frame.state();
+            if (state) {
+                const library = state.get('library');
+                if (library && library.props && typeof library.props.trigger === 'function') {
+                    library.props.trigger('change');
+                }
+            }
+        }
+    }
+
     // Surcharge immédiate de wp.Uploader pour intercepter toutes les instanciations futures.
     if (typeof wp !== 'undefined' && wp.Uploader) {
         const OriginalUploader = wp.Uploader;
@@ -19,6 +34,11 @@
                     const currentVal = latestSelect ? latestSelect.value : '';
                     up.settings.multipart_params = up.settings.multipart_params || {};
                     up.settings.multipart_params.eg_media_target_gallery = currentVal;
+                });
+
+                // Rafraîchir la vue de la bibliothèque une fois les uploads terminés
+                instance.uploader.bind('UploadComplete', function () {
+                    setTimeout(refreshMediaLibrary, 500);
                 });
             }
 
@@ -74,6 +94,12 @@
                         up.settings.multipart_params.eg_media_target_gallery = targetSelect.value;
                     }
                 });
+
+                // Rafraîchir la vue lors de la complétion pour l'uploader de page
+                uploader.bind('UploadComplete', function () {
+                    setTimeout(refreshMediaLibrary, 500);
+                });
+
                 uploader._egMediaBound = true;
             }
         }
