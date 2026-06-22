@@ -60,7 +60,7 @@ usort( $attachments, function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort
 } );
 
 $first_attachment = $attachments[0];
-$first_image_src  = wp_get_attachment_image_url( $first_attachment->ID, 'large' ) ?: '';
+$first_image_src  = wp_get_attachment_image_url( $first_attachment->ID, 'full' ) ?: '';
 $first_image_alt  = get_post_meta( $first_attachment->ID, '_wp_attachment_image_alt', true ) ?: $first_attachment->post_title;
 ?>
 <div class="eg-viewer" 
@@ -80,7 +80,7 @@ $first_image_alt  = get_post_meta( $first_attachment->ID, '_wp_attachment_image_
 			<div class="eg-viewer__track">
 				<?php foreach ( $attachments as $index => $attachment ) : 
 					$thumb_src = wp_get_attachment_image_url( $attachment->ID, 'thumbnail' ) ?: '';
-					$full_src  = wp_get_attachment_image_url( $attachment->ID, 'large' ) ?: '';
+					$full_src  = wp_get_attachment_image_url( $attachment->ID, 'full' ) ?: '';
 					$alt       = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) ?: $attachment->post_title;
 					
 					$meta = wp_get_attachment_metadata( $attachment->ID );
