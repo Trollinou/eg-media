@@ -75,7 +75,14 @@ class MediaUpload {
 	 * @return void
 	 */
 	public function enqueue_upload_scripts( string $hook_suffix ): void {
-		if ( 'media-new.php' !== $hook_suffix && 'upload.php' !== $hook_suffix ) {
+		$allowed_hooks = [
+			'post.php',
+			'post-new.php',
+			'media-new.php',
+			'upload.php',
+		];
+
+		if ( ! in_array( $hook_suffix, $allowed_hooks, true ) ) {
 			return;
 		}
 
