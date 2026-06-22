@@ -28,7 +28,21 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Traitement par lots (AJAX)** : Optimisez toutes vos images existantes directement depuis le tableau de bord sans surcharge serveur ni interruption.
 - **Suivi en temps réel** : Barre de progression dynamique indiquant le nombre d'images restantes à traiter.
 
-### 3. Tableau de Bord d'Administration
+### 3. Gestion de Galeries Personnalisées (Taxonomie)
+- **Taxonomie "Galeries"** : Gestion des galeries via la taxonomie personnalisée `eg_media_gallery` rattachée aux pièces jointes.
+- **Édition Rapide** : Assignation et création rapide de galerie directement depuis les détails d'un média dans la bibliothèque de médias.
+- **Téléversement Bulk** : Sélection ou création rapide d'une galerie cible directement au-dessus de la zone de drag-and-drop lors de l'importation de fichiers, appliquant automatiquement la galerie à toutes les images téléversées.
+- **Filtrage Avancé** : Filtrage par galerie dans la bibliothèque de médias (Backbone/AJAX) en mode Liste et Grille (avec une option "Sans affectation" pour isoler les images orphelines).
+- **Actions Groupées** : Option d'action groupée "Associer à une galerie" disponible dans le mode liste pour traiter plusieurs médias simultanément.
+
+### 4. Bloc Gutenberg dynamique "Visionneuse de Galerie"
+- **Rendu Premium 90/10** : Affichage responsive avec 90% de la hauteur pour l'image principale active et 10% pour une bande de miniatures circulaires.
+- **Vanilla JS ES2021** : Script sans dépendance externe gérant le calcul du ratio d'aspect naturel des miniatures pour éviter les déformations (supports portraits/paysages).
+- **Logique Circulaire** : Défilement infini des miniatures et navigation circulaire fluide (le clic "Précédent" sur la première image redirige automatiquement vers la dernière).
+- **Diaporama Intelligent** : Diaporama automatique avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`).
+- **Tri Avancé** : Possibilité de trier les images de la galerie par nom de fichier ou par date de prise de vue (EXIF avec fallback sur la date de dépôt WordPress), dans le sens ascendant ou descendant.
+
+### 5. Tableau de Bord d'Administration
 Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
 - **Onglet Statistiques** :
   - Indicateur d'état du serveur (vérification de la présence d'Imagick).
@@ -49,7 +63,12 @@ Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
 ### Installation Manuelle
 1. Téléchargez ou clonez le dépôt dans le dossier `wp-content/plugins/eg-media/`.
 2. Assurez-vous que l'extension **Imagick** est bien activée sur votre serveur PHP.
-3. Activez le plugin depuis l'interface d'administration de WordPress (**Extensions > Extensions installées**).
+3. Installez les dépendances et compilez les blocs Gutenberg :
+   ```bash
+   npm install
+   npm run build
+   ```
+4. Activez le plugin depuis l'interface d'administration de WordPress (**Extensions > Extensions installées**).
 
 ### Configuration Initiale
 1. Rendez-vous dans le menu **Médias > EG Media Manager**.
@@ -64,7 +83,9 @@ Le plugin respecte des standards de développement stricts :
 - **Autoloading natif** : Chargement automatique des classes PHP via un autoloader SPL dans `eg-media.php`.
 - **Modèle Orienté Objet** : Organisation modulaire sous le namespace `EG_MEDIA` dans le dossier `includes/`.
   - `includes/Core/` : Logique fondamentale du plugin.
-  - `includes/Admin/` : Gestion du tableau de bord (Configuration et Statistiques).
+  - `includes/Admin/` : Gestion du tableau de bord et des filtres de médias Backbone (Uploads, Filtres, Actions).
+  - `includes/CPT/` : Enregistrement de la taxonomie personnalisée `eg_media_gallery`.
+  - `includes/Blocks/` : Contrôleurs d'enregistrement des blocs Gutenberg dynamiques.
   - `includes/Services/` : Services de traitement d'images (`Processor` et `BulkProcessor`).
   - `includes/Enums/` : Énumérations typées PHP 8.4.
 - **Sécurité renforcée** : Utilisation systématique de Nonces, de vérifications de rôles (`current_user_can`) et d'échappement des données à l'affichage (`esc_html`, `esc_attr`, `esc_url`).
