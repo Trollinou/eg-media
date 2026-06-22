@@ -249,5 +249,106 @@
                 }
             });
         }
+
+        // Action groupée pour la vue liste (Bulk Assign)
+        function initBulkActionsListMode() {
+            const bulkSelectors = document.querySelectorAll('select[name="action"], select[name="action2"]');
+            if (bulkSelectors.length === 0) {
+                return;
+            }
+
+            const translate = (typeof wp !== 'undefined' && wp.i18n && wp.i18n.__) ? wp.i18n.__ : function (text) { return text; };
+
+            let optionsHtml = '<option value="">' + translate('— Choisir une galerie —', 'eg-media') + '</option>';
+            optionsHtml += '<option value="orphan">' + translate('— Sans affectation —', 'eg-media') + '</option>';
+            if (window.egMediaUploadData && window.egMediaUploadData.galleries) {
+                window.egMediaUploadData.galleries.forEach(function (gallery) {
+                    optionsHtml += '<option value="' + gallery.term_id + '">' + gallery.name + '</option>';
+                });
+            }
+
+            bulkSelectors.forEach(function (selector) {
+                const isAction2 = selector.name === 'action2';
+                const suffix = isAction2 ? '2' : '';
+
+                const container = document.createElement('span');
+                container.className = 'eg-media-bulk-assign-fields';
+                container.style.display = 'none';
+                container.style.verticalAlign = 'middle';
+                container.style.marginLeft = '8px';
+                container.style.marginRight = '8px';
+
+                container.innerHTML = `
+                    <select name="eg_media_bulk_gallery${suffix}" class="eg-media-bulk-gallery-select" style="vertical-align: middle; height: 30px;">
+                        ${optionsHtml}
+                    </select>
+                    <span style="font-size: 13px; color: #646970; margin: 0 4px; vertical-align: middle;">ou</span>
+                    <input type="text" 
+                           name="eg_media_bulk_new_gallery${suffix}" 
+                           class="eg-media-bulk-new-gallery-input" 
+                           placeholder="${translate('Nouvelle galerie...', 'eg-media')}" 
+                           style="vertical-align: middle; height: 30px; line-height: 30px; font-size: 13px; padding: 0 8px;" />
+                `;
+
+                selector.parentNode.insertBefore(container, selector.nextSibling);
+
+                selector.addEventListener('change', function () {
+                    if (this.value === 'eg_media_bulk_assign') {
+                        container.style.display = 'inline-block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+
+                const selectField = container.querySelector('.eg-media-bulk-gallery-select');
+                const inputField = container.querySelector('.eg-media-bulk-new-gallery-input');
+
+                selectField.addEventListener('change', function () {
+                    if (this.value !== '') {
+                        inputField.value = '';
+                    }
+                });
+                inputField.addEventListener('input', function () {
+                    if (this.value !== '') {
+                        selectField.value = '';
+                    }
+                });
+            });
+
+            const form = document.getElementById('posts-filter');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    const actionSelector = document.querySelector('select[name="action"]');
+                    const action2Selector = document.querySelector('select[name="action2"]');
+                    const actionVal = actionSelector ? actionSelector.value : '';
+                    const action2Val = action2Selector ? action2Selector.value : '';
+                    const isTop = actionVal === 'eg_media_bulk_assign';
+                    const isBottom = action2Val === 'eg_media_bulk_assign';
+
+                    if (isTop || isBottom) {
+                        const suffix = isBottom ? '2' : '';
+                        const galleryField = document.querySelector(`select[name="eg_media_bulk_gallery${suffix}"]`);
+                        const newGalleryField = document.querySelector(`input[name="eg_media_bulk_new_gallery${suffix}"]`);
+                        
+                        const galleryVal = galleryField ? galleryField.value : '';
+                        const newGalleryVal = newGalleryField ? newGalleryField.value : '';
+
+                        const hiddenGal = document.createElement('input');
+                        hiddenGal.type = 'hidden';
+                        hiddenGal.name = 'eg_media_bulk_gallery';
+                        hiddenGal.value = galleryVal;
+                        form.appendChild(hiddenGal);
+
+                        const hiddenNew = document.createElement('input');
+                        hiddenNew.type = 'hidden';
+                        hiddenNew.name = 'eg_media_bulk_new_gallery';
+                        hiddenNew.value = newGalleryVal;
+                        form.appendChild(hiddenNew);
+                    }
+                });
+            }
+        }
+
+        initBulkActionsListMode();
     });
 })();

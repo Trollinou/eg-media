@@ -21,6 +21,9 @@ class MediaUpload {
 		add_action( 'pre-upload-ui', [ $this, 'render_gallery_selector' ], 10, 0 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_upload_scripts' ], 10, 1 );
 		add_action( 'add_attachment', [ $this, 'save_uploaded_media_gallery' ], 10, 1 );
+		add_filter( 'bulk_actions-upload', [ $this, 'register_bulk_actions' ], 10, 1 );
+		add_filter( 'handle_bulk_actions-upload', [ $this, 'handle_bulk_actions' ], 10, 3 );
+		add_action( 'admin_notices', [ $this, 'show_bulk_action_notice' ] );
 	}
 
 	/**
@@ -147,6 +150,94 @@ class MediaUpload {
 			if ( $gallery_id > 0 ) {
 				wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
 			}
+		}
+	}
+
+	/**
+	 * Enregistre l'action groupée dans la liste des pièces jointes.
+	 *
+	 * @param array<string, string> $actions Liste des actions groupées.
+	 * @return array<string, string> Liste des actions modifiée.
+	 */
+	public function register_bulk_actions( array $actions ): array {
+		$actions['eg_media_bulk_assign'] = __( 'Associer à une galerie', 'eg-media' );
+		return $actions;
+	}
+
+	/**
+	 * Traite l'action groupée d'association de galerie.
+	 *
+	 * @param string       $redirect_to URL de redirection.
+	 * @param string       $action      Nom de l'action exécutée.
+	 * @param array<int>   $post_ids    Liste des IDs des posts sélectionnés.
+	 * @return string URL de redirection finale.
+	 */
+	public function handle_bulk_actions( string $redirect_to, string $action, array $post_ids ): string {
+		if ( 'eg_media_bulk_assign' !== $action ) {
+			return $redirect_to;
+		}
+
+		$gallery_id  = isset( $_REQUEST['eg_media_bulk_gallery'] ) ? (string) $_REQUEST['eg_media_bulk_gallery'] : '';
+		$new_gallery = isset( $_REQUEST['eg_media_bulk_new_gallery'] ) ? (string) $_REQUEST['eg_media_bulk_new_gallery'] : '';
+
+		$final_gallery_id = 0;
+
+		// 1. Si saisie d'une nouvelle galerie
+		if ( '' !== trim( $new_gallery ) ) {
+			$new_gallery_name = sanitize_text_field( $new_gallery );
+			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
+
+			if ( ! is_wp_error( $term_info ) && is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+				$final_gallery_id = (int) $term_info['term_id'];
+			} elseif ( is_wp_error( $term_info ) && 'term_exists' === $term_info->get_error_code() ) {
+				$existing_term_id = (int) $term_info->get_error_data();
+				if ( $existing_term_id > 0 ) {
+					$final_gallery_id = $existing_term_id;
+				}
+			}
+		}
+		// 2. Sinon, si sélection d'une galerie existante
+		elseif ( '' !== $gallery_id && 'orphan' !== $gallery_id ) {
+			$final_gallery_id = (int) $gallery_id;
+		}
+
+		$count = 0;
+		foreach ( $post_ids as $post_id ) {
+			$post_id = (int) $post_id;
+			if ( $post_id > 0 && current_user_can( 'upload_files' ) ) {
+				if ( 'orphan' === $gallery_id && '' === trim( $new_gallery ) ) {
+					wp_set_object_terms( $post_id, [], 'eg_media_gallery' );
+				} elseif ( $final_gallery_id > 0 ) {
+					wp_set_object_terms( $post_id, $final_gallery_id, 'eg_media_gallery' );
+				}
+				$count++;
+			}
+		}
+
+		return add_query_arg( 'eg_media_bulk_assigned_count', $count, $redirect_to );
+	}
+
+	/**
+	 * Affiche la notification de succès après traitement de l'action groupée.
+	 *
+	 * @return void
+	 */
+	public function show_bulk_action_notice(): void {
+		$count = filter_input( INPUT_GET, 'eg_media_bulk_assigned_count', FILTER_VALIDATE_INT );
+		if ( $count && $count > 0 ) {
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p>
+					<?php
+					printf(
+						/* translators: %d: number of media files */
+						esc_html( _n( '%d média a été associé avec succès.', '%d médias ont été associés avec succès.', $count, 'eg-media' ) ),
+						(int) $count
+					);
+					?>
+				</p>
+			</div>
+			<?php
 		}
 	}
 }
