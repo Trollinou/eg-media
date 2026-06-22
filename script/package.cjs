@@ -296,7 +296,24 @@ try {
     process.exit(1);
 }
 
-// Nettoyage final
-fs.rmSync(buildDir, { recursive: true, force: true });
+// Nettoyage final avec tentative de suppression progressive pour Windows (gestion des verrous)
+console.log('🧹 Nettoyage des fichiers temporaires...');
+let cleaned = false;
+for (let i = 0; i < 5; i++) {
+    try {
+        if (fs.existsSync(buildDir)) {
+            fs.rmSync(buildDir, { recursive: true, force: true });
+        }
+        cleaned = true;
+        break;
+    } catch (e) {
+        // Attendre 1 seconde avant de réessayer (1000ms)
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
+    }
+}
 
-console.log(`✅ Package créé avec succès : ${zipName}`);
+if (cleaned) {
+    console.log(`✅ Package créé avec succès : ${zipName}`);
+} else {
+    console.warn(`⚠️  Package créé : ${zipName}, mais le dossier temporaire "dist-temp" n'a pas pu être nettoyé automatiquement.`);
+}
