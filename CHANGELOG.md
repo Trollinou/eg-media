@@ -8,9 +8,14 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ## [1.0.2] - 2026-06-22
 
 ### Added
-- Implémentation du filtrage par galerie dans la liste de médias (avec l'option "Sans affectation" pour isoler les images orphelines).
-- Implémentation de la sélection d'une galerie par défaut lors des téléversements groupés (Bulk) au-dessus de la zone de drag-and-drop.
-- Script JavaScript en Vanilla JS pour intercepter les requêtes d'envoi et associer les fichiers importés à la galerie ciblée.
+- Implémentation du filtrage par galerie dans la liste de médias (avec l'option "Sans affectation" pour isoler les images orphelines) en mode liste et en mode grille (Backbone / requêtes AJAX `query-attachments`).
+- Implémentation de la sélection d'une galerie par défaut ou de la création rapide d'une nouvelle galerie directement lors des téléversements groupés (Bulk) au-dessus de la zone de drag-and-drop.
+- Script JavaScript en Vanilla JS pour intercepter les requêtes d'envoi et associer les fichiers importés à la galerie ciblée en surchargeant globalement le comportement de `wp.Uploader`.
+- Rafraîchissement automatique de la bibliothèque de médias Backbone à la fin des téléversements pour assurer l'affichage immédiat des images importées avec le filtre de galerie actif.
+
+### Changed
+- Amélioration de l'ergonomie en déplaçant dynamiquement le sélecteur de galerie au-dessus de la zone de drag-and-drop.
+- Remplacement du droit `edit_post` par `upload_files` pour permettre l'assignation de taxonomie lors de la création initiale de l'attachement via le hook `add_attachment` (même si Imagick n'est pas installé sur l'environnement de développement).
 
 ## [1.0.1] - 2026-06-21
 
