@@ -1,26 +1,8 @@
 /**
  * Script d'administration pour intercepter le téléversement et ajouter la galerie ciblée.
  */
-document.addEventListener('DOMContentLoaded', function () {
-
-    // Écouter les changements sur le sélecteur de galerie par délégation d'événement (utile si chargé dynamiquement).
-    document.addEventListener('change', function (event) {
-        if (event.target && event.target.id === 'eg_media_target_gallery') {
-            if (typeof wp !== 'undefined' && wp.Uploader && wp.Uploader.defaults) {
-                wp.Uploader.defaults.multipart_params = wp.Uploader.defaults.multipart_params || {};
-                wp.Uploader.defaults.multipart_params.eg_media_target_gallery = event.target.value;
-            }
-        }
-    });
-
-    // Initialisation au chargement pour le sélecteur statique s'il existe déjà.
-    const initialSelect = document.getElementById('eg_media_target_gallery');
-    if (initialSelect && typeof wp !== 'undefined' && wp.Uploader && wp.Uploader.defaults) {
-        wp.Uploader.defaults.multipart_params = wp.Uploader.defaults.multipart_params || {};
-        wp.Uploader.defaults.multipart_params.eg_media_target_gallery = initialSelect.value;
-    }
-
-    // Surcharge de wp.Uploader pour intercepter toutes les instanciations (Gutenberg, page Ajouter, bibliothèque, etc.)
+(function () {
+    // Surcharge immédiate de wp.Uploader pour intercepter toutes les instanciations futures.
     if (typeof wp !== 'undefined' && wp.Uploader) {
         const OriginalUploader = wp.Uploader;
         wp.Uploader = function (options) {
@@ -42,62 +24,131 @@ document.addEventListener('DOMContentLoaded', function () {
 
             return instance;
         };
-        // Conserver les propriétés statiques
         Object.assign(wp.Uploader, OriginalUploader);
     }
 
-    // Filtre pour la vue Grille de la bibliothèque de médias (Backbone)
-    if (typeof wp !== 'undefined' && wp.media && wp.media.view && wp.media.view.AttachmentFilters) {
-        // Définition de notre composant de filtre personnalisé
-        wp.media.view.AttachmentFilters.EGMediaGallery = wp.media.view.AttachmentFilters.extend({
-            id: 'media-attachment-eg-media-gallery-filter',
-            createFilters: function () {
-                const filters = {};
+    document.addEventListener('DOMContentLoaded', function () {
+        const gallerySelect = document.getElementById('eg_media_target_gallery');
 
-                filters['all'] = {
-                    text: 'Toutes les galeries',
-                    props: {
-                        eg_media_gallery_filter: ''
-                    },
-                    priority: 10
-                };
+        /**
+         * Met à jour les paramètres d'envoi de tous les uploaders actifs et par défaut.
+         */
+        function updateAllUploaders() {
+            const targetSelect = document.getElementById('eg_media_target_gallery');
+            if (!targetSelect) {
+                return;
+            }
+            const val = targetSelect.value;
 
-                filters['orphan'] = {
-                    text: '— Sans affectation —',
-                    props: {
-                        eg_media_gallery_filter: 'orphan'
-                    },
-                    priority: 20
-                };
+            // 1. Defaults de wp.Uploader
+            if (typeof wp !== 'undefined' && wp.Uploader && wp.Uploader.defaults) {
+                wp.Uploader.defaults.multipart_params = wp.Uploader.defaults.multipart_params || {};
+                wp.Uploader.defaults.multipart_params.eg_media_target_gallery = val;
+            }
 
-                if (window.egMediaUploadData && window.egMediaUploadData.galleries) {
-                    window.egMediaUploadData.galleries.forEach(function (gallery) {
-                        filters[gallery.term_id] = {
-                            text: gallery.name,
-                            props: {
-                                eg_media_gallery_filter: gallery.term_id
-                            },
-                            priority: 30
-                        };
-                    });
+            // 2. Instance globale "uploader" (media-new.php)
+            if (typeof uploader !== 'undefined' && uploader.settings) {
+                uploader.settings.multipart_params = uploader.settings.multipart_params || {};
+                uploader.settings.multipart_params.eg_media_target_gallery = val;
+            }
+
+            // 3. Uploader Backbone (wp.media.uploader)
+            if (typeof wp !== 'undefined' && wp.media && wp.media.uploader && wp.media.uploader.uploader) {
+                const wpUp = wp.media.uploader.uploader;
+                if (wpUp.settings) {
+                    wpUp.settings.multipart_params = wpUp.settings.multipart_params || {};
+                    wpUp.settings.multipart_params.eg_media_target_gallery = val;
                 }
+            }
+        }
 
-                this.filters = filters;
+        /**
+         * Lie notre logique BeforeUpload à l'instance globale Plupload de la page de téléversement.
+         */
+        function bindToGlobalUploader() {
+            if (typeof uploader !== 'undefined' && uploader.bind && !uploader._egMediaBound) {
+                uploader.bind('BeforeUpload', function (up) {
+                    const targetSelect = document.getElementById('eg_media_target_gallery');
+                    if (targetSelect) {
+                        up.settings.multipart_params = up.settings.multipart_params || {};
+                        up.settings.multipart_params.eg_media_target_gallery = targetSelect.value;
+                    }
+                });
+                uploader._egMediaBound = true;
+            }
+        }
+
+        // Écouter les changements sur le sélecteur de galerie par délégation d'événement.
+        document.addEventListener('change', function (event) {
+            if (event.target && event.target.id === 'eg_media_target_gallery') {
+                updateAllUploaders();
             }
         });
 
-        // Surcharge de la zone de filtres (AttachmentsBrowser) pour insérer notre filtre
-        const OriginalAttachmentsBrowser = wp.media.view.AttachmentsBrowser;
-        wp.media.view.AttachmentsBrowser = OriginalAttachmentsBrowser.extend({
-            createToolbar: function () {
-                OriginalAttachmentsBrowser.prototype.createToolbar.apply(this, arguments);
-
-                this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
-                    controller: this.controller,
-                    model:      this.collection.props,
-                    priority:   -80
-                }).render());
-            }
+        // Liaison de sécurité sur les gestes utilisateur pour s'assurer que l'uploader global est intercepté.
+        const triggerElements = ['dragover', 'mouseenter', 'click'];
+        triggerElements.forEach(function (evtName) {
+            document.addEventListener(evtName, function () {
+                bindToGlobalUploader();
+                updateAllUploaders();
+            }, { passive: true });
         });
-    }
-});
+
+        // Initialisation initiale
+        bindToGlobalUploader();
+        updateAllUploaders();
+
+        // Filtre pour la vue Grille de la bibliothèque de médias (Backbone)
+        if (typeof wp !== 'undefined' && wp.media && wp.media.view && wp.media.view.AttachmentFilters) {
+            wp.media.view.AttachmentFilters.EGMediaGallery = wp.media.view.AttachmentFilters.extend({
+                id: 'media-attachment-eg-media-gallery-filter',
+                createFilters: function () {
+                    const filters = {};
+
+                    filters['all'] = {
+                        text: 'Toutes les galeries',
+                        props: {
+                            eg_media_gallery_filter: ''
+                        },
+                        priority: 10
+                    };
+
+                    filters['orphan'] = {
+                        text: '— Sans affectation —',
+                        props: {
+                            eg_media_gallery_filter: 'orphan'
+                        },
+                        priority: 20
+                    };
+
+                    if (window.egMediaUploadData && window.egMediaUploadData.galleries) {
+                        window.egMediaUploadData.galleries.forEach(function (gallery) {
+                            filters[gallery.term_id] = {
+                                text: gallery.name,
+                                props: {
+                                    eg_media_gallery_filter: gallery.term_id
+                                },
+                                priority: 30
+                            };
+                        });
+                    }
+
+                    this.filters = filters;
+                }
+            });
+
+            const OriginalAttachmentsBrowser = wp.media.view.AttachmentsBrowser;
+            wp.media.view.AttachmentsBrowser = OriginalAttachmentsBrowser.extend({
+                createToolbar: function () {
+                    OriginalAttachmentsBrowser.prototype.createToolbar.apply(this, arguments);
+
+                    this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
+                        controller: this.controller,
+                        model:      this.collection.props,
+                        priority:   -80
+                    }).render());
+                }
+            });
+        }
+    });
+})();
