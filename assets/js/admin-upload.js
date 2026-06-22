@@ -24,14 +24,27 @@ document.addEventListener('DOMContentLoaded', function () {
     // Première initialisation.
     updateUploaderParams();
 
-    // Hook sur wp.media si Backbone est chargé.
-    if (typeof wp !== 'undefined' && wp.media) {
-        if (wp.media.view && wp.media.view.Uploader) {
-            const originalInit = wp.media.view.Uploader.prototype.initialize;
-            wp.media.view.Uploader.prototype.initialize = function () {
-                originalInit.apply(this, arguments);
-                updateUploaderParams();
-            };
-        }
+    // Surcharge de wp.Uploader pour intercepter toutes les instanciations (Gutenberg, page Ajouter, bibliothèque, etc.)
+    if (typeof wp !== 'undefined' && wp.Uploader) {
+        const OriginalUploader = wp.Uploader;
+        wp.Uploader = function (options) {
+            const val = gallerySelect.value;
+            options.multipart_params = options.multipart_params || {};
+            options.multipart_params.eg_media_target_gallery = val;
+
+            const instance = new OriginalUploader(options);
+
+            if (instance.uploader) {
+                instance.uploader.bind('BeforeUpload', function (up) {
+                    const currentVal = gallerySelect.value;
+                    up.settings.multipart_params = up.settings.multipart_params || {};
+                    up.settings.multipart_params.eg_media_target_gallery = currentVal;
+                });
+            }
+
+            return instance;
+        };
+        // Conserver les propriétés statiques
+        Object.assign(wp.Uploader, OriginalUploader);
     }
 });

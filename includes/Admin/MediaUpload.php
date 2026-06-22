@@ -90,8 +90,8 @@ class MediaUpload {
 			return;
 		}
 
-		// Sécurisation : s'assurer que l'utilisateur a les droits d'édition.
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		// Sécurisation : s'assurer que l'utilisateur a les droits d'import de fichiers.
+		if ( ! current_user_can( 'upload_files' ) ) {
 			return;
 		}
 
