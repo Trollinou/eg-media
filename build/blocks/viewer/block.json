@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "eg-media/viewer",
+  "version": "1.0.3",
+  "title": "Visionneuse de Galerie",
+  "category": "theme",
+  "icon": "images-alt",
+  "description": "Affiche les images d'une galerie avec diaporama et tri avancés.",
+  "supports": {
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ]
+  },
+  "attributes": {
+    "galleryId": {
+      "type": "integer"
+    },
+    "sortBy": {
+      "type": "string",
+      "default": "date"
+    },
+    "sortOrder": {
+      "type": "string",
+      "default": "DESC"
+    },
+    "slideshow": {
+      "type": "boolean",
+      "default": false
+    },
+    "tempo": {
+      "type": "integer",
+      "default": 3000
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "viewScript": "file:./view.js",
+  "render": "file:./render.php"
+}

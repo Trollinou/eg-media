@@ -1,14 +1,18 @@
 {
   "name": "eg-media",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Gestionnaire de Média by EG",
   "main": "eg-media.php",
   "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
     "package": "node script/package.cjs"
   },
   "devDependencies": {
-    "adm-zip": "^0.5.14",
-    "minimatch": "^9.0.5"
+    "@babel/runtime": "^8.0.0",
+    "@wordpress/scripts": "^32.4.0",
+    "adm-zip": "^0.5.17",
+    "minimatch": "^10.2.5"
   },
   "author": "EG",
   "license": "Proprietary"

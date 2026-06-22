@@ -5,6 +5,17 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.3] - 2026-06-22
+
+### Added
+- Implémentation du bloc Gutenberg dynamique "Visionneuse de Galerie" (`eg-media/viewer`) permettant d'afficher les galeries avec une disposition 90% / 10% (image principale / miniatures circulaires).
+- Contrôles dans l'Inspector Gutenberg pour le tri avancé (par Nom ou Date EXIF, avec fallback sur la date de dépôt), l'ordre (ASC/DESC), et la vitesse du diaporama.
+- Script front-end interactif en Vanilla JS (ES2021) gérant le calcul automatique des ratios d'aspect des miniatures, la navigation en boucle infinie (circulaire), le diaporama automatique et l'effet hover pour suspendre temporairement le défilement.
+- Intégration de `@wordpress/scripts` pour la compilation et le packaging des blocs Gutenberg.
+
+### Changed
+- Mise à jour des dépendances npm pour le développement vers les dernières versions (`@wordpress/scripts` ^32.4.0, `adm-zip` ^0.5.17, `minimatch` ^10.2.5).
+
 ## [1.0.2] - 2026-06-22
 
 ### Added
@@ -19,6 +30,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Amélioration de l'ergonomie en déplaçant dynamiquement le sélecteur de galerie au-dessus de la zone de drag-and-drop.
 - Remplacement du droit `edit_post` par `upload_files` pour permettre l'assignation de taxonomie lors de la création initiale de l'attachement via le hook `add_attachment` (même si Imagick n'est pas installé sur l'environnement de développement).
 - Chargement étendu du script d'administration aux pages de création/édition d'articles (`post.php` et `post-new.php`).
+- Amélioration du positionnement et de l'alignement des filtres (type, date, galerie) dans la modale de médias en utilisant CSS Grid pour afficher les labels au-dessus des sélecteurs de manière harmonieuse sur une seule ligne.
+
 
 ## [1.0.1] - 2026-06-21
 

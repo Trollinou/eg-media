@@ -269,24 +269,46 @@ class MediaUpload {
 		<style id="eg-media-modal-filters-style">
 			/* Élargir le conteneur des filtres Backbone dans les modales pour afficher 3 filtres côte à côte */
 			.media-modal .media-frame .media-toolbar-secondary {
+				display: grid !important;
+				grid-template-rows: auto auto !important;
+				grid-auto-flow: column !important;
+				gap: 4px 12px !important;
 				max-width: 85% !important;
-			}
-			/* Adapter la taille et la marge des sélecteurs de filtres */
-			.media-modal select.attachment-filters {
-				width: 30% !important;
-				margin-right: 3% !important;
-				max-width: 200px !important;
 				float: left !important;
+				position: relative !important;
 			}
-			/* Gérer le positionnement absolu des labels au-dessus de leur sélecteur respectif */
-			.media-modal .media-toolbar-secondary label[for="media-attachment-filters"] {
-				left: 0 !important;
+			/* Afficher correctement les labels au-dessus de chaque sélecteur */
+			.media-modal .media-toolbar-secondary label {
+				position: static !important;
+				display: block !important;
+				font-size: 12px !important;
+				font-weight: 600 !important;
+				color: #1e1e1e !important;
+				margin: 0 !important;
+				padding: 0 !important;
+				width: auto !important;
+				height: auto !important;
+				clip: auto !important;
+				clip-path: none !important;
+				white-space: nowrap !important;
 			}
-			.media-modal .media-toolbar-secondary label[for="media-attachment-date-filters"] {
-				left: 33% !important;
+			/* Adapter la taille des sélecteurs de filtres */
+			.media-modal select.attachment-filters {
+				width: 100% !important;
+				max-width: 200px !important;
+				margin: 0 !important;
+				float: none !important;
+				display: block !important;
+				height: 32px !important;
 			}
-			.media-modal .media-toolbar-secondary label[for="media-attachment-eg-media-gallery-filter"] {
-				left: 66% !important;
+			/* Sortir le spinner du flux de la grille pour ne pas perturber les colonnes */
+			.media-modal .media-toolbar-secondary .spinner {
+				position: absolute !important;
+				left: 100% !important;
+				top: 50% !important;
+				transform: translateY(-50%) !important;
+				margin: 0 0 0 10px !important;
+				display: inline-block !important;
 			}
 		</style>
 		<?php
