@@ -24,6 +24,7 @@ class MediaUpload {
 		add_filter( 'bulk_actions-upload', [ $this, 'register_bulk_actions' ], 10, 1 );
 		add_filter( 'handle_bulk_actions-upload', [ $this, 'handle_bulk_actions' ], 10, 3 );
 		add_action( 'admin_notices', [ $this, 'show_bulk_action_notice' ] );
+		add_action( 'admin_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -117,12 +118,6 @@ class MediaUpload {
 			[
 				'galleries' => $galleries_data,
 			]
-		);
-
-		// Style inline pour adapter la largeur des filtres dans le modal d'images et les faire tenir sur une seule ligne.
-		wp_add_inline_style(
-			'common',
-			'.media-modal .media-frame .media-toolbar-secondary { max-width: 85% !important; } .media-modal select.attachment-filters { width: 30% !important; margin-right: 2% !important; }'
 		);
 	}
 
@@ -252,5 +247,36 @@ class MediaUpload {
 			</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Imprime les styles CSS personnalisés pour ajuster la disposition des filtres dans la médiathèque.
+	 *
+	 * @return void
+	 */
+	public function print_inline_styles(): void {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen ) {
+			return;
+		}
+
+		$allowed_bases = [ 'post', 'upload', 'media' ];
+		if ( ! in_array( $screen->base, $allowed_bases, true ) ) {
+			return;
+		}
+
+		?>
+		<style id="eg-media-modal-filters-style">
+			/* Élargir le conteneur des filtres Backbone dans les modales pour afficher 3 filtres côte à côte */
+			.media-modal .media-frame .media-toolbar-secondary {
+				max-width: 85% !important;
+			}
+			.media-modal select.attachment-filters {
+				width: 30% !important;
+				margin-right: 2% !important;
+				max-width: 200px !important;
+			}
+		</style>
+		<?php
 	}
 }
