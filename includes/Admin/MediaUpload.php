@@ -271,10 +271,22 @@ class MediaUpload {
 			.media-modal .media-frame .media-toolbar-secondary {
 				max-width: 85% !important;
 			}
+			/* Adapter la taille et la marge des sélecteurs de filtres */
 			.media-modal select.attachment-filters {
 				width: 30% !important;
-				margin-right: 2% !important;
+				margin-right: 3% !important;
 				max-width: 200px !important;
+				float: left !important;
+			}
+			/* Gérer le positionnement absolu des labels au-dessus de leur sélecteur respectif */
+			.media-modal .media-toolbar-secondary label[for="media-attachment-filters"] {
+				left: 0 !important;
+			}
+			.media-modal .media-toolbar-secondary label[for="media-attachment-date-filters"] {
+				left: 33% !important;
+			}
+			.media-modal .media-toolbar-secondary label[for="media-attachment-eg-media-gallery-filter"] {
+				left: 66% !important;
 			}
 		</style>
 		<?php
