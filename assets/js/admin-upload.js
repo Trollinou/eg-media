@@ -113,6 +113,7 @@
          * Lie notre logique BeforeUpload à l'instance globale Plupload de la page de téléversement.
          */
         function bindToGlobalUploader() {
+            // 1. Uploader global (media-new.php)
             if (typeof uploader !== 'undefined' && uploader.bind && !uploader._egMediaBound) {
                 uploader.bind('BeforeUpload', function (up) {
                     const targetSelect = document.getElementById('eg_media_target_gallery');
@@ -132,6 +133,30 @@
                 });
 
                 uploader._egMediaBound = true;
+            }
+
+            // 2. Uploader Backbone (wp.media.uploader.uploader)
+            if (typeof wp !== 'undefined' && wp.media && wp.media.uploader && wp.media.uploader.uploader) {
+                const wpUp = wp.media.uploader.uploader;
+                if (wpUp.bind && !wpUp._egMediaBound) {
+                    wpUp.bind('BeforeUpload', function (up) {
+                        const targetSelect = document.getElementById('eg_media_target_gallery');
+                        const targetNewInput = document.getElementById('eg_media_new_target_gallery');
+                        
+                        const val = targetSelect ? targetSelect.value : '';
+                        const newVal = targetNewInput ? targetNewInput.value : '';
+
+                        up.settings.multipart_params = up.settings.multipart_params || {};
+                        up.settings.multipart_params.eg_media_target_gallery = val;
+                        up.settings.multipart_params.eg_media_new_target_gallery = newVal;
+                    });
+
+                    wpUp.bind('UploadComplete', function () {
+                        setTimeout(refreshMediaLibrary, 500);
+                    });
+
+                    wpUp._egMediaBound = true;
+                }
             }
         }
 

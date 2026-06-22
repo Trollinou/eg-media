@@ -123,7 +123,7 @@ class MediaUpload {
 		}
 
 		// 1. Vérifier si une nouvelle galerie doit être créée à la volée.
-		$new_gallery = filter_input( INPUT_POST, 'eg_media_new_target_gallery', FILTER_DEFAULT );
+		$new_gallery = isset( $_POST['eg_media_new_target_gallery'] ) ? $_POST['eg_media_new_target_gallery'] : null;
 		if ( null !== $new_gallery && '' !== trim( (string) $new_gallery ) ) {
 			$new_gallery_name = sanitize_text_field( (string) $new_gallery );
 			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
@@ -141,7 +141,7 @@ class MediaUpload {
 		}
 
 		// 2. Sinon, vérifier si une galerie existante est sélectionnée.
-		$target_gallery = filter_input( INPUT_POST, 'eg_media_target_gallery', FILTER_DEFAULT );
+		$target_gallery = isset( $_POST['eg_media_target_gallery'] ) ? $_POST['eg_media_target_gallery'] : null;
 		if ( null !== $target_gallery && '' !== $target_gallery ) {
 			$gallery_id = (int) $target_gallery;
 			if ( $gallery_id > 0 ) {
