@@ -10,6 +10,9 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ### Added
 - Implémentation d'un fallback d'optimisation d'image complet et robuste en GD PHP native lorsque Imagick n'est pas activé. Le traitement inclut désormais le redressement automatique par données EXIF, le redimensionnement bilinéaire, l'accentuation de la netteté (Unsharp Mask) par matrice de convolution 3x3, l'activation du mode progressif/entrelacé, ainsi que le contrôle et la conversion fine de la compression par type de fichier (JPEG, WebP, et PNG échelonné sur 0-9).
 
+### Fixed
+- Correction d'un conflit d'ombre portée sur la visionneuse : suppression des ombres portées CSS/SCSS codées en dur sur `.eg-viewer` et `.eg-viewer-placeholder` afin de laisser le contrôle complet aux réglages d'ombres standards de l'éditeur WordPress (Gutenberg).
+
 ## [1.0.4] - 2026-06-22
 
 ### Added
