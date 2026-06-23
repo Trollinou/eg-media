@@ -4,8 +4,9 @@ vendor/
 *.local
 *.zip
 
-# --- Dossiers temporaires de packaging ---
+# --- Dossiers temporaires de packaging et de build ---
 dist-temp/
+build/
 
 # --- OS & Système ---
 Thumbs.db
