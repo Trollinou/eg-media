@@ -1,6 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
-import { InspectorControls } from '@wordpress/block-editor';
+import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
 import {
 	PanelBody,
 	SelectControl,
@@ -10,7 +10,10 @@ import {
 } from '@wordpress/components';
 
 export default function Edit( { attributes, setAttributes } ) {
-	const { galleryId, sortBy, sortOrder, slideshow, tempo } = attributes;
+	const { galleryId, sortBy, sortOrder, slideshow, tempo, resolution } = attributes;
+	const blockProps = useBlockProps( {
+		className: 'eg-viewer-editor-wrapper',
+	} );
 
 	// Récupérer la liste des galeries via la taxonomie eg_media_gallery
 	const galleries = useSelect( ( select ) => {
@@ -60,6 +63,19 @@ export default function Edit( { attributes, setAttributes } ) {
 						value={ galleryId || '' }
 						options={ galleryOptions }
 						onChange={ handleGalleryChange }
+					/>
+					<SelectControl
+						label={ __( 'Résolution', 'eg-media' ) }
+						value={ resolution || 'full' }
+						options={ [
+							{ label: __( 'Taille originale (Full)', 'eg-media' ), value: 'full' },
+							{ label: __( 'Grande (Large)', 'eg-media' ), value: 'large' },
+							{ label: __( 'Moyenne (Medium)', 'eg-media' ), value: 'medium' },
+							{ label: __( 'Miniature (Thumbnail)', 'eg-media' ), value: 'thumbnail' },
+						] }
+						onChange={ ( value ) =>
+							setAttributes( { resolution: value } )
+						}
 					/>
 					<SelectControl
 						label={ __( 'Trier par', 'eg-media' ) }
@@ -123,7 +139,7 @@ export default function Edit( { attributes, setAttributes } ) {
 				</PanelBody>
 			</InspectorControls>
 
-			<div className="eg-viewer-editor-wrapper">
+			<div { ...blockProps }>
 				{ ! galleryId ? (
 					<Placeholder
 						icon="images-alt"
@@ -151,6 +167,10 @@ export default function Edit( { attributes, setAttributes } ) {
 									: `ID: ${ galleryId }` }
 							</p>
 							<div className="eg-viewer-placeholder__meta">
+								<span>
+									<strong>Résolution :</strong>{ ' ' }
+									{ resolution || 'full' }
+								</span>
 								<span>
 									<strong>Tri :</strong>{ ' ' }
 									{ sortBy === 'date' ? 'Date' : 'Nom' } (

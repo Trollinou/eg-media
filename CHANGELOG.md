@@ -11,6 +11,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Implémentation d'une action AJAX sécurisée `eg_media_get_galleries` pour l'actualisation dynamique du sélecteur de galeries.
 - Mise à jour automatique des listes déroulantes de galeries à la fin des téléversements groupés (`UploadComplete`) avec pré-sélection automatique de la galerie créée à la volée.
 - Implémentation du mode plein écran sur la visionneuse (toggled au clic sur la photo principale, avec bouton de fermeture "X" dans le coin supérieur droit).
+- Ajout d'un contrôle de sélection de la résolution d'image (`Taille originale`, `Grande`, `Moyenne`, `Miniature`) dans l'inspecteur Gutenberg du bloc Visionneuse.
+- Intégration des supports natifs WordPress pour les espacements (marges internes/externes), les bordures (arrondi de coins) et les ombres sur le bloc Visionneuse.
 
 ### Changed
 - Augmentation de la limite de mémoire PHP pour le traitement d'images à `512M` via le filtre WordPress `image_memory_limit` afin d'éviter les crashs lors d'imports groupés.
@@ -19,6 +21,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Harmonisation visuelle de la visionneuse avec le thème (vignettes rectangulaires avec `aspect-ratio: 3/2` et `border-radius: 4px`, couleurs d'accentuation calquées sur la palette du thème).
 - Correction du bug visuel de superposition/empilement d'images (notamment sous Safari/WebKit) en détruisant et recréant l'élément image du DOM à chaque changement, éliminant ainsi les caches GPU.
 - Ajustement du diaporama pour désactiver la mise en pause automatique au survol de la souris lorsque la visionneuse est en plein écran.
+- Amélioration de l'ergonomie d'édition dans Gutenberg : correction de la sélection du bloc et affichage de la barre d'outils flottante standard grâce à `useBlockProps`.
+- Refonte visuelle de l'aperçu du bloc en mode édition : affichage d'un espace réservé (placeholder) premium en mode sombre (hauteur réelle de 600px), indiquant le nom de la galerie active et sa résolution choisie.
 
 ## [1.0.3] - 2026-06-22
 

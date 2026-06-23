@@ -9,11 +9,23 @@
   "description": "Affiche les images d'une galerie avec diaporama et tri avancés.",
   "supports": {
     "html": false,
-    "align": ["wide", "full"]
+    "align": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "border": {
+      "radius": true
+    },
+    "shadow": true
   },
   "attributes": {
     "galleryId": {
       "type": "integer"
+    },
+    "resolution": {
+      "type": "string",
+      "default": "full"
     },
     "sortBy": {
       "type": "string",

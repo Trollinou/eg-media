@@ -16,6 +16,7 @@ $sort_by    = $attributes['sortBy'] ?? 'date';
 $sort_order = $attributes['sortOrder'] ?? 'DESC';
 $slideshow  = ! empty( $attributes['slideshow'] );
 $tempo      = (int) ( $attributes['tempo'] ?? 3000 );
+$resolution = $attributes['resolution'] ?? 'full';
 
 // Récupérer les pièces jointes
 $query_args = [
@@ -60,12 +61,16 @@ usort( $attachments, function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort
 } );
 
 $first_attachment = $attachments[0];
-$first_image_src  = wp_get_attachment_image_url( $first_attachment->ID, 'full' ) ?: '';
+$first_image_src  = wp_get_attachment_image_url( $first_attachment->ID, $resolution ) ?: '';
 $first_image_alt  = get_post_meta( $first_attachment->ID, '_wp_attachment_image_alt', true ) ?: $first_attachment->post_title;
+
+$wrapper_attributes = get_block_wrapper_attributes( [
+	'class'          => 'eg-viewer',
+	'data-slideshow' => $slideshow ? 'true' : 'false',
+	'data-tempo'     => esc_attr( (string) $tempo ),
+] );
 ?>
-<div class="eg-viewer" 
-	 data-slideshow="<?php echo $slideshow ? 'true' : 'false'; ?>" 
-	 data-tempo="<?php echo esc_attr( (string) $tempo ); ?>">
+<div <?php echo $wrapper_attributes; ?>>
 	
 	<button class="eg-viewer__close" aria-label="<?php esc_attr_e( 'Fermer le plein écran', 'eg-media' ); ?>">&times;</button>
 
@@ -80,7 +85,7 @@ $first_image_alt  = get_post_meta( $first_attachment->ID, '_wp_attachment_image_
 			<div class="eg-viewer__track">
 				<?php foreach ( $attachments as $index => $attachment ) : 
 					$thumb_src = wp_get_attachment_image_url( $attachment->ID, 'thumbnail' ) ?: '';
-					$full_src  = wp_get_attachment_image_url( $attachment->ID, 'full' ) ?: '';
+					$full_src  = wp_get_attachment_image_url( $attachment->ID, $resolution ) ?: '';
 					$alt       = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) ?: $attachment->post_title;
 					
 					$meta = wp_get_attachment_metadata( $attachment->ID );
