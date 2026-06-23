@@ -12,6 +12,9 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ### Changed
 - Configuration par défaut du filtre de galerie sur "Sans affectation" (`orphan`) lors du chargement initial de la bibliothèque de médias (`upload.php`) sans paramètres de filtrage pour limiter l'affichage initial.
+- Refonte responsive de la visionneuse de galerie (`.eg-viewer`) : suppression de la hauteur fixe de 600px au profit d'un `aspect-ratio` fluide (4/3 par défaut sur mobile, 16/9 à partir de 768px de largeur), hauteur dynamique `height: auto` et limite de hauteur `max-height: 85vh`.
+- Optimisation Safari de la zone image principale (`.eg-viewer__main`) : intégration d'un positionnement absolu sur l'image (`.eg-viewer__main-image`) avec `object-fit: contain` (Safari Hack), et ajustement de la transition d'opacité à `0.15s` pour concorder avec le setTimeout de 150ms du JS.
+- Amélioration du bandeau de miniatures : application d'une hauteur fluide et bornée (`flex: 0 0 clamp(60px, 12%, 80px)`), retrait du ratio d'aspect fixe des miniatures (`aspect-ratio: 3/2`) au profit des calculs dynamiques de taille injectés par JavaScript, et activation de `will-change: transform` sur la piste de défilement (`.eg-viewer__track`).
 
 ### Fixed
 - Correction d'un conflit d'ombre portée sur la visionneuse : suppression des ombres portées CSS/SCSS codées en dur sur `.eg-viewer` et `.eg-viewer-placeholder` afin de laisser le contrôle complet aux réglages d'ombres standards de l'éditeur WordPress (Gutenberg).
