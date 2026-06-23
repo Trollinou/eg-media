@@ -46,13 +46,16 @@ class MediaFilter {
 		] );
 
 		$galleries = is_array( $terms ) ? $terms : [];
-		$selected  = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
-		$selected  = is_string( $selected ) ? $selected : '';
+		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
+		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
 
-		if ( '' === $selected ) {
-			$gallery_slug = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
-			if ( is_string( $gallery_slug ) && '' !== $gallery_slug ) {
-				$term = get_term_by( 'slug', $gallery_slug, 'eg_media_gallery' );
+		if ( null === $gallery_id_param && null === $gallery_slug_param ) {
+			$selected = 'orphan';
+		} else {
+			$selected = is_string( $gallery_id_param ) ? $gallery_id_param : '';
+
+			if ( '' === $selected && is_string( $gallery_slug_param ) && '' !== $gallery_slug_param ) {
+				$term = get_term_by( 'slug', $gallery_slug_param, 'eg_media_gallery' );
 				if ( $term instanceof \WP_Term ) {
 					$selected = (string) $term->term_id;
 				}
@@ -96,8 +99,16 @@ class MediaFilter {
 			return;
 		}
 
-		$gallery_id = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
-		if ( null === $gallery_id || '' === $gallery_id ) {
+		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
+		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
+
+		if ( null === $gallery_id_param && null === $gallery_slug_param ) {
+			$gallery_id = 'orphan';
+		} else {
+			$gallery_id = is_string( $gallery_id_param ) ? $gallery_id_param : '';
+		}
+
+		if ( '' === $gallery_id ) {
 			return;
 		}
 

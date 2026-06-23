@@ -329,6 +329,16 @@
                         }).render());
                     }
 
+                    if (this.collection && this.collection.props) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const hasFilter = urlParams.has('eg_media_gallery_filter') || urlParams.has('eg_media_gallery');
+                        if (!hasFilter && window.location.pathname.indexOf('upload.php') !== -1) {
+                            if (this.collection.props.get('eg_media_gallery_filter') === undefined) {
+                                this.collection.props.set('eg_media_gallery_filter', 'orphan');
+                            }
+                        }
+                    }
+
                     this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
                         controller: this.controller,
                         model:      this.collection.props,
