@@ -6,9 +6,9 @@
  * Version:           1.0.5
  * Requires at least: 6.0
  * Requires PHP:      8.4
- * Author:            EG
- * Author URI:        https://example.com
- * License:           Proprietary
+ * Author:            Etienne Gagnon
+ * Author URI:        https://github.com/Trollinou/eg-media
+ * License:           GPLv2 or later
  * Text Domain:       eg-media
  * Domain Path:       /languages
  */
