@@ -5,6 +5,11 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.5] - 2026-06-23
+
+### Added
+- Implémentation d'un fallback d'optimisation d'image complet et robuste en GD PHP native lorsque Imagick n'est pas activé. Le traitement inclut désormais le redressement automatique par données EXIF, le redimensionnement bilinéaire, l'accentuation de la netteté (Unsharp Mask) par matrice de convolution 3x3, l'activation du mode progressif/entrelacé, ainsi que le contrôle et la conversion fine de la compression par type de fichier (JPEG, WebP, et PNG échelonné sur 0-9).
+
 ## [1.0.4] - 2026-06-22
 
 ### Added

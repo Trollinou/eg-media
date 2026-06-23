@@ -189,9 +189,8 @@ class Processor {
 			return null;
 		}
 
-		$editor = wp_get_image_editor( $file_path );
-		if ( is_wp_error( $editor ) ) {
-			error_log( "EG Media Manager - Fallback : Impossible d'obtenir l'éditeur d'image pour {$file_path} : " . $editor->get_error_message() );
+		if ( ! function_exists( 'gd_info' ) ) {
+			error_log( "EG Media Manager - Fallback GD non disponible : l'extension GD est absente du serveur." );
 			return null;
 		}
 
@@ -199,27 +198,106 @@ class Processor {
 			clearstatcache( true, $file_path );
 			$original_size = (int) @filesize( $file_path );
 
-			// Récupération des options avec valeurs par défaut.
-			$max_width          = (int) get_option( 'eg_media_resize_max_width', 2000 );
-			$compression_qty    = (int) get_option( 'eg_media_compression_quality', 80 );
-
-			$size = $editor->get_size();
-			if ( is_array( $size ) && isset( $size['width'] ) && $max_width > 0 && $size['width'] > $max_width ) {
-				$editor->resize( $max_width, null );
-			}
-
-			// Appliquer la qualité de compression
-			$editor->set_quality( $compression_qty );
-
-			// Sauvegarder
-			$saved = $editor->save( $file_path );
-			if ( is_wp_error( $saved ) ) {
-				error_log( "EG Media Manager - Fallback : Échec de la sauvegarde de l'image {$file_path} : " . $saved->get_error_message() );
+			$info = @getimagesize( $file_path );
+			if ( ! $info ) {
 				return null;
 			}
 
-			// Libérer la mémoire
-			unset( $editor );
+			$mime  = $info['mime'];
+			$image = match ( $mime ) {
+				'image/jpeg' => @imagecreatefromjpeg( $file_path ),
+				'image/png'  => @imagecreatefrompng( $file_path ),
+				'image/webp' => @imagecreatefromwebp( $file_path ),
+				default      => null,
+			};
+
+			if ( ! $image ) {
+				return null;
+			}
+
+			// Récupération des options
+			$max_width          = (int) get_option( 'eg_media_resize_max_width', 2000 );
+			$compression_qty    = (int) get_option( 'eg_media_compression_quality', 80 );
+			$png_compression    = (string) get_option( 'eg_media_png_compression', 'moyenne' );
+			$use_unsharp_mask   = (bool) get_option( 'eg_media_unsharp_mask', true );
+			$use_auto_orient    = (bool) get_option( 'eg_media_auto_orient', true );
+			$use_interlace      = (bool) get_option( 'eg_media_interlace', true );
+
+			// 1. Redressement automatique via EXIF (uniquement JPEG et si exif_read_data existe)
+			if ( $use_auto_orient && 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
+				$exif = @exif_read_data( $file_path );
+				if ( ! empty( $exif['Orientation'] ) ) {
+					$orientation = (int) $exif['Orientation'];
+					$rotated     = match ( $orientation ) {
+						3 => @imagerotate( $image, 180, 0 ),
+						6 => @imagerotate( $image, -90, 0 ),
+						8 => @imagerotate( $image, 90, 0 ),
+						default => null,
+					};
+					if ( $rotated ) {
+						imagedestroy( $image );
+						$image = $rotated;
+					}
+				}
+			}
+
+			// 2. Redimensionnement
+			$width  = imagesx( $image );
+			$height = imagesy( $image );
+			if ( $max_width > 0 && $width > $max_width ) {
+				$new_width  = $max_width;
+				$new_height = (int) round( $height * ( $max_width / $width ) );
+				$resized    = @imagescale( $image, $new_width, $new_height, IMG_BILINEAR_FIXED );
+				if ( $resized ) {
+					imagedestroy( $image );
+					$image  = $resized;
+					$width  = $new_width;
+					$height = $new_height;
+				}
+			}
+
+			// 3. Unsharp Mask (Netteté par convolution 3x3 si redimensionné ou demandé)
+			if ( $use_unsharp_mask ) {
+				// Matrice de convolution typique d'accentuation (Sharpen)
+				$matrix = [
+					[ -1.0, -1.0, -1.0 ],
+					[ -1.0,  9.0, -1.0 ],
+					[ -1.0, -1.0, -1.0 ],
+				];
+				// Diviseur à 1.0 (somme des coefficients = 1 pour conserver la luminosité globale)
+				// Offset de 0
+				@imageconvolution( $image, $matrix, 1.0, 0.0 );
+			}
+
+			// 4. Mode progressif (Interlace)
+			if ( $use_interlace ) {
+				@imageinterlace( $image, true );
+			}
+
+			// 5. Sauvegarde et compression selon le format
+			$saved = false;
+			if ( 'image/jpeg' === $mime ) {
+				$saved = @imagejpeg( $image, $file_path, $compression_qty );
+			} elseif ( 'image/webp' === $mime ) {
+				$saved = @imagewebp( $image, $file_path, $compression_qty );
+			} elseif ( 'image/png' === $mime ) {
+				// GD utilise un niveau de compression de 0 (pas de compression) à 9 (compression max)
+				$png_level = 6; // moyenne par défaut
+				if ( 'faible' === $png_compression ) {
+					$png_level = 3;
+				} elseif ( 'forte' === $png_compression ) {
+					$png_level = 9;
+				}
+				// Désactivation de l'interlace pour PNG si GD ne le supporte pas de la même manière
+				$saved = @imagepng( $image, $file_path, $png_level );
+			}
+
+			imagedestroy( $image );
+
+			if ( ! $saved ) {
+				error_log( "EG Media Manager - Fallback : Impossible de sauvegarder l'image optimisée : {$file_path}" );
+				return null;
+			}
 
 			// Forcer le recalcul de la taille sur le disque.
 			clearstatcache( true, $file_path );
