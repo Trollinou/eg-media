@@ -49,6 +49,16 @@ class MediaFilter {
 		$selected  = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
 		$selected  = is_string( $selected ) ? $selected : '';
 
+		if ( '' === $selected ) {
+			$gallery_slug = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
+			if ( is_string( $gallery_slug ) && '' !== $gallery_slug ) {
+				$term = get_term_by( 'slug', $gallery_slug, 'eg_media_gallery' );
+				if ( $term instanceof \WP_Term ) {
+					$selected = (string) $term->term_id;
+				}
+			}
+		}
+
 		?>
 		<label class="screen-reader-text" for="eg_media_gallery_filter">
 			<?php esc_html_e( 'Filtrer par galerie', 'eg-media' ); ?>

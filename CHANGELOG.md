@@ -12,6 +12,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ### Fixed
 - Correction d'un conflit d'ombre portée sur la visionneuse : suppression des ombres portées CSS/SCSS codées en dur sur `.eg-viewer` et `.eg-viewer-placeholder` afin de laisser le contrôle complet aux réglages d'ombres standards de l'éditeur WordPress (Gutenberg).
+- Sélection automatique de la galerie dans le menu déroulant de la bibliothèque de médias lors de la redirection depuis l'écran Médias/Galeries (gestion du paramètre de requête natif `eg_media_gallery`).
+
 
 ## [1.0.4] - 2026-06-22
 
