@@ -3,3 +3,24 @@ vendor/
 .DS_Store
 *.local
 *.zip
+
+# --- Dossiers temporaires de packaging ---
+dist-temp/
+
+# --- OS & Système ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Fichiers IDEs & Éditeurs ---
+.idea/
+.vscode/
+*.suo
+*.swp
+*.swo
+
+# --- Logs et Caches ---
+.eslintcache
+.phpunit.result.cache
+*.log
+npm-debug.log*
