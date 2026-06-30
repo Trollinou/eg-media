@@ -2,7 +2,7 @@
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
   "name": "eg-media/viewer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "title": "Visionneuse de Galerie",
   "category": "theme",
   "icon": "images-alt",
@@ -42,6 +42,14 @@
     "tempo": {
       "type": "integer",
       "default": 3000
+    },
+    "layout": {
+      "type": "string",
+      "default": "viewer"
+    },
+    "imagesPerPage": {
+      "type": "integer",
+      "default": 30
     }
   },
   "editorScript": "file:./index.js",

@@ -32,7 +32,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			return;
 		}
 
-		const isSlideshow = viewer.dataset.slideshow === 'true';
+		const layout = viewer.dataset.layout || 'viewer';
+		const isSlideshow =
+			viewer.dataset.slideshow === 'true' && layout !== 'justified';
 		const tempo = parseInt( viewer.dataset.tempo, 10 ) || 3000;
 
 		let currentIndex = 0;
@@ -83,7 +85,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				return;
 			}
 
-			const currentImg = mainContainer.querySelector( '.eg-viewer__main-image' );
+			const currentImg = mainContainer.querySelector(
+				'.eg-viewer__main-image'
+			);
 			if ( currentImg ) {
 				currentImg.style.opacity = '0';
 			}
@@ -104,18 +108,23 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				const newImg = document.createElement( 'img' );
 				newImg.className = 'eg-viewer__main-image';
 				newImg.style.opacity = '0';
-				newImg.style.cursor = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer ? 'zoom-out' : 'zoom-in';
-				
+				newImg.style.cursor =
+					document.fullscreenElement === viewer ||
+					document.webkitFullscreenElement === viewer
+						? 'zoom-out'
+						: 'zoom-in';
+
 				// Ré-attacher l'écouteur de clic pour le plein écran
 				newImg.addEventListener( 'click', toggleFullscreen );
 
 				// Précharger et afficher l'image propre
-				const tempImg = new Image();
+				const tempImg = new window.Image();
 				tempImg.onload = () => {
 					newImg.src = newSrc;
 					newImg.alt = newAlt;
 					mainContainer.appendChild( newImg );
 					// Forcer un reflow pour déclencher l'animation d'opacité
+					/* eslint-disable-next-line no-unused-expressions */
 					newImg.offsetHeight;
 					newImg.style.opacity = '1';
 				};
@@ -163,13 +172,26 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			track.style.transform = `translateX(${ trackOffset }px)`;
 		};
 
-		// Décaler la piste au clic sur une flèche
+		// Décaler la piste au clic sur une flèche sans changer l'image active
 		const shiftTrack = ( direction ) => {
+			const viewportWidth = thumbnailsContainer.clientWidth;
+			const scrollAmount = viewportWidth * 0.6; // Défilement de 60% de la largeur visible
+			const maxScroll = -( track.scrollWidth - viewportWidth );
+
 			if ( direction === 'next' ) {
-				setActiveImage( currentIndex + 1 );
+				trackOffset -= scrollAmount;
 			} else {
-				setActiveImage( currentIndex - 1 );
+				trackOffset += scrollAmount;
 			}
+
+			// Limiter le décalage pour ne pas scroller dans le vide
+			if ( trackOffset > 0 ) {
+				trackOffset = 0;
+			} else if ( trackOffset < maxScroll && maxScroll < 0 ) {
+				trackOffset = maxScroll;
+			}
+
+			track.style.transform = `translateX(${ trackOffset }px)`;
 		};
 
 		// Événements boutons
@@ -187,6 +209,79 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				setActiveImage( index );
 			} );
 		} );
+
+		// 3.5 Gestion de la grille justifiée
+		if ( layout === 'justified' ) {
+			const limit = parseInt( viewer.dataset.limit, 10 ) || 30;
+			const imagesJsonStr = viewer.dataset.imagesJson;
+			let imagesData = [];
+			try {
+				if ( imagesJsonStr ) {
+					imagesData = JSON.parse( imagesJsonStr );
+				}
+			} catch ( e ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Erreur lors du parsing JSON des images :', e );
+			}
+
+			let currentLoadedCount = Math.min( imagesData.length, limit );
+
+			const justifiedGrid = viewer.querySelector(
+				'.eg-viewer__justified-grid'
+			);
+			if ( justifiedGrid ) {
+				justifiedGrid.addEventListener( 'click', ( e ) => {
+					const item = e.target.closest(
+						'.eg-viewer__justified-item'
+					);
+					if ( item ) {
+						const index = parseInt( item.dataset.index, 10 );
+						setActiveImage( index );
+						toggleFullscreen();
+					}
+				} );
+			}
+
+			const loadMoreBtn = viewer.querySelector(
+				'.eg-viewer__load-more-btn'
+			);
+			if ( loadMoreBtn && justifiedGrid ) {
+				loadMoreBtn.addEventListener( 'click', () => {
+					const nextBatch = imagesData.slice(
+						currentLoadedCount,
+						currentLoadedCount + limit
+					);
+					nextBatch.forEach( ( img ) => {
+						const aspect = img.width / img.height;
+						const flexBasis = aspect * 150;
+						const itemDiv = document.createElement( 'div' );
+						itemDiv.className = 'eg-viewer__justified-item';
+						itemDiv.dataset.index = img.index;
+						itemDiv.style.flexGrow = aspect;
+						itemDiv.style.flexBasis = `${ flexBasis }px`;
+
+						const imgEl = document.createElement( 'img' );
+						imgEl.src = img.thumbSrc;
+						imgEl.alt = img.alt;
+						imgEl.loading = 'lazy';
+
+						itemDiv.appendChild( imgEl );
+						justifiedGrid.appendChild( itemDiv );
+					} );
+
+					currentLoadedCount += nextBatch.length;
+
+					if ( currentLoadedCount >= imagesData.length ) {
+						const container = viewer.querySelector(
+							'.eg-viewer__load-more-container'
+						);
+						if ( container ) {
+							container.style.display = 'none';
+						}
+					}
+				} );
+			}
+		}
 
 		// 4. Gestion du diaporama
 		const startSlideshow = () => {
@@ -209,7 +304,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		const closeBtn = viewer.querySelector( '.eg-viewer__close' );
 
 		const toggleFullscreen = () => {
-			if ( ! document.fullscreenElement && ! document.webkitFullscreenElement ) {
+			if (
+				! document.fullscreenElement &&
+				! document.webkitFullscreenElement
+			) {
 				if ( viewer.requestFullscreen ) {
 					viewer.requestFullscreen();
 				} else if ( viewer.webkitRequestFullscreen ) {
@@ -217,14 +315,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				} else if ( viewer.msRequestFullscreen ) {
 					viewer.msRequestFullscreen();
 				}
-			} else {
-				if ( document.exitFullscreen ) {
-					document.exitFullscreen();
-				} else if ( document.webkitExitFullscreen ) {
-					document.webkitExitFullscreen();
-				} else if ( document.msExitFullscreen ) {
-					document.msExitFullscreen();
-				}
+			} else if ( document.exitFullscreen ) {
+				document.exitFullscreen();
+			} else if ( document.webkitExitFullscreen ) {
+				document.webkitExitFullscreen();
+			} else if ( document.msExitFullscreen ) {
+				document.msExitFullscreen();
 			}
 		};
 
@@ -236,7 +332,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( closeBtn ) {
 			closeBtn.addEventListener( 'click', ( e ) => {
 				e.stopPropagation();
-				if ( document.fullscreenElement || document.webkitFullscreenElement ) {
+				if (
+					document.fullscreenElement ||
+					document.webkitFullscreenElement
+				) {
 					if ( document.exitFullscreen ) {
 						document.exitFullscreen();
 					} else if ( document.webkitExitFullscreen ) {
@@ -247,7 +346,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 
 		const handleFullscreenChange = () => {
-			const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+			const isFull =
+				document.fullscreenElement === viewer ||
+				document.webkitFullscreenElement === viewer;
 			const currentImg = viewer.querySelector( '.eg-viewer__main-image' );
 			if ( isFull ) {
 				viewer.classList.add( 'eg-viewer--fullscreen' );
@@ -279,20 +380,27 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		document.addEventListener( 'fullscreenchange', handleFullscreenChange );
-		document.addEventListener( 'webkitfullscreenchange', handleFullscreenChange );
+		document.addEventListener(
+			'webkitfullscreenchange',
+			handleFullscreenChange
+		);
 
 		if ( isSlideshow ) {
 			startSlideshow();
 
 			// Pause au survol uniquement hors plein écran
 			viewer.addEventListener( 'mouseenter', () => {
-				const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+				const isFull =
+					document.fullscreenElement === viewer ||
+					document.webkitFullscreenElement === viewer;
 				if ( ! isFull ) {
 					stopSlideshow();
 				}
 			} );
 			viewer.addEventListener( 'mouseleave', () => {
-				const isFull = document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+				const isFull =
+					document.fullscreenElement === viewer ||
+					document.webkitFullscreenElement === viewer;
 				if ( ! isFull ) {
 					startSlideshow();
 				}

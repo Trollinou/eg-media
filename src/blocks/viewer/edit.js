@@ -10,7 +10,16 @@ import {
 } from '@wordpress/components';
 
 export default function Edit( { attributes, setAttributes } ) {
-	const { galleryId, sortBy, sortOrder, slideshow, tempo, resolution } = attributes;
+	const {
+		galleryId,
+		sortBy,
+		sortOrder,
+		slideshow,
+		tempo,
+		resolution,
+		layout,
+		imagesPerPage,
+	} = attributes;
 	const blockProps = useBlockProps( {
 		className: 'eg-viewer-editor-wrapper',
 	} );
@@ -65,13 +74,51 @@ export default function Edit( { attributes, setAttributes } ) {
 						onChange={ handleGalleryChange }
 					/>
 					<SelectControl
+						label={ __( 'Mise en page', 'eg-media' ) }
+						value={ layout || 'viewer' }
+						options={ [
+							{
+								label: __(
+									'Visionneuse (Diaporama)',
+									'eg-media'
+								),
+								value: 'viewer',
+							},
+							{
+								label: __( 'Grille justifiée', 'eg-media' ),
+								value: 'justified',
+							},
+						] }
+						onChange={ ( value ) =>
+							setAttributes( { layout: value } )
+						}
+					/>
+					<SelectControl
 						label={ __( 'Résolution', 'eg-media' ) }
 						value={ resolution || 'full' }
 						options={ [
-							{ label: __( 'Taille originale (Full)', 'eg-media' ), value: 'full' },
-							{ label: __( 'Grande (Large)', 'eg-media' ), value: 'large' },
-							{ label: __( 'Moyenne (Medium)', 'eg-media' ), value: 'medium' },
-							{ label: __( 'Miniature (Thumbnail)', 'eg-media' ), value: 'thumbnail' },
+							{
+								label: __(
+									'Taille originale (Full)',
+									'eg-media'
+								),
+								value: 'full',
+							},
+							{
+								label: __( 'Grande (Large)', 'eg-media' ),
+								value: 'large',
+							},
+							{
+								label: __( 'Moyenne (Medium)', 'eg-media' ),
+								value: 'medium',
+							},
+							{
+								label: __(
+									'Miniature (Thumbnail)',
+									'eg-media'
+								),
+								value: 'thumbnail',
+							},
 						] }
 						onChange={ ( value ) =>
 							setAttributes( { resolution: value } )
@@ -117,23 +164,42 @@ export default function Edit( { attributes, setAttributes } ) {
 							setAttributes( { sortOrder: value } )
 						}
 					/>
-					<ToggleControl
-						label={ __( 'Activer le Diaporama', 'eg-media' ) }
-						checked={ slideshow }
-						onChange={ ( value ) =>
-							setAttributes( { slideshow: value } )
-						}
-					/>
-					{ slideshow && (
+					{ layout !== 'justified' && (
+						<>
+							<ToggleControl
+								label={ __(
+									'Activer le Diaporama',
+									'eg-media'
+								) }
+								checked={ slideshow }
+								onChange={ ( value ) =>
+									setAttributes( { slideshow: value } )
+								}
+							/>
+							{ slideshow && (
+								<RangeControl
+									label={ __( 'Tempo (ms)', 'eg-media' ) }
+									value={ tempo }
+									onChange={ ( value ) =>
+										setAttributes( { tempo: value } )
+									}
+									min={ 1000 }
+									max={ 10000 }
+									step={ 500 }
+								/>
+							) }
+						</>
+					) }
+					{ layout === 'justified' && (
 						<RangeControl
-							label={ __( 'Tempo (ms)', 'eg-media' ) }
-							value={ tempo }
+							label={ __( 'Images par lot', 'eg-media' ) }
+							value={ imagesPerPage || 30 }
 							onChange={ ( value ) =>
-								setAttributes( { tempo: value } )
+								setAttributes( { imagesPerPage: value } )
 							}
-							min={ 1000 }
-							max={ 10000 }
-							step={ 500 }
+							min={ 10 }
+							max={ 100 }
+							step={ 5 }
 						/>
 					) }
 				</PanelBody>
@@ -168,6 +234,12 @@ export default function Edit( { attributes, setAttributes } ) {
 							</p>
 							<div className="eg-viewer-placeholder__meta">
 								<span>
+									<strong>Mise en page :</strong>{ ' ' }
+									{ layout === 'justified'
+										? 'Grille justifiée'
+										: 'Visionneuse' }
+								</span>
+								<span>
 									<strong>Résolution :</strong>{ ' ' }
 									{ resolution || 'full' }
 								</span>
@@ -176,10 +248,20 @@ export default function Edit( { attributes, setAttributes } ) {
 									{ sortBy === 'date' ? 'Date' : 'Nom' } (
 									{ sortOrder })
 								</span>
-								<span>
-									<strong>Diaporama :</strong>{ ' ' }
-									{ slideshow ? `Oui (${ tempo }ms)` : 'Non' }
-								</span>
+								{ layout !== 'justified' && (
+									<span>
+										<strong>Diaporama :</strong>{ ' ' }
+										{ slideshow
+											? `Oui (${ tempo }ms)`
+											: 'Non' }
+									</span>
+								) }
+								{ layout === 'justified' && (
+									<span>
+										<strong>Images par lot :</strong>{ ' ' }
+										{ imagesPerPage || 30 }
+									</span>
+								) }
 							</div>
 						</div>
 					</div>

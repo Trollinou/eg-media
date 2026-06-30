@@ -189,6 +189,107 @@
 			height: 15%;
 		}
 	}
+
+	// Mode Grille justifiée
+	&--layout-justified {
+		aspect-ratio: auto !important;
+		height: auto !important;
+		max-height: none !important;
+		background: transparent !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+
+		.eg-viewer__main,
+		.eg-viewer__track-container {
+			display: none;
+		}
+
+		// En plein écran, on repasse sur l'affichage classique
+		&.eg-viewer--fullscreen,
+		&:fullscreen {
+			aspect-ratio: 16 / 9 !important;
+			height: 100vh !important;
+			max-height: 100vh !important;
+			background: #000000 !important;
+			border-radius: 0 !important;
+			overflow: hidden !important;
+
+			.eg-viewer__justified-grid,
+			.eg-viewer__load-more-container {
+				display: none !important;
+			}
+
+			.eg-viewer__main {
+				display: flex !important;
+			}
+
+			.eg-viewer__track-container {
+				display: flex !important;
+			}
+		}
+	}
+
+	&__justified-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		width: 100%;
+		padding: 10px 0;
+		box-sizing: border-box;
+	}
+
+	&__justified-item {
+		height: 150px;
+		cursor: pointer;
+		position: relative;
+		overflow: hidden;
+		border-radius: 6px;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		background: #1a1a24;
+
+		&:hover {
+			transform: scale(1.02);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+			z-index: 2;
+		}
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+	}
+
+	&__load-more-container {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		padding: 20px 0;
+	}
+
+	&__load-more-btn {
+		background: var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00));
+		border: 1px solid var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00));
+		color: var(--theme-palette-color-4, #0a0500);
+		padding: 10px 24px;
+		border-radius: 20px;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover {
+			background: var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800));
+			border-color: var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800));
+			color: var(--theme-palette-color-4, #0a0500);
+		}
+
+		&:focus {
+			outline: none;
+			box-shadow: 0 0 0 2px var(--theme-palette-color-1, #ffcd00);
+		}
+	}
 }
 
 // Styles spécifiques à l'éditeur

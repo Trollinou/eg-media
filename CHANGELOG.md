@@ -5,6 +5,16 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.6] - 2026-06-30
+
+### Added
+- Ajout d'une mise en page "Grille justifiée" (Justified Grid) au bloc Visionneuse de Galerie. Les images conservent leur aspect ratio et sont alignées sur une hauteur fixe par ligne.
+- Système de chargement progressif ("Charger plus") localisé en JavaScript à l'aide de données d'images pré-encodées sous format JSON.
+- Lightbox plein écran intégrée, déclenchée lors du clic sur n'importe quelle image de la grille justifiée.
+
+### Changed
+- Désactivation du diaporama automatique lorsque la mise en page Grille justifiée est active.
+
 ## [1.0.5] - 2026-06-23
 
 ### Added

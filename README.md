@@ -36,15 +36,17 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Actions Groupées** : Option d'action groupée "Associer à une galerie" disponible dans le mode liste pour traiter plusieurs médias simultanément.
 
 ### 4. Bloc Gutenberg dynamique "Visionneuse de Galerie"
-- **Rendu Premium 90/10** : Affichage responsive avec 90% de la hauteur pour l'image principale active et 10% pour une bande de miniatures rectangulaires (ratio 3:2 avec coins arrondis).
-- **Mode Plein Écran Immersif** : Passage en plein écran natif (HTML5 API) d'un clic sur la photo principale, avec affichage d'un bouton de fermeture "X" adapté à la charte graphique et gestion de la sortie (clic "X" ou touche Échap).
+- **Choix de mise en page** : Sélection directe dans l'Inspecteur entre le mode *Visionneuse (Diaporama)* classique et le mode *Grille justifiée* (Justified Grid) où les images conservent leur aspect ratio et s'alignent sur la même hauteur par ligne.
+- **Chargement progressif ("Charger plus")** : Pour le mode Grille justifiée, affichage initial d'un lot d'images (réglable de 10 à 100) avec un bouton de chargement progressif. Les images suivantes sont injectées instantanément en JavaScript à partir des données pré-chargées au format JSON.
+- **Lightbox / Plein Écran Immersif** : Clic sur une miniature de la grille justifiée ou sur l'image principale de la visionneuse pour l'ouvrir en plein écran natif (HTML5 API) de façon fluide.
+- **Rendu Premium 90/10 (Mode Visionneuse)** : Affichage responsive avec 90% de la hauteur pour l'image principale active et 10% pour une bande de miniatures rectangulaires (ratio 3:2 avec coins arrondis).
 - **Sélection de la Résolution** : Choix de la résolution d'image (`Taille originale`, `Grande`, `Moyenne`, `Miniature`) directement dans l'Inspector Control Gutenberg pour optimiser le temps de chargement et économiser la bande passante.
 - **Supports de Styles WordPress** : Prise en charge native des réglages WordPress d'espacements (marges internes `padding` et externes `margin`), de bordures (arrondi `border-radius`) et d'ombres (`box-shadow`) configurables dans l'onglet "Styles" du bloc.
 - **Intégration Gutenberg Standard** : Correction de la sélection du bloc et activation de la barre d'outils flottante standard (pour gérer l'alignement, le glisser-déposer, etc.) grâce à l'implémentation de `useBlockProps`.
-- **Aperçu d'Édition Réaliste** : Un espace réservé (placeholder) premium en mode sombre qui mime l'exacte hauteur réelle de la visionneuse (`600px`) et affiche de façon dynamique le nom de la galerie sélectionnée, sa résolution active, le tri et l'état du diaporama.
+- **Aperçu d'Édition Réaliste** : Un espace réservé (placeholder) premium en mode sombre qui affiche de façon dynamique la mise en page sélectionnée, le nom de la galerie sélectionnée, sa résolution active, le tri, et les réglages de diaporama/lots d'images.
 - **Vanilla JS ES2021** : Script sans dépendance externe gérant le calcul du ratio d'aspect naturel des miniatures pour éviter les déformations (supports portraits/paysages), et élimination des superpositions d'images par régénération de noeuds DOM sous Safari.
 - **Logique Circulaire** : Défilement infini des miniatures et navigation circulaire fluide (le clic "Précédent" sur la première image redirige automatiquement vers la dernière).
-- **Diaporama Intelligent** : Diaporama automatique avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`) uniquement en dehors du mode plein écran (lecture continue en plein écran).
+- **Diaporama Intelligent** : Diaporama automatique (uniquement pour le mode Visionneuse) avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`) uniquement en dehors du mode plein écran (lecture continue en plein écran).
 - **Tri Avancé** : Possibilité de trier les images de la galerie par nom de fichier ou par date de prise de vue (EXIF avec fallback sur la date de dépôt WordPress), dans le sens ascendant ou descendant.
 
 ### 5. Tableau de Bord d'Administration
