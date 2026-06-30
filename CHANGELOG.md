@@ -5,6 +5,12 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.8] - 2026-06-30
+
+### Added
+- Navigation par clavier : possibilité d'utiliser les flèches de direction gauche et droite du clavier pour faire défiler les images de la visionneuse (en mode visionneuse ou en plein écran).
+- Défilement à la roulette de la souris : possibilité de faire défiler horizontalement la piste des miniatures avec la roulette de la souris sans changer l'image actuellement sélectionnée.
+
 ## [1.0.7] - 2026-06-30
 
 ### Added

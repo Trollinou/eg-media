@@ -210,6 +210,45 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			} );
 		} );
 
+		// Défilement de la piste des miniatures à la roulette sans changer l'image active
+		let wheelTimeout = null;
+		thumbnailsContainer.addEventListener(
+			'wheel',
+			( e ) => {
+				e.preventDefault();
+
+				// Désactiver la transition CSS pour un défilement immédiat et sans tremblement (surtout au trackpad)
+				track.style.transition = 'none';
+
+				if ( wheelTimeout ) {
+					clearTimeout( wheelTimeout );
+				}
+
+				const viewportWidth = thumbnailsContainer.clientWidth;
+				const maxScroll = -( track.scrollWidth - viewportWidth );
+				const delta = e.deltaY || e.deltaX;
+
+				// Ajuster la vitesse/sensibilité (passée à 1.2 pour la souris)
+				trackOffset -= delta * 1.2;
+
+				if ( trackOffset > 0 ) {
+					trackOffset = 0;
+				} else if ( trackOffset < maxScroll && maxScroll < 0 ) {
+					trackOffset = maxScroll;
+				} else if ( maxScroll >= 0 ) {
+					trackOffset = 0;
+				}
+
+				track.style.transform = `translateX(${ trackOffset }px)`;
+
+				// Rétablir la transition CSS par défaut après la fin du défilement
+				wheelTimeout = setTimeout( () => {
+					track.style.transition = '';
+				}, 150 );
+			},
+			{ passive: false }
+		);
+
 		// 3.5 Gestion de la grille justifiée
 		if ( layout === 'justified' ) {
 			const limit = parseInt( viewer.dataset.limit, 10 ) || 30;
@@ -378,6 +417,36 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				updateTrackPosition();
 			}, 100 );
 		};
+
+		const handleKeyDown = ( e ) => {
+			const isFull =
+				document.fullscreenElement === viewer ||
+				document.webkitFullscreenElement === viewer;
+			const isViewerMode = layout === 'viewer';
+
+			// Only handle keys if in viewer layout or in fullscreen mode
+			if ( ! isViewerMode && ! isFull ) {
+				return;
+			}
+
+			// If another viewer is in fullscreen, ignore this one
+			if (
+				document.fullscreenElement &&
+				document.fullscreenElement !== viewer
+			) {
+				return;
+			}
+
+			if ( e.key === 'ArrowRight' ) {
+				e.preventDefault();
+				setActiveImage( currentIndex + 1 );
+			} else if ( e.key === 'ArrowLeft' ) {
+				e.preventDefault();
+				setActiveImage( currentIndex - 1 );
+			}
+		};
+
+		document.addEventListener( 'keydown', handleKeyDown );
 
 		document.addEventListener( 'fullscreenchange', handleFullscreenChange );
 		document.addEventListener(
