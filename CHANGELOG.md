@@ -5,6 +5,13 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.0.7] - 2026-06-30
+
+### Added
+- Ajout d'une case à cocher pour définir une image de référence de la galerie depuis le panneau de détails du média.
+- Gestion automatique de la mise à jour, de l'unicité et du nettoyage de l'image de référence (Term Meta `_eg_media_featured_image_id`) lors des changements d'association.
+- Intégration d'un badge étoile sur la vignette du média de référence en mode grille et d'une icône d'étoile dorée à côté de la galerie associée en mode liste.
+
 ## [1.0.6] - 2026-06-30
 
 ### Added

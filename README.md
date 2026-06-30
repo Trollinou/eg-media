@@ -32,6 +32,8 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Taxonomie "Galeries"** : Gestion des galeries via la taxonomie personnalisée `eg_media_gallery` rattachée aux pièces jointes.
 - **Édition Rapide** : Assignation et création rapide de galerie directement depuis les détails d'un média dans la bibliothèque de médias.
 - **Téléversement Bulk** : Sélection ou création rapide d'une galerie cible directement au-dessus de la zone de drag-and-drop lors de l'importation de fichiers, appliquant automatiquement la galerie à toutes les images téléversées.
+- **Image de Référence** : Définition simplifiée d'une image de référence pour chaque galerie. Un indicateur d'étoile dorée met en valeur l'image de référence sur sa vignette (mode Grille) et à la fois sur sa miniature à gauche et à côté de sa galerie (mode Liste).
+- **Conservation du Filtre entre Vues** : Maintien et sélection automatique de la galerie filtrée active lors de la transition bidirectionnelle entre la vue Liste et la vue Grille.
 - **Filtrage Avancé** : Filtrage par galerie dans la bibliothèque de médias (Backbone/AJAX) en mode Liste et Grille (avec une option "Sans affectation" pour isoler les images orphelines).
 - **Actions Groupées** : Option d'action groupée "Associer à une galerie" disponible dans le mode liste pour traiter plusieurs médias simultanément.
 

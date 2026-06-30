@@ -108,6 +108,7 @@ class MediaUpload {
 					$galleries_data[] = [
 						'term_id' => $term->term_id,
 						'name'    => $term->name,
+						'slug'    => $term->slug,
 					];
 				}
 			}
@@ -315,6 +316,66 @@ class MediaUpload {
 				margin: 0 0 0 10px !important;
 				display: inline-block !important;
 			}
+			/* Styles pour l'image de référence dans la galerie */
+			.eg-media-star-badge {
+				position: absolute;
+				top: 8px;
+				left: 8px;
+				background: #f3b007;
+				color: #fff;
+				width: 22px;
+				height: 22px;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 14px;
+				line-height: 1;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+				z-index: 10;
+				pointer-events: none;
+				font-family: dashicons, sans-serif;
+			}
+			<?php
+			// Récupérer toutes les images de référence pour injecter l'étoile sur les miniatures en mode liste
+			$terms = get_terms( [
+				'taxonomy'   => 'eg_media_gallery',
+				'hide_empty' => false,
+			] );
+			if ( is_array( $terms ) ) {
+				foreach ( $terms as $term ) {
+					if ( $term instanceof \WP_Term ) {
+						$ref_id = (int) get_term_meta( $term->term_id, '_eg_media_featured_image_id', true );
+						if ( $ref_id > 0 ) {
+							?>
+							#post-<?php echo (int) $ref_id; ?> .column-title .has-media-icon a {
+								position: relative;
+								display: inline-block;
+							}
+							#post-<?php echo (int) $ref_id; ?> .column-title .has-media-icon a::after {
+								content: "★";
+								position: absolute;
+								top: -5px;
+								left: -5px;
+								background: #f3b007;
+								color: #fff;
+								width: 18px;
+								height: 18px;
+								border-radius: 50%;
+								display: flex;
+								align-items: center;
+								justify-content: center;
+								font-size: 11px;
+								line-height: 1;
+								box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+								z-index: 5;
+							}
+							<?php
+						}
+					}
+				}
+			}
+			?>
 		</style>
 		<?php
 	}

@@ -331,12 +331,55 @@
 
                     if (this.collection && this.collection.props) {
                         const urlParams = new URLSearchParams(window.location.search);
-                        const hasFilter = urlParams.has('eg_media_gallery_filter') || urlParams.has('eg_media_gallery');
-                        if (!hasFilter && window.location.pathname.indexOf('upload.php') !== -1) {
+                        let filterVal = urlParams.get('eg_media_gallery_filter');
+                        
+                        // Fallback pour eg_media_gallery (slug)
+                        if (!filterVal && urlParams.has('eg_media_gallery')) {
+                            const slug = urlParams.get('eg_media_gallery');
+                            if (window.egMediaUploadData && window.egMediaUploadData.galleries) {
+                                const matched = window.egMediaUploadData.galleries.find(function (g) {
+                                    return g.slug === slug || String(g.term_id) === slug;
+                                });
+                                if (matched) {
+                                    filterVal = matched.term_id;
+                                }
+                            }
+                        }
+
+                        if (filterVal) {
+                            const parsedInt = parseInt(filterVal, 10);
+                            const finalVal = !isNaN(parsedInt) && String(parsedInt) === String(filterVal) ? parsedInt : filterVal;
+                            this.collection.props.set('eg_media_gallery_filter', finalVal);
+                        } else if (window.location.pathname.indexOf('upload.php') !== -1) {
                             if (this.collection.props.get('eg_media_gallery_filter') === undefined) {
                                 this.collection.props.set('eg_media_gallery_filter', 'orphan');
                             }
                         }
+
+                        // Mettre à jour dynamiquement le lien du bouton de vue Liste (.view-list) quand la galerie change
+                        const updateListLink = function (value) {
+                            const listBtn = document.querySelector('.view-list');
+                            if (listBtn) {
+                                let href = listBtn.getAttribute('href') || 'upload.php?mode=list';
+                                const parts = href.split('?');
+                                const baseUrl = parts[0];
+                                const params = new URLSearchParams(parts[1] || '');
+                                if (value && value !== 'all') {
+                                    params.set('eg_media_gallery_filter', value);
+                                } else {
+                                    params.delete('eg_media_gallery_filter');
+                                }
+                                params.set('mode', 'list');
+                                listBtn.setAttribute('href', baseUrl + '?' + params.toString());
+                            }
+                        };
+
+                        this.collection.props.on('change:eg_media_gallery_filter', function (model, value) {
+                            updateListLink(value);
+                        });
+
+                        // Initialiser le lien au chargement
+                        updateListLink(this.collection.props.get('eg_media_gallery_filter'));
                     }
 
                     this.toolbar.set('egMediaGalleryFilter', new wp.media.view.AttachmentFilters.EGMediaGallery({
@@ -346,6 +389,65 @@
                     }).render());
                 }
             });
+
+            // Surcharge de wp.media.view.Attachment et wp.media.view.Attachment.Library pour ajouter la classe CSS et le badge étoile sur l'image de référence
+            if (wp.media.view.Attachment) {
+                const OriginalAttachment = wp.media.view.Attachment;
+                wp.media.view.Attachment = OriginalAttachment.extend({
+                    className: function () {
+                        let classes = '';
+                        if (typeof OriginalAttachment.prototype.className === 'function') {
+                            classes = OriginalAttachment.prototype.className.apply(this, arguments);
+                        } else if (typeof OriginalAttachment.prototype.className === 'string') {
+                            classes = OriginalAttachment.prototype.className;
+                        }
+                        if (this.model.get('eg_media_is_reference')) {
+                            classes += ' eg-media-is-reference';
+                        }
+                        return classes;
+                    },
+                    render: function () {
+                        if (typeof OriginalAttachment.prototype.render === 'function') {
+                            OriginalAttachment.prototype.render.apply(this, arguments);
+                        }
+                        if (this.model.get('eg_media_is_reference')) {
+                            const galleryName = this.model.get('eg_media_reference_gallery_name') || '';
+                            const starHtml = `<div class="eg-media-star-badge" title="Image de référence de la galerie : ${_.escape(galleryName)}">★</div>`;
+                            this.$el.append(starHtml);
+                        }
+                        return this;
+                    }
+                });
+
+                if (wp.media.view.Attachment.Library) {
+                    const OriginalAttachmentLibrary = wp.media.view.Attachment.Library;
+                    wp.media.view.Attachment.Library = OriginalAttachmentLibrary.extend({
+                        className: function () {
+                            let classes = '';
+                            if (typeof OriginalAttachmentLibrary.prototype.className === 'function') {
+                                classes = OriginalAttachmentLibrary.prototype.className.apply(this, arguments);
+                            } else if (typeof OriginalAttachmentLibrary.prototype.className === 'string') {
+                                classes = OriginalAttachmentLibrary.prototype.className;
+                            }
+                            if (this.model.get('eg_media_is_reference')) {
+                                classes += ' eg-media-is-reference';
+                            }
+                            return classes;
+                        },
+                        render: function () {
+                            if (typeof OriginalAttachmentLibrary.prototype.render === 'function') {
+                                OriginalAttachmentLibrary.prototype.render.apply(this, arguments);
+                            }
+                            if (this.model.get('eg_media_is_reference')) {
+                                const galleryName = this.model.get('eg_media_reference_gallery_name') || '';
+                                const starHtml = `<div class="eg-media-star-badge" title="Image de référence de la galerie : ${_.escape(galleryName)}">★</div>`;
+                                this.$el.append(starHtml);
+                            }
+                            return this;
+                        }
+                    });
+                }
+            }
         }
 
         // Action groupée pour la vue liste (Bulk Assign)
@@ -437,6 +539,34 @@
             });
         }
 
+        // Conserver le filtre de galerie dans l'URL lors du changement entre les vues Liste et Grille
+        function initViewSwitchFilterPreservation() {
+            const listSelect = document.getElementById('eg_media_gallery_filter');
+            if (listSelect) {
+                const updateGridLink = function () {
+                    const val = listSelect.value;
+                    const gridBtn = document.querySelector('.view-grid');
+                    if (gridBtn) {
+                        let href = gridBtn.getAttribute('href') || 'upload.php?mode=grid';
+                        const parts = href.split('?');
+                        const baseUrl = parts[0];
+                        const params = new URLSearchParams(parts[1] || '');
+                        if (val) {
+                            params.set('eg_media_gallery_filter', val);
+                        } else {
+                            params.delete('eg_media_gallery_filter');
+                        }
+                        params.set('mode', 'grid');
+                        gridBtn.setAttribute('href', baseUrl + '?' + params.toString());
+                    }
+                };
+
+                listSelect.addEventListener('change', updateGridLink);
+                updateGridLink(); // Exécuter une fois au chargement
+            }
+        }
+
+        initViewSwitchFilterPreservation();
         initBulkActionsListMode();
     });
 })();
