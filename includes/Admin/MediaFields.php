@@ -147,19 +147,20 @@ class MediaFields {
 		if ( ! empty( $attachment['eg_media_new_gallery'] ) ) {
 			$new_gallery_name = sanitize_text_field( (string) $attachment['eg_media_new_gallery'] );
 			if ( '' !== trim( $new_gallery_name ) ) {
-				// Création ou récupération du terme.
 				$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-				if ( ! is_wp_error( $term_info ) && is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+				if ( is_wp_error( $term_info ) ) {
+					if ( 'term_exists' === $term_info->get_error_code() ) {
+						// Si le terme existe déjà, on récupère son ID.
+						$existing_term_id = (int) $term_info->get_error_data();
+						if ( $existing_term_id > 0 ) {
+							$target_gallery_id = $existing_term_id;
+							wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
+						}
+					}
+				} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
 					$target_gallery_id = (int) $term_info['term_id'];
 					wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
-				} elseif ( is_wp_error( $term_info ) && 'term_exists' === $term_info->get_error_code() ) {
-					// Si le terme existe déjà, on récupère son ID.
-					$existing_term_id = (int) $term_info->get_error_data();
-					if ( $existing_term_id > 0 ) {
-						$target_gallery_id = $existing_term_id;
-						wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
-					}
 				}
 			}
 		}

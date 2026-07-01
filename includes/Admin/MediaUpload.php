@@ -119,6 +119,7 @@ class MediaUpload {
 			'egMediaUploadData',
 			[
 				'galleries' => $galleries_data,
+				'nonce'     => wp_create_nonce( 'eg-media-upload-nonce' ),
 			]
 		);
 	}
@@ -386,6 +387,8 @@ class MediaUpload {
 	 * @return void
 	 */
 	public function ajax_get_galleries(): void {
+		check_ajax_referer( 'eg-media-upload-nonce', 'nonce' );
+
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error( 'Forbidden', 403 );
 		}
