@@ -5,6 +5,11 @@ Toutes les modifications notables de ce projet seront consignées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [Unreleased]
+
+### Changed
+- Centralisation de la récupération des options d'optimisation d'image sous forme de DTO (`Image_Settings`) en PHP 8.4 pour éliminer la duplication du code de configuration dans `Processor.php` et harmoniser les valeurs par défaut globales dans `Config.php`.
+
 ## [1.0.8] - 2026-06-30
 
 ### Added

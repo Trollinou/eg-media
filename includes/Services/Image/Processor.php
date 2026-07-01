@@ -112,27 +112,20 @@ class Processor {
 
 			$imagick = new \Imagick( $file_path );
 
-			// Récupération des options avec valeurs par défaut.
-			$max_width          = (int) get_option( 'eg_media_resize_max_width', 2000 );
-			$compression_qty    = (int) get_option( 'eg_media_compression_quality', 80 );
-			$png_compression    = (string) get_option( 'eg_media_png_compression', 'moyenne' );
-			$use_unsharp_mask   = (bool) get_option( 'eg_media_unsharp_mask', true );
-			$use_auto_orient    = (bool) get_option( 'eg_media_auto_orient', true );
-			$use_chrominance    = (bool) get_option( 'eg_media_chrominance', false );
-			$use_interlace      = (bool) get_option( 'eg_media_interlace', true );
+			$settings = \EG_MEDIA\DTO\Image_Settings::load_from_options();
 
 			// 1. Redressement automatique
-			if ( $use_auto_orient ) {
+			if ( $settings->use_auto_orient ) {
 				$imagick->autoOrient();
 			}
 
 			// 2. Redimensionnement
-			if ( $max_width > 0 && $imagick->getImageWidth() > $max_width ) {
-				$imagick->resizeImage( $max_width, 0, \Imagick::FILTER_LANCZOS, 1.0 );
+			if ( $settings->max_width > 0 && $imagick->getImageWidth() > $settings->max_width ) {
+				$imagick->resizeImage( $settings->max_width, 0, \Imagick::FILTER_LANCZOS, 1.0 );
 			}
 
 			// 3. Unsharp Mask
-			if ( $use_unsharp_mask ) {
+			if ( $settings->use_unsharp_mask ) {
 				// -unsharp 0x0.75+0.75+0.008
 				$imagick->unsharpMaskImage( 0.0, 0.75, 0.75, 0.008 );
 			}
@@ -146,24 +139,24 @@ class Processor {
 				// e.g. 32 = compression level 3 (faible), filter Adaptive
 				// Nous pouvons simplifier en traduisant : faible -> 30, moyenne -> 60, forte -> 90.
 				$png_level = 60;
-				if ( 'faible' === $png_compression ) {
+				if ( 'faible' === $settings->png_compression ) {
 					$png_level = 30;
-				} elseif ( 'forte' === $png_compression ) {
+				} elseif ( 'forte' === $settings->png_compression ) {
 					$png_level = 90;
 				}
 				$imagick->setCompressionQuality( $png_level );
 			} else {
 				// JPEG ou WebP
-				$imagick->setImageCompressionQuality( $compression_qty );
+				$imagick->setImageCompressionQuality( $settings->compression_quality );
 			}
 
 			// 5. Chrominance 4:2:0 (Sampling factors)
-			if ( $use_chrominance ) {
+			if ( $settings->use_chrominance ) {
 				$imagick->setSamplingFactors( [ '2x2', '1x1', '1x1' ] );
 			}
 
 			// 6. Mode progressif (Interlace)
-			if ( $use_interlace ) {
+			if ( $settings->use_interlace ) {
 				$imagick->setImageInterlaceScheme( \Imagick::INTERLACE_PLANE );
 			}
 
@@ -226,16 +219,10 @@ class Processor {
 				return null;
 			}
 
-			// Récupération des options
-			$max_width          = (int) get_option( 'eg_media_resize_max_width', 2000 );
-			$compression_qty    = (int) get_option( 'eg_media_compression_quality', 80 );
-			$png_compression    = (string) get_option( 'eg_media_png_compression', 'moyenne' );
-			$use_unsharp_mask   = (bool) get_option( 'eg_media_unsharp_mask', true );
-			$use_auto_orient    = (bool) get_option( 'eg_media_auto_orient', true );
-			$use_interlace      = (bool) get_option( 'eg_media_interlace', true );
+			$settings = \EG_MEDIA\DTO\Image_Settings::load_from_options();
 
 			// 1. Redressement automatique via EXIF (uniquement JPEG et si exif_read_data existe)
-			if ( $use_auto_orient && 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
+			if ( $settings->use_auto_orient && 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
 				$exif = @exif_read_data( $file_path );
 				if ( ! empty( $exif['Orientation'] ) ) {
 					$orientation = (int) $exif['Orientation'];
@@ -255,9 +242,9 @@ class Processor {
 			// 2. Redimensionnement
 			$width  = imagesx( $image );
 			$height = imagesy( $image );
-			if ( $max_width > 0 && $width > $max_width ) {
-				$new_width  = $max_width;
-				$new_height = (int) round( $height * ( $max_width / $width ) );
+			if ( $settings->max_width > 0 && $width > $settings->max_width ) {
+				$new_width  = $settings->max_width;
+				$new_height = (int) round( $height * ( $settings->max_width / $width ) );
 				$resized    = @imagescale( $image, $new_width, $new_height, IMG_BILINEAR_FIXED );
 				if ( $resized ) {
 					imagedestroy( $image );
@@ -268,7 +255,7 @@ class Processor {
 			}
 
 			// 3. Unsharp Mask (Netteté par convolution 3x3 si redimensionné ou demandé)
-			if ( $use_unsharp_mask ) {
+			if ( $settings->use_unsharp_mask ) {
 				// Matrice de convolution typique d'accentuation (Sharpen)
 				$matrix = [
 					[ -1.0, -1.0, -1.0 ],
@@ -281,22 +268,22 @@ class Processor {
 			}
 
 			// 4. Mode progressif (Interlace)
-			if ( $use_interlace ) {
+			if ( $settings->use_interlace ) {
 				@imageinterlace( $image, true );
 			}
 
 			// 5. Sauvegarde et compression selon le format
 			$saved = false;
 			if ( 'image/jpeg' === $mime ) {
-				$saved = @imagejpeg( $image, $file_path, $compression_qty );
+				$saved = @imagejpeg( $image, $file_path, $settings->compression_quality );
 			} elseif ( 'image/webp' === $mime ) {
-				$saved = @imagewebp( $image, $file_path, $compression_qty );
+				$saved = @imagewebp( $image, $file_path, $settings->compression_quality );
 			} elseif ( 'image/png' === $mime ) {
 				// GD utilise un niveau de compression de 0 (pas de compression) à 9 (compression max)
 				$png_level = 6; // moyenne par défaut
-				if ( 'faible' === $png_compression ) {
+				if ( 'faible' === $settings->png_compression ) {
 					$png_level = 3;
-				} elseif ( 'forte' === $png_compression ) {
+				} elseif ( 'forte' === $settings->png_compression ) {
 					$png_level = 9;
 				}
 				// Désactivation de l'interlace pour PNG si GD ne le supporte pas de la même manière

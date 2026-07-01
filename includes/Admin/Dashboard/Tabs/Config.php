@@ -28,7 +28,7 @@ class Config {
 			[
 				'type'              => 'integer',
 				'sanitize_callback' => 'intval',
-				'default'           => 2000,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_MAX_WIDTH,
 			]
 		);
 
@@ -38,7 +38,7 @@ class Config {
 			[
 				'type'              => 'integer',
 				'sanitize_callback' => [ $this, 'sanitize_quality' ],
-				'default'           => 80,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_COMPRESSION_QUALITY,
 			]
 		);
 
@@ -48,7 +48,7 @@ class Config {
 			[
 				'type'              => 'string',
 				'sanitize_callback' => [ $this, 'sanitize_png_compression' ],
-				'default'           => 'moyenne',
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_PNG_COMPRESSION,
 			]
 		);
 
@@ -58,7 +58,7 @@ class Config {
 			[
 				'type'              => 'boolean',
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
-				'default'           => true,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_UNSHARP_MASK,
 			]
 		);
 
@@ -68,7 +68,7 @@ class Config {
 			[
 				'type'              => 'boolean',
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
-				'default'           => true,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_AUTO_ORIENT,
 			]
 		);
 
@@ -78,7 +78,7 @@ class Config {
 			[
 				'type'              => 'boolean',
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
-				'default'           => false,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_CHROMINANCE,
 			]
 		);
 
@@ -88,7 +88,7 @@ class Config {
 			[
 				'type'              => 'boolean',
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
-				'default'           => true,
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_INTERLACE,
 			]
 		);
 
@@ -207,7 +207,7 @@ class Config {
 	 * @return void
 	 */
 	public function render_max_width_field(): void {
-		$value = (int) get_option( 'eg_media_resize_max_width', 2000 );
+		$value = (int) get_option( 'eg_media_resize_max_width', \EG_MEDIA\DTO\Image_Settings::DEFAULT_MAX_WIDTH );
 		?>
 		<select name="eg_media_resize_max_width">
 			<option value="0" <?php selected( $value, 0 ); ?>>Sans redimensionnement</option>
@@ -227,7 +227,7 @@ class Config {
 	 * @return void
 	 */
 	public function render_quality_field(): void {
-		$value = (int) get_option( 'eg_media_compression_quality', 80 );
+		$value = (int) get_option( 'eg_media_compression_quality', \EG_MEDIA\DTO\Image_Settings::DEFAULT_COMPRESSION_QUALITY );
 		?>
 		<input type="number" name="eg_media_compression_quality" value="<?php echo esc_attr( (string) $value ); ?>" class="regular-text" min="1" max="100" step="1" />
 		<p class="description">Qualité de compression finale, valeur de 1 à 100.</p>
@@ -240,7 +240,7 @@ class Config {
 	 * @return void
 	 */
 	public function render_png_compression_field(): void {
-		$value = (string) get_option( 'eg_media_png_compression', 'moyenne' );
+		$value = (string) get_option( 'eg_media_png_compression', \EG_MEDIA\DTO\Image_Settings::DEFAULT_PNG_COMPRESSION );
 		?>
 		<select name="eg_media_png_compression">
 			<option value="faible" <?php selected( $value, 'faible' ); ?>>Faible</option>
@@ -263,10 +263,13 @@ class Config {
 			return;
 		}
 
-		$default = true;
-		if ( 'eg_media_chrominance' === $id ) {
-			$default = false;
-		}
+		$default = match ( $id ) {
+			'eg_media_chrominance'  => \EG_MEDIA\DTO\Image_Settings::DEFAULT_CHROMINANCE,
+			'eg_media_unsharp_mask' => \EG_MEDIA\DTO\Image_Settings::DEFAULT_UNSHARP_MASK,
+			'eg_media_auto_orient'  => \EG_MEDIA\DTO\Image_Settings::DEFAULT_AUTO_ORIENT,
+			'eg_media_interlace'    => \EG_MEDIA\DTO\Image_Settings::DEFAULT_INTERLACE,
+			default                 => true,
+		};
 
 		$value = (bool) get_option( $id, $default );
 		?>

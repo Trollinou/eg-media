@@ -77,6 +77,13 @@ class Main {
 			)
 		);
 
+		// Invalider le cache temporaire (transient) du nombre de médias restants à optimiser.
+		delete_transient( 'eg_media_unoptimized_count' );
+
+		// Réinitialiser les statistiques globales de traitement.
+		delete_option( 'eg_media_processed_count' );
+		delete_option( 'eg_media_bytes_saved' );
+
 		// Ajouter un message de notification à afficher lors de la redirection.
 		add_settings_error(
 			'eg_media_messages',
