@@ -7,13 +7,7 @@ parameters:
     paths:
         - eg-media.php
         - includes/
-    excludePaths:
-        - includes/lib/
-    scanDirectories:
-        - includes/lib/fpdi/src/
     bootstrapFiles:
         - tests/phpstan/bootstrap.php
-        - includes/lib/fpdf/fpdf.php
-        - includes/lib/fpdi/src/autoload.php
     scanFiles:
         - eg-media.php
