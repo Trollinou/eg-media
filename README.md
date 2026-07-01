@@ -53,7 +53,13 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Diaporama Intelligent** : Diaporama automatique (uniquement pour le mode Visionneuse) avec configuration du tempo (de 1s à 10s), avec mise en pause automatique au survol de la souris (`mouseenter` / `mouseleave`) uniquement en dehors du mode plein écran (lecture continue en plein écran).
 - **Tri Avancé** : Possibilité de trier les images de la galerie par nom de fichier ou par date de prise de vue (EXIF avec fallback sur la date de dépôt WordPress), dans le sens ascendant ou descendant.
 
-### 5. Tableau de Bord d'Administration
+### 5. Intégration Piwigo (Albums & Images mises en avant)
+- **Liaison d'albums** : Possibilité de connecter une instance Piwigo (v16.4.0+) à l'aide d'une clé d'accès personnel (identifiant public et secret séparés).
+- **Visionneuse Piwigo** : Option de source "Album distant (Piwigo)" ajoutée au bloc de la visionneuse pour charger et afficher directement des photos stockées sur Piwigo dans le diaporama ou la grille justifiée.
+- **Importation d'image mise en avant** : Bouton d'action "Set Piwigo Featured Image" intégré sous le bloc d'image mise en avant natif de l'éditeur d'articles WordPress. Il permet de parcourir un album Piwigo, d'en importer une photo localement dans la bibliothèque de médias en un clic, et de la définir comme image mise en avant du post.
+- **Cache Transient** : Persistence des données Piwigo pendant 1 heure via l'API Transients de WordPress pour garantir des performances optimales.
+
+### 6. Tableau de Bord d'Administration
 Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
 - **Onglet Statistiques** :
   - Indicateur d'état du serveur (vérification de la présence d'Imagick).
@@ -97,6 +103,7 @@ Le plugin respecte des standards de développement stricts :
   - `includes/Admin/` : Gestion du tableau de bord et des filtres de médias Backbone (Uploads, Filtres, Actions).
   - `includes/CPT/` : Enregistrement de la taxonomie personnalisée `eg_media_gallery`.
   - `includes/Blocks/` : Contrôleurs d'enregistrement des blocs Gutenberg dynamiques.
-  - `includes/Services/` : Services de traitement d'images (`Processor` et `BulkProcessor`).
+  - `includes/Services/` : Services de traitement d'images et liaisons API (`Processor`, `BulkProcessor` et `Piwigo`).
+  - `includes/API/` : Points de terminaison REST API (Intégration Gutenberg/Piwigo).
   - `includes/Enums/` : Énumérations typées PHP 8.4.
 - **Sécurité renforcée** : Utilisation systématique de Nonces, de vérifications de rôles (`current_user_can`) et d'échappement des données à l'affichage (`esc_html`, `esc_attr`, `esc_url`).

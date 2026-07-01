@@ -1,6 +1,8 @@
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import { useState, useEffect } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
 import {
 	PanelBody,
 	SelectControl,
@@ -12,6 +14,7 @@ import {
 export default function Edit( { attributes, setAttributes } ) {
 	const {
 		galleryId,
+		gallerySource,
 		sortBy,
 		sortOrder,
 		slideshow,
@@ -20,9 +23,13 @@ export default function Edit( { attributes, setAttributes } ) {
 		layout,
 		imagesPerPage,
 	} = attributes;
+
 	const blockProps = useBlockProps( {
 		className: 'eg-viewer-editor-wrapper',
 	} );
+
+	const [ piwigoAlbums, setPiwigoAlbums ] = useState( [] );
+	const [ isPiwigoLoading, setIsPiwigoLoading ] = useState( false );
 
 	// Récupérer la liste des galeries via la taxonomie eg_media_gallery
 	const galleries = useSelect( ( select ) => {
@@ -35,24 +42,54 @@ export default function Edit( { attributes, setAttributes } ) {
 		);
 	}, [] );
 
+	// Charger les albums Piwigo si la source est Piwigo
+	useEffect( () => {
+		if ( gallerySource === 'piwigo' ) {
+			setIsPiwigoLoading( true );
+			apiFetch( { path: '/eg-media/v1/piwigo/albums' } )
+				.then( ( data ) => {
+					setPiwigoAlbums( data || [] );
+					setIsPiwigoLoading( false );
+				} )
+				.catch( () => {
+					setPiwigoAlbums( [] );
+					setIsPiwigoLoading( false );
+				} );
+		}
+	}, [ gallerySource ] );
+
 	// Construire les options pour le SelectControl des galeries
 	const galleryOptions = [
 		{ label: __( 'Sélectionnez une galerie…', 'eg-media' ), value: '' },
 	];
 
-	if ( galleries ) {
-		galleries.forEach( ( gallery ) => {
+	if ( gallerySource === 'piwigo' ) {
+		piwigoAlbums.forEach( ( album ) => {
 			galleryOptions.push( {
-				label: gallery.name,
-				value: gallery.id,
+				label: album.name,
+				value: album.id,
 			} );
 		} );
+	} else {
+		if ( galleries ) {
+			galleries.forEach( ( gallery ) => {
+				galleryOptions.push( {
+					label: gallery.name,
+					value: gallery.id,
+				} );
+			} );
+		}
 	}
 
 	// Trouver le nom de la galerie sélectionnée pour l'affichage
-	const selectedGallery = galleries
-		? galleries.find( ( g ) => g.id === parseInt( galleryId, 10 ) )
-		: null;
+	let selectedGallery = null;
+	if ( gallerySource === 'piwigo' ) {
+		selectedGallery = piwigoAlbums.find( ( a ) => a.id === parseInt( galleryId, 10 ) );
+	} else {
+		selectedGallery = galleries
+			? galleries.find( ( g ) => g.id === parseInt( galleryId, 10 ) )
+			: null;
+	}
 
 	const handleGalleryChange = ( value ) => {
 		setAttributes( {
@@ -68,10 +105,25 @@ export default function Edit( { attributes, setAttributes } ) {
 					initialOpen={ true }
 				>
 					<SelectControl
-						label={ __( 'Galerie', 'eg-media' ) }
+						label={ __( 'Source', 'eg-media' ) }
+						value={ gallerySource || 'local' }
+						options={ [
+							{ label: __( 'Galerie locale (WordPress)', 'eg-media' ), value: 'local' },
+							{ label: __( 'Album distant (Piwigo)', 'eg-media' ), value: 'piwigo' },
+						] }
+						onChange={ ( value ) => {
+							setAttributes( {
+								gallerySource: value,
+								galleryId: undefined, // Reset selection
+							} );
+						} }
+					/>
+					<SelectControl
+						label={ gallerySource === 'piwigo' ? __( 'Album Piwigo', 'eg-media' ) : __( 'Galerie', 'eg-media' ) }
 						value={ galleryId || '' }
 						options={ galleryOptions }
 						onChange={ handleGalleryChange }
+						help={ isPiwigoLoading ? __( 'Chargement des albums Piwigo...', 'eg-media' ) : null }
 					/>
 					<SelectControl
 						label={ __( 'Mise en page', 'eg-media' ) }
@@ -211,7 +263,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						icon="images-alt"
 						label={ __( 'Visionneuse de Galerie', 'eg-media' ) }
 						instructions={ __(
-							'Veuillez sélectionner une galerie dans la barre latérale des réglages.',
+							'Veuillez sélectionner une galerie/un album dans la barre latérale des réglages.',
 							'eg-media'
 						) }
 					/>
@@ -226,13 +278,19 @@ export default function Edit( { attributes, setAttributes } ) {
 							</h3>
 							<p>
 								<strong>
-									{ __( 'Galerie active :', 'eg-media' ) }
+									{ gallerySource === 'piwigo'
+										? __( 'Album Piwigo active :', 'eg-media' )
+										: __( 'Galerie active :', 'eg-media' ) }
 								</strong>{ ' ' }
 								{ selectedGallery
 									? selectedGallery.name
 									: `ID: ${ galleryId }` }
 							</p>
 							<div className="eg-viewer-placeholder__meta">
+								<span>
+									<strong>Source :</strong>{ ' ' }
+									{ gallerySource === 'piwigo' ? 'Piwigo' : 'Locale (WordPress)' }
+								</span>
 								<span>
 									<strong>Mise en page :</strong>{ ' ' }
 									{ layout === 'justified'

@@ -1,6 +1,6 @@
 {
   "name": "eg-media",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Gestionnaire de Média by EG",
   "main": "eg-media.php",
   "scripts": {

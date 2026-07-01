@@ -7,6 +7,14 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-01
+
+### Added
+- Liaison avec Piwigo (v16.4.0) : intégration de l'URL et de la clé API Piwigo dans les réglages du tableau de bord.
+- Ajout d'un endpoint REST API pour récupérer la liste des albums distants depuis Piwigo.
+- Sélection de la source ("Galerie locale" ou "Album distant Piwigo") directement dans le bloc Visionneuse de Galerie.
+- Affichage des images distantes de Piwigo dans le carrousel ou la grille justifiée avec gestion du cache via les Transients WordPress (durée d'une heure).
+
 ## [1.0.9] - 2026-07-01
 
 ### Changed

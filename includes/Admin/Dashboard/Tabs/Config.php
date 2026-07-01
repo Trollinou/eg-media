@@ -158,6 +158,68 @@ class Config {
 			'eg_media_main_section',
 			[ 'label_for' => 'eg_media_interlace' ]
 		);
+
+		// Section Piwigo.
+		register_setting(
+			'eg_media_settings_group',
+			'eg_media_piwigo_url',
+			[
+				'type'              => 'string',
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_url' ],
+				'default'           => '',
+			]
+		);
+
+		register_setting(
+			'eg_media_settings_group',
+			'eg_media_piwigo_api_key',
+			[
+				'type'              => 'string',
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_api_key' ],
+				'default'           => '',
+			]
+		);
+
+		register_setting(
+			'eg_media_settings_group',
+			'eg_media_piwigo_api_secret',
+			[
+				'type'              => 'string',
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_api_secret' ],
+				'default'           => '',
+			]
+		);
+
+		add_settings_section(
+			'eg_media_piwigo_section',
+			'Intégration Piwigo',
+			'__return_false',
+			'eg-media-dashboard-config'
+		);
+
+		add_settings_field(
+			'eg_media_piwigo_url',
+			'URL de Piwigo',
+			[ $this, 'render_piwigo_url_field' ],
+			'eg-media-dashboard-config',
+			'eg_media_piwigo_section'
+		);
+
+		add_settings_field(
+			'eg_media_piwigo_api_key',
+			'Identifiant public de la clé API',
+			[ $this, 'render_piwigo_api_key_field' ],
+			'eg-media-dashboard-config',
+			'eg_media_piwigo_section'
+		);
+
+		add_settings_field(
+			'eg_media_piwigo_api_secret',
+			'Secret de la clé API',
+			[ $this, 'render_piwigo_api_secret_field' ],
+			'eg-media-dashboard-config',
+			'eg_media_piwigo_section'
+		);
 	}
 
 	/**
@@ -274,6 +336,93 @@ class Config {
 		$value = (bool) get_option( $id, $default );
 		?>
 		<input type="checkbox" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $id ); ?>" value="1" <?php checked( $value ); ?> />
+		<?php
+	}
+
+	/**
+	 * Nettoie et valide l'URL de Piwigo.
+	 *
+	 * @param mixed $value Valeur brute.
+	 * @return string Valeur nettoyée.
+	 */
+	public function sanitize_piwigo_url( mixed $value ): string {
+		$url = esc_url_raw( trim( (string) $value ) );
+		$old = (string) get_option( 'eg_media_piwigo_url', '' );
+		if ( $url !== $old ) {
+			$piwigo_service = new \EG_MEDIA\Services\Piwigo();
+			$piwigo_service->clear_cache();
+		}
+		return $url;
+	}
+
+	/**
+	 * Nettoie la clé API de Piwigo.
+	 *
+	 * @param mixed $value Valeur brute.
+	 * @return string Valeur nettoyée.
+	 */
+	public function sanitize_piwigo_api_key( mixed $value ): string {
+		$key = trim( (string) $value );
+		$old = (string) get_option( 'eg_media_piwigo_api_key', '' );
+		if ( $key !== $old ) {
+			$piwigo_service = new \EG_MEDIA\Services\Piwigo();
+			$piwigo_service->clear_cache();
+		}
+		return $key;
+	}
+
+	/**
+	 * Nettoie la clé secrète de Piwigo.
+	 *
+	 * @param mixed $value Valeur brute.
+	 * @return string Valeur nettoyée.
+	 */
+	public function sanitize_piwigo_api_secret( mixed $value ): string {
+		$secret = trim( (string) $value );
+		$old = (string) get_option( 'eg_media_piwigo_api_secret', '' );
+		if ( $secret !== $old ) {
+			$piwigo_service = new \EG_MEDIA\Services\Piwigo();
+			$piwigo_service->clear_cache();
+		}
+		return $secret;
+	}
+
+	/**
+	 * Rendu du champ d'URL de Piwigo.
+	 *
+	 * @return void
+	 */
+	public function render_piwigo_url_field(): void {
+		$value = (string) get_option( 'eg_media_piwigo_url', '' );
+		?>
+		<input type="url" name="eg_media_piwigo_url" value="<?php echo esc_url( $value ); ?>" class="regular-text" placeholder="https://votre-piwigo.com" />
+		<p class="description">L'adresse de votre galerie Piwigo (ex: "https://galerie.exemple.com").</p>
+		<?php
+	}
+
+	/**
+	 * Rendu du champ de clé API Piwigo (Identifiant public).
+	 *
+	 * @return void
+	 */
+	public function render_piwigo_api_key_field(): void {
+		$value = (string) get_option( 'eg_media_piwigo_api_key', '' );
+		?>
+		<input type="text" name="eg_media_piwigo_api_key" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="pkid-..." />
+		<p class="description">L'identifiant public de votre clé d'accès personnel générée sur votre profil Piwigo (au format "pkid-...").</p>
+		<?php
+	}
+
+	/**
+	 * Rendu du champ de secret de clé API Piwigo.
+	 *
+	 * @return void
+	 */
+	public function render_piwigo_api_secret_field(): void {
+		$value = (string) get_option( 'eg_media_piwigo_api_secret', '' );
+		?>
+		<input type="password" name="eg_media_piwigo_api_secret" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
+		<p class="description">Le secret associé à votre clé d'accès personnel.</p>
 		<?php
 	}
 
