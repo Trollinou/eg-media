@@ -31,8 +31,9 @@ class BulkProcessor {
 			'post_type'      => 'attachment',
 			'post_mime_type' => [ 'image/jpeg', 'image/png', 'image/webp' ],
 			'post_status'    => 'inherit',
-			'posts_per_page' => -1,
+			'posts_per_page' => 1,
 			'fields'         => 'ids',
+			'no_found_rows'  => false,
 			'meta_query'     => [
 				[
 					'key'     => '_eg_media_optimized',
