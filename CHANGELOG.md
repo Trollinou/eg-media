@@ -7,6 +7,11 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-07-01
+
+### Changed
+- Rangement du menu **Albums** sous l'onglet principal **Médias** (au même titre que le sous-menu "Galeries") pour une interface WordPress plus épurée et cohérente.
+
 ## [1.1.1] - 2026-07-01
 
 ### Added
