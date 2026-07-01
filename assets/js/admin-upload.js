@@ -25,6 +25,35 @@
 	}
 
 	/**
+	 * Synchronise le filtre de la médiathèque Backbone avec la galerie cible sélectionnée ou saisie.
+	 */
+	function syncLibraryFilterWithTarget() {
+		const targetSelect = document.getElementById( 'eg_media_target_gallery' );
+		const targetNewInput = document.getElementById( 'eg_media_new_target_gallery' );
+
+		let filterVal = 'orphan';
+
+		if ( targetNewInput && targetNewInput.value.trim() !== '' ) {
+			// Si on crée une nouvelle galerie, on se positionne sur "Toutes les galeries" (valeur vide) pour voir l'import progresser
+			filterVal = '';
+		} else if ( targetSelect && targetSelect.value !== '' ) {
+			filterVal = parseInt( targetSelect.value, 10 );
+		}
+
+		if ( typeof wp !== 'undefined' && wp.media && wp.media.frame ) {
+			const state = wp.media.frame.state();
+			if ( state ) {
+				const library = state.get( 'library' );
+				if ( library && library.props ) {
+					if ( library.props.get( 'eg_media_gallery_filter' ) !== filterVal ) {
+						library.props.set( 'eg_media_gallery_filter', filterVal );
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Recharge la liste des galeries depuis le serveur et met à jour les sélecteurs HTML.
 	 */
 	function refreshGallerySelectors() {
@@ -105,6 +134,9 @@
 						select.innerHTML = optionsHtml;
 						select.value = currentVal;
 					} );
+
+					// Synchroniser le filtre de la médiathèque après la mise à jour
+					syncLibraryFilterWithTarget();
 				}
 			}
 		);
@@ -150,6 +182,8 @@
 						currentVal;
 					up.settings.multipart_params.eg_media_new_target_gallery =
 						currentNewVal;
+
+					syncLibraryFilterWithTarget();
 				} );
 
 				// Rafraîchir la vue de la bibliothèque une fois les uploads terminés
@@ -267,6 +301,8 @@
 					up.settings.multipart_params.eg_media_target_gallery = val;
 					up.settings.multipart_params.eg_media_new_target_gallery =
 						newVal;
+
+					syncLibraryFilterWithTarget();
 				} );
 
 				// Rafraîchir la vue lors de la complétion pour l'uploader de page
@@ -308,6 +344,8 @@
 							val;
 						up.settings.multipart_params.eg_media_new_target_gallery =
 							newVal;
+
+						syncLibraryFilterWithTarget();
 					} );
 
 					wpUp.bind( 'UploadComplete', function () {
@@ -335,6 +373,7 @@
 					newGalleryInput.value = '';
 				}
 				updateAllUploaders();
+				syncLibraryFilterWithTarget();
 			}
 		} );
 
@@ -351,6 +390,7 @@
 					selectField.value = '';
 				}
 				updateAllUploaders();
+				syncLibraryFilterWithTarget();
 			}
 		} );
 
@@ -363,6 +403,7 @@
 					moveSelectorToTop();
 					bindToGlobalUploader();
 					updateAllUploaders();
+					syncLibraryFilterWithTarget();
 				},
 				{ passive: true }
 			);
@@ -543,6 +584,27 @@
 								'change:eg_media_gallery_filter',
 								function ( model, value ) {
 									updateListLink( value );
+
+									// Synchroniser le sélecteur d'import avec le filtre de la médiathèque
+									const targetSelect = document.getElementById(
+										'eg_media_target_gallery'
+									);
+									if ( targetSelect ) {
+										const targetVal =
+											value === 'orphan' || ! value
+												? ''
+												: String( value );
+										if ( targetSelect.value !== targetVal ) {
+											targetSelect.value = targetVal;
+											const targetNewInput = document.getElementById(
+												'eg_media_new_target_gallery'
+											);
+											if ( targetNewInput ) {
+												targetNewInput.value = '';
+											}
+											updateAllUploaders();
+										}
+									}
 								}
 							);
 

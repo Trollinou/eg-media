@@ -7,8 +7,13 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.0.9] - 2026-07-01
+
 ### Changed
 - Centralisation de la récupération des options d'optimisation d'image sous forme de DTO (`Image_Settings`) en PHP 8.4 pour éliminer la duplication du code de configuration dans `Processor.php` et harmoniser les valeurs par défaut globales dans `Config.php`.
+
+### Fixed
+- Restauration de l'affichage de la progression d'importation dans la médiathèque en synchronisant automatiquement le filtre de la médiathèque Backbone avec la galerie cible (existante ou nouvelle) lors du téléversement.
 
 ## [1.0.8] - 2026-06-30
 

@@ -3,7 +3,7 @@
  * Plugin Name:       EG Media Manager
  * Plugin URI:        https://example.com/eg-media
  * Description:       Gestionnaire de Média by EG
- * Version:           1.0.8
+ * Version:           1.0.9
  * Requires at least: 6.0
  * Requires PHP:      8.4
  * Author:            Etienne Gagnon
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Version du plugin.
-define( 'EG_MEDIA_VERSION', '1.0.8' );
+define( 'EG_MEDIA_VERSION', '1.0.9' );
 
 // Autoloader SPL natif.
 spl_autoload_register( function ( string $class ) : void {
