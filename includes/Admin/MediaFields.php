@@ -131,6 +131,19 @@ class MediaFields {
 			return $post;
 		}
 
+		// Vérifier si l'utilisateur courant est autorisé à éditer ce média.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return $post;
+		}
+
+		// Récupérer l'objet de taxonomie pour obtenir les permissions requises.
+		$taxonomy = get_taxonomy( 'eg_media_gallery' );
+		if ( ! $taxonomy || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
+			return $post;
+		}
+
+		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
+
 		$target_gallery_id = 0;
 		$old_gallery_id = 0;
 
@@ -147,20 +160,31 @@ class MediaFields {
 		if ( ! empty( $attachment['eg_media_new_gallery'] ) ) {
 			$new_gallery_name = sanitize_text_field( (string) $attachment['eg_media_new_gallery'] );
 			if ( '' !== trim( $new_gallery_name ) ) {
-				$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
+				if ( $can_create_terms ) {
+					$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-				if ( is_wp_error( $term_info ) ) {
-					if ( 'term_exists' === $term_info->get_error_code() ) {
-						// Si le terme existe déjà, on récupère son ID.
-						$existing_term_id = (int) $term_info->get_error_data();
-						if ( $existing_term_id > 0 ) {
-							$target_gallery_id = $existing_term_id;
+					if ( is_wp_error( $term_info ) ) {
+						if ( 'term_exists' === $term_info->get_error_code() ) {
+							// Si le terme existe déjà, on récupère son ID.
+							$existing_term_id = (int) $term_info->get_error_data();
+							if ( $existing_term_id > 0 ) {
+								$target_gallery_id = $existing_term_id;
+								wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
+							}
+						}
+					} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+						$target_gallery_id = (int) $term_info['term_id'];
+						wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
+					}
+				} else {
+					// Fallback si l'utilisateur ne peut pas créer de termes : on utilise la galerie existante si sélectionnée.
+					if ( isset( $attachment['eg_media_gallery_select'] ) ) {
+						$gallery_val = sanitize_text_field( (string) $attachment['eg_media_gallery_select'] );
+						if ( '' !== $gallery_val ) {
+							$target_gallery_id = (int) $gallery_val;
 							wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
 						}
 					}
-				} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
-					$target_gallery_id = (int) $term_info['term_id'];
-					wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
 				}
 			}
 		}
@@ -186,18 +210,24 @@ class MediaFields {
 		if ( $old_gallery_id > 0 && $old_gallery_id !== $target_gallery_id ) {
 			$old_ref_id = (int) get_term_meta( $old_gallery_id, '_eg_media_featured_image_id', true );
 			if ( $old_ref_id === $post_id ) {
-				delete_term_meta( $old_gallery_id, '_eg_media_featured_image_id' );
+				if ( $can_create_terms ) {
+					delete_term_meta( $old_gallery_id, '_eg_media_featured_image_id' );
+				}
 			}
 		}
 
 		// Mettre à jour l'image de référence pour la galerie ciblée.
 		if ( $target_gallery_id > 0 ) {
 			if ( $is_reference_checked ) {
-				update_term_meta( $target_gallery_id, '_eg_media_featured_image_id', $post_id );
+				if ( $can_create_terms ) {
+					update_term_meta( $target_gallery_id, '_eg_media_featured_image_id', $post_id );
+				}
 			} else {
 				$current_ref_id = (int) get_term_meta( $target_gallery_id, '_eg_media_featured_image_id', true );
 				if ( $current_ref_id === $post_id ) {
-					delete_term_meta( $target_gallery_id, '_eg_media_featured_image_id' );
+					if ( $can_create_terms ) {
+						delete_term_meta( $target_gallery_id, '_eg_media_featured_image_id' );
+					}
 				}
 			}
 		}

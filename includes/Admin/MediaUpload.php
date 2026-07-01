@@ -136,22 +136,41 @@ class MediaUpload {
 			return;
 		}
 
+		// Récupérer l'objet de taxonomie pour obtenir les permissions requises.
+		$taxonomy = get_taxonomy( 'eg_media_gallery' );
+		if ( ! $taxonomy || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
+			return;
+		}
+
+		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
+
 		// 1. Vérifier si une nouvelle galerie doit être créée à la volée.
 		$new_gallery = isset( $_POST['eg_media_new_target_gallery'] ) ? $_POST['eg_media_new_target_gallery'] : null;
 		if ( null !== $new_gallery && '' !== trim( (string) $new_gallery ) ) {
-			$new_gallery_name = sanitize_text_field( (string) $new_gallery );
-			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
+			if ( $can_create_terms ) {
+				$new_gallery_name = sanitize_text_field( (string) $new_gallery );
+				$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-			if ( is_wp_error( $term_info ) ) {
-				if ( 'term_exists' === $term_info->get_error_code() ) {
-					$existing_term_id = (int) $term_info->get_error_data();
-					if ( $existing_term_id > 0 ) {
-						wp_set_object_terms( $post_id, $existing_term_id, 'eg_media_gallery' );
+				if ( is_wp_error( $term_info ) ) {
+					if ( 'term_exists' === $term_info->get_error_code() ) {
+						$existing_term_id = (int) $term_info->get_error_data();
+						if ( $existing_term_id > 0 ) {
+							wp_set_object_terms( $post_id, $existing_term_id, 'eg_media_gallery' );
+						}
+					}
+				} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+					$gallery_id = (int) $term_info['term_id'];
+					wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
+				}
+			} else {
+				// Fallback si création impossible, on tente d'utiliser la galerie existante sélectionnée
+				$target_gallery = isset( $_POST['eg_media_target_gallery'] ) ? $_POST['eg_media_target_gallery'] : null;
+				if ( null !== $target_gallery && '' !== $target_gallery ) {
+					$gallery_id = (int) $target_gallery;
+					if ( $gallery_id > 0 ) {
+						wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
 					}
 				}
-			} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
-				$gallery_id = (int) $term_info['term_id'];
-				wp_set_object_terms( $post_id, $gallery_id, 'eg_media_gallery' );
 			}
 			return;
 		}
@@ -190,6 +209,13 @@ class MediaUpload {
 			return $redirect_to;
 		}
 
+		$taxonomy = get_taxonomy( 'eg_media_gallery' );
+		if ( ! $taxonomy || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
+			return $redirect_to;
+		}
+
+		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
+
 		$gallery_id  = isset( $_REQUEST['eg_media_bulk_gallery'] ) ? (string) $_REQUEST['eg_media_bulk_gallery'] : '';
 		$new_gallery = isset( $_REQUEST['eg_media_bulk_new_gallery'] ) ? (string) $_REQUEST['eg_media_bulk_new_gallery'] : '';
 
@@ -197,18 +223,25 @@ class MediaUpload {
 
 		// 1. Si saisie d'une nouvelle galerie
 		if ( '' !== trim( $new_gallery ) ) {
-			$new_gallery_name = sanitize_text_field( $new_gallery );
-			$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
+			if ( $can_create_terms ) {
+				$new_gallery_name = sanitize_text_field( $new_gallery );
+				$term_info = wp_insert_term( $new_gallery_name, 'eg_media_gallery' );
 
-			if ( is_wp_error( $term_info ) ) {
-				if ( 'term_exists' === $term_info->get_error_code() ) {
-					$existing_term_id = (int) $term_info->get_error_data();
-					if ( $existing_term_id > 0 ) {
-						$final_gallery_id = $existing_term_id;
+				if ( is_wp_error( $term_info ) ) {
+					if ( 'term_exists' === $term_info->get_error_code() ) {
+						$existing_term_id = (int) $term_info->get_error_data();
+						if ( $existing_term_id > 0 ) {
+							$final_gallery_id = $existing_term_id;
+						}
 					}
+				} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
+					$final_gallery_id = (int) $term_info['term_id'];
 				}
-			} elseif ( is_array( $term_info ) && isset( $term_info['term_id'] ) ) {
-				$final_gallery_id = (int) $term_info['term_id'];
+			} else {
+				// Fallback
+				if ( '' !== $gallery_id && 'orphan' !== $gallery_id ) {
+					$final_gallery_id = (int) $gallery_id;
+				}
 			}
 		}
 		// 2. Sinon, si sélection d'une galerie existante
@@ -219,7 +252,7 @@ class MediaUpload {
 		$count = 0;
 		foreach ( $post_ids as $post_id ) {
 			$post_id = (int) $post_id;
-			if ( $post_id > 0 && current_user_can( 'upload_files' ) ) {
+			if ( $post_id > 0 && current_user_can( 'edit_post', $post_id ) ) {
 				if ( 'orphan' === $gallery_id && '' === trim( $new_gallery ) ) {
 					wp_set_object_terms( $post_id, [], 'eg_media_gallery' );
 				} elseif ( $final_gallery_id > 0 ) {
@@ -390,6 +423,11 @@ class MediaUpload {
 		check_ajax_referer( 'eg-media-upload-nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( 'Forbidden', 403 );
+		}
+
+		$taxonomy = get_taxonomy( 'eg_media_gallery' );
+		if ( ! $taxonomy || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
 			wp_send_json_error( 'Forbidden', 403 );
 		}
 
