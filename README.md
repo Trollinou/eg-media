@@ -59,7 +59,13 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Importation d'image mise en avant** : Bouton d'action "Set Piwigo Featured Image" intégré sous le bloc d'image mise en avant natif de l'éditeur d'articles WordPress. Il permet de parcourir un album Piwigo, d'en importer une photo localement dans la bibliothèque de médias en un clic, et de la définir comme image mise en avant du post.
 - **Cache Transient** : Persistence des données Piwigo pendant 1 heure via l'API Transients de WordPress pour garantir des performances optimales.
 
-### 6. Tableau de Bord d'Administration
+### 6. Albums (Regroupement de Galeries)
+- **Custom Post Type Albums** : Regroupement sous forme d'albums de plusieurs galeries locales ou Piwigo.
+- **Tri et Ordonnancement Dynamique** : Choix du type de tri (alphabétique ou manuel via glisser-déposer) et prévisualisation directe du shortcode à intégrer.
+- **Rendu en Grille Premium** : Affichage public à l'aide d'un shortcode `[eg_media_album id="XX"]` sous forme de cartes d'entête sur 2 colonnes avec des effets visuels raffinés.
+- **Ouverture dynamique en Justified Grid** : Clic sur une galerie de l'album pour ouvrir son contenu en grille justifiée au sein d'un modal overlay moderne, avec lightbox plein écran active.
+
+### 7. Tableau de Bord d'Administration
 Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
 - **Onglet Statistiques** :
   - Indicateur d'état du serveur (vérification de la présence d'Imagick).
@@ -100,9 +106,10 @@ Le plugin respecte des standards de développement stricts :
 - **Autoloading natif** : Chargement automatique des classes PHP via un autoloader SPL dans `eg-media.php`.
 - **Modèle Orienté Objet** : Organisation modulaire sous le namespace `EG_MEDIA` dans le dossier `includes/`.
   - `includes/Core/` : Logique fondamentale du plugin.
-  - `includes/Admin/` : Gestion du tableau de bord et des filtres de médias Backbone (Uploads, Filtres, Actions).
-  - `includes/CPT/` : Enregistrement de la taxonomie personnalisée `eg_media_gallery`.
+  - `includes/Admin/` : Gestion du tableau de bord, des filtres de médias Backbone (Uploads, Filtres, Actions) et de la metabox d'album.
+  - `includes/CPT/` : Enregistrement de la taxonomie personnalisée `eg_media_gallery` et du CPT `eg_media_album`.
   - `includes/Blocks/` : Contrôleurs d'enregistrement des blocs Gutenberg dynamiques.
+  - `includes/Shortcodes/` : Gestionnaires des codes courts (Shortcodes) publics comme `[eg_media_album]`.
   - `includes/Services/` : Services de traitement d'images et liaisons API (`Processor`, `BulkProcessor` et `Piwigo`).
   - `includes/API/` : Points de terminaison REST API (Intégration Gutenberg/Piwigo).
   - `includes/Enums/` : Énumérations typées PHP 8.4.
