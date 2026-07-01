@@ -20,6 +20,7 @@ class Processor {
 	public function register() : void {
 		add_filter( 'wp_handle_upload', [ $this, 'process_upload' ] );
 		add_action( 'add_attachment', [ $this, 'flag_new_attachment_as_optimized' ] );
+		add_action( 'delete_attachment', [ $this, 'invalidate_unoptimized_count_cache' ] );
 	}
 
 	/**
@@ -34,7 +35,17 @@ class Processor {
 
 		if ( is_string( $mime_type ) && in_array( $mime_type, $allowed_mimes, true ) ) {
 			update_post_meta( $post_id, '_eg_media_optimized', '1' );
+			$this->invalidate_unoptimized_count_cache();
 		}
+	}
+
+	/**
+	 * Invalide le cache du décompte d'images non optimisées.
+	 *
+	 * @return void
+	 */
+	public function invalidate_unoptimized_count_cache() : void {
+		delete_transient( 'eg_media_unoptimized_count' );
 	}
 
 	/**

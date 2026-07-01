@@ -27,22 +27,24 @@ class BulkProcessor {
 	 * @return int Nombre d'images non optimisées.
 	 */
 	public function get_unoptimized_count() : int {
-		$query = new \WP_Query( [
-			'post_type'      => 'attachment',
-			'post_mime_type' => [ 'image/jpeg', 'image/png', 'image/webp' ],
-			'post_status'    => 'inherit',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
-			'no_found_rows'  => false,
-			'meta_query'     => [
-				[
-					'key'     => '_eg_media_optimized',
-					'compare' => 'NOT EXISTS',
-				],
-			],
-		] );
+		$count = get_transient( 'eg_media_unoptimized_count' );
 
-		return (int) $query->found_posts;
+		if ( false === $count ) {
+			global $wpdb;
+
+			$count = (int) $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$wpdb->posts} AS p
+				LEFT JOIN {$wpdb->postmeta} AS pm ON p.ID = pm.post_id AND pm.meta_key = '_eg_media_optimized'
+				WHERE p.post_type = 'attachment'
+				AND p.post_mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+				AND p.post_status = 'inherit'
+				AND pm.post_id IS NULL"
+			);
+
+			set_transient( 'eg_media_unoptimized_count', $count, 12 * HOUR_IN_SECONDS );
+		}
+
+		return (int) $count;
 	}
 
 	/**
@@ -116,6 +118,13 @@ class BulkProcessor {
 		if ( $processed_in_this_batch > 0 ) {
 			$total_processed = (int) get_option( 'eg_media_processed_count', 0 );
 			update_option( 'eg_media_processed_count', $total_processed + $processed_in_this_batch );
+
+			// Mettre à jour le décompte d'images non optimisées en cache.
+			$current_unoptimized = get_transient( 'eg_media_unoptimized_count' );
+			if ( false !== $current_unoptimized ) {
+				$new_unoptimized = max( 0, (int) $current_unoptimized - $processed_in_this_batch );
+				set_transient( 'eg_media_unoptimized_count', $new_unoptimized, 12 * HOUR_IN_SECONDS );
+			}
 		}
 
 		if ( $bytes_saved_in_this_batch > 0 ) {
