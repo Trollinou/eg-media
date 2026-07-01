@@ -3,7 +3,7 @@
  * Plugin Name:       EG Media Manager
  * Plugin URI:        https://example.com/eg-media
  * Description:       Gestionnaire de Média by EG
- * Version:           1.1.0
+ * Version:           1.1.1
  * Requires at least: 6.0
  * Requires PHP:      8.4
  * Author:            Etienne Gagnon
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Version du plugin.
-define( 'EG_MEDIA_VERSION', '1.1.0' );
+define( 'EG_MEDIA_VERSION', '1.1.1' );
 
 // Autoloader SPL natif.
 spl_autoload_register( function ( string $class ) : void {
@@ -68,6 +68,15 @@ add_action( 'plugins_loaded', function () : void {
 	$eg_media_galleries = new \EG_MEDIA\CPT\Galleries();
 	$eg_media_galleries->register();
 
+	$eg_media_albums = new \EG_MEDIA\CPT\Albums();
+	$eg_media_albums->register();
+
+	$eg_media_album_metabox = new \EG_MEDIA\Admin\AlbumMetabox();
+	$eg_media_album_metabox->register();
+
+	$eg_media_album_shortcode = new \EG_MEDIA\Shortcodes\Album();
+	$eg_media_album_shortcode->register();
+
 	$eg_media_fields = new \EG_MEDIA\Admin\MediaFields();
 	$eg_media_fields->register();
 
@@ -84,5 +93,22 @@ add_action( 'plugins_loaded', function () : void {
 		$eg_media_piwigo_api = new \EG_MEDIA\API\Piwigo();
 		$eg_media_piwigo_api->register_routes();
 	} );
+} );
+
+// Enregistrement des scripts et styles publics pour les Albums
+add_action( 'wp_enqueue_scripts', function() : void {
+	wp_register_style(
+		'eg-media-public-album',
+		plugins_url( 'assets/css/public-album.css', __FILE__ ),
+		[],
+		EG_MEDIA_VERSION
+	);
+	wp_register_script(
+		'eg-media-public-album',
+		plugins_url( 'assets/js/public-album.js', __FILE__ ),
+		[],
+		EG_MEDIA_VERSION,
+		true
+	);
 } );
 

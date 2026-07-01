@@ -1,0 +1,196 @@
+/**
+ * Styles public pour la fonctionnalité d'Albums de EG Media Manager.
+ *
+ * Design premium et responsive (2 colonnes, effets de survol, calque modal).
+ */
+
+.eg-album {
+	margin: 2rem 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* Grille d'albums (2 colonnes sur tablette/desktop, 1 colonne sur mobile) */
+.eg-album__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 30px;
+}
+
+@media (min-width: 768px) {
+	.eg-album__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* Cartes de galerie */
+.eg-album__card {
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+	transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s ease;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+}
+
+.eg-album__card:hover {
+	transform: translateY(-6px);
+	box-shadow: 0 20px 35px rgba(0, 124, 186, 0.12);
+	border-color: rgba(0, 124, 186, 0.3);
+}
+
+/* Enveloppe de l'image de couverture */
+.eg-album__card-cover-wrap {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	background: #f7f7f7;
+}
+
+.eg-album__card-cover {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.eg-album__card:hover .eg-album__card-cover {
+	transform: scale(1.06);
+}
+
+/* Informations de la carte */
+.eg-album__card-info {
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.eg-album__card-title {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #1d2327;
+	line-height: 1.4;
+	transition: color 0.3s ease;
+}
+
+.eg-album__card:hover .eg-album__card-title {
+	color: #007cba;
+}
+
+/* Calque Modal Overlay */
+.eg-album__overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(17, 17, 17, 0.92);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+	padding: 20px;
+}
+
+.eg-album__overlay.is-active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+/* Contenu du Modal Overlay */
+.eg-album__overlay-content {
+	position: relative;
+	width: 100%;
+	max-width: 1300px;
+	height: 90vh;
+	background: #ffffff;
+	border-radius: 20px;
+	box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transform: scale(0.95);
+	transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.eg-album__overlay.is-active .eg-album__overlay-content {
+	transform: scale(1);
+}
+
+/* Titre du Modal */
+.eg-album__overlay-title {
+	margin: 0;
+	padding: 25px 40px;
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #1d2327;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+	background: #fafafa;
+}
+
+/* Corps du Modal */
+.eg-album__overlay-body {
+	flex-grow: 1;
+	overflow-y: auto;
+	padding: 30px 40px;
+	background: #ffffff;
+}
+
+/* Bouton Fermer */
+.eg-album__overlay-close {
+	position: absolute;
+	top: 20px;
+	right: 30px;
+	background: none;
+	border: none;
+	color: #3c434a;
+	font-size: 2.25rem;
+	line-height: 1;
+	font-weight: 300;
+	cursor: pointer;
+	z-index: 100000;
+	transition: color 0.2s ease, transform 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+}
+
+.eg-album__overlay-close:hover {
+	color: #d63638;
+	transform: rotate(90deg);
+	background: rgba(0, 0, 0, 0.05);
+}
+
+/* Ajustements pour intégrer la visionneuse dans le modal */
+.eg-album__overlay .eg-viewer {
+	margin: 0;
+	box-shadow: none;
+	border: none;
+	background: transparent;
+	padding: 0;
+}
+
+/* Cacher l'image principale de la visionneuse par défaut dans le modal si elle n'est pas active */
+.eg-album__overlay .eg-viewer:not(.eg-viewer--fullscreen) .eg-viewer__main {
+	display: none;
+}
+.eg-album__overlay .eg-viewer:not(.eg-viewer--fullscreen) .eg-viewer__track-container {
+	display: none;
+}
+.eg-album__overlay .eg-viewer:not(.eg-viewer--fullscreen) .eg-viewer__close {
+	display: none;
+}

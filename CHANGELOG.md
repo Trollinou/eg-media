@@ -7,6 +7,18 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-07-01
+
+### Added
+- Fonctionnalité d'Albums (CPT `eg_media_album`) permettant de regrouper des galeries locales ou des albums Piwigo.
+- Interface d'administration (Metabox) avec choix du type de tri (alphabétique ou manuel) et réorganisation par glisser-déposer (Drag & Drop en JavaScript natif).
+- Affichage du Shortcode prêt à copier directement dans la metabox de modification d'un album.
+- Rendu public via le shortcode `[eg_media_album id="XX"]` sous forme de grille de cartes sur 2 colonnes (sur tablette/desktop) avec effet de survol esthétique.
+- Ouverture dynamique en Justified Grid (grille justifiée) dans un calque modal (overlay) moderne lors du clic sur une carte de galerie, en réutilisant le bloc visionneuse.
+
+### Removed
+- Suppression des bibliothèques tierces factices non utilisées `fpdf` et `fpdi` du dossier `includes/lib/` et nettoyage de la configuration PHPStan associée.
+
 ## [1.1.0] - 2026-07-01
 
 ### Added
