@@ -7,6 +7,14 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-07-03
+
+### Added
+- Ajout d'un bouton **"Sélectionner depuis Piwigo"** directement dans le bloc espace réservé (Placeholder) du bloc Image natif de Gutenberg pour une ergonomie optimale.
+
+### Fixed
+- Correction du titre générique temporaire (`téléversement...`) des images importées de Piwigo en forçant le titre de l'attachement à correspondre au nom réel de l'image de Piwigo lors de l'insertion dans la base de données.
+
 ## [1.1.3] - 2026-07-03
 
 ### Added

@@ -291,6 +291,33 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent( ( OriginalComponent 
 			}
 		}, [ selectedAlbum ] );
 
+		// Injecter le bouton "Sélectionner depuis Piwigo" dans le placeholder du bloc Image
+		useEffect( () => {
+			if ( ! props.attributes.url ) {
+				const timer = setTimeout( () => {
+					const blockContainer = document.getElementById( `block-${ props.clientId }` ) || 
+					                      document.querySelector( `[data-block="${ props.clientId }"]` );
+					if ( blockContainer ) {
+						const fieldset = blockContainer.querySelector( '.components-placeholder__fieldset' );
+						if ( fieldset && ! fieldset.querySelector( '.eg-piwigo-placeholder-button' ) ) {
+							const btn = document.createElement( 'button' );
+							btn.className = 'components-button is-secondary eg-piwigo-placeholder-button';
+							btn.type = 'button';
+							btn.style.marginLeft = '10px';
+							btn.innerText = __( 'Sélectionner depuis Piwigo', 'eg-media' );
+							btn.onclick = ( e ) => {
+								e.preventDefault();
+								e.stopPropagation();
+								openModal();
+							};
+							fieldset.appendChild( btn );
+						}
+					}
+				}, 50 );
+				return () => clearTimeout( timer );
+			}
+		} );
+
 		const importImage = ( imageId ) => {
 			setIsImporting( true );
 			const album = albums.find( ( a ) => String( a.id ) === String( selectedAlbum ) );
