@@ -147,8 +147,14 @@ class Piwigo {
 			'tmp_name' => $tmp_file,
 		];
 
+		// Préparer les données de publication pour l'attachement (évite les titres temporaires ou vides)
+		$post_data = [
+			'post_title'   => $image_name,
+			'post_content' => $image_name,
+		];
+
 		// Insérer dans la médiathèque
-		$attachment_id = media_handle_sideload( $file_array, $post_id, $image_name );
+		$attachment_id = media_handle_sideload( $file_array, $post_id, $image_name, $post_data );
 
 		if ( is_wp_error( $attachment_id ) ) {
 			@unlink( $tmp_file );
