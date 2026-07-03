@@ -7,6 +7,13 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-07-03
+
+### Added
+- Extension du bloc **Image** natif de Gutenberg (`core/image`) avec un panneau "Intégration Piwigo" dans la barre latérale pour parcourir, télécharger et insérer des images depuis Piwigo directement.
+- Rangement automatique des images importées de Piwigo dans des galeries locales dédiées nommées **`Piwigo - [Nom de l'album]`** (pour le bloc Image et l'image mise en avant).
+- Nouvel endpoint REST API POST `/piwigo/import-image` pour importer une image sans la lier comme image mise en avant du post.
+
 ## [1.1.2] - 2026-07-01
 
 ### Changed
