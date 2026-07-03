@@ -80,6 +80,7 @@ Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
   - Réglage du niveau de compression PNG (Faible, Moyenne, Forte).
   - Options activables/désactivables (Unsharp Mask, Auto-orient, Chrominance 4:2:0, Interlacing).
   - **Zone de danger** : Réinitialisation globale du statut d'optimisation pour permettre de ré-optimiser toutes les images du site.
+  - **Gestion du cache Piwigo** : Nettoyage manuel du cache des albums et des images Piwigo pour forcer l'affichage immédiat des nouveaux médias ajoutés.
 
 ---
 

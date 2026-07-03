@@ -51,6 +51,7 @@ class Main {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		add_action( 'admin_init', [ $this->config_tab, 'init_settings' ] );
 		add_action( 'admin_post_eg_media_reset_optimization_status', [ $this, 'handle_reset_optimization_status' ] );
+		add_action( 'admin_post_eg_media_clear_piwigo_cache', [ $this, 'handle_clear_piwigo_cache' ] );
 	}
 
 	/**
@@ -89,6 +90,47 @@ class Main {
 			'eg_media_messages',
 			'eg_media_reset_success',
 			'Le statut d\'optimisation a été réinitialisé. Vous pouvez à nouveau optimiser l\'ensemble de vos médias existants.',
+			'success'
+		);
+
+		// Sauvegarde des erreurs de réglages de façon temporaire (transient) pour persistance lors du redirect.
+		set_transient( 'settings_errors', get_settings_errors(), 30 );
+
+		// Redirection vers l'onglet de configuration.
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'page' => 'eg-media-dashboard',
+					'tab'  => 'config',
+				],
+				admin_url( 'upload.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Traite le nettoyage manuel du cache Piwigo.
+	 *
+	 * @return void
+	 */
+	public function handle_clear_piwigo_cache(): void {
+		// Vérification de sécurité des capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html( "Vous n'avez pas les permissions nécessaires pour effectuer cette action." ) );
+		}
+
+		// Vérification du nonce.
+		check_admin_referer( 'eg_media_clear_piwigo_cache_action', 'eg_media_clear_piwigo_cache_nonce' );
+
+		$piwigo_service = new \EG_MEDIA\Services\Piwigo();
+		$piwigo_service->clear_cache();
+
+		// Ajouter un message de notification à afficher lors de la redirection.
+		add_settings_error(
+			'eg_media_messages',
+			'eg_media_clear_piwigo_cache_success',
+			'Le cache de Piwigo (albums et images) a été vidé avec succès.',
 			'success'
 		);
 

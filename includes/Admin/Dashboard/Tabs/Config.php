@@ -451,6 +451,17 @@ class Config {
 				<?php submit_button( 'Réinitialiser le statut d\'optimisation', 'destructive', 'submit', false ); ?>
 			</form>
 		</div>
+
+		<div class="card" style="max-width: 800px; margin-top: 20px; box-sizing: border-box; background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+			<h2 class="title">Gestion du cache Piwigo</h2>
+			<p>Les albums et images récupérés depuis votre galerie Piwigo sont mis en cache pendant une heure pour optimiser le temps de chargement de votre site WordPress. Si vous venez d'ajouter des photos sur Piwigo, vous pouvez vider ce cache manuellement pour les afficher immédiatement.</p>
+			
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top: 15px;">
+				<input type="hidden" name="action" value="eg_media_clear_piwigo_cache" />
+				<?php wp_nonce_field( 'eg_media_clear_piwigo_cache_action', 'eg_media_clear_piwigo_cache_nonce' ); ?>
+				<?php submit_button( 'Vider le cache Piwigo', 'secondary', 'submit', false ); ?>
+			</form>
+		</div>
 		<?php
 	}
 }

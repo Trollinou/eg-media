@@ -7,6 +7,11 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-07-03
+
+### Added
+- Ajout d'un bouton **"Vider le cache Piwigo"** dans l'onglet Configuration du tableau de bord d'administration pour forcer le nettoyage immédiat du cache des albums et des images récupérés de Piwigo.
+
 ## [1.1.4] - 2026-07-03
 
 ### Added
