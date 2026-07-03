@@ -12,6 +12,9 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ### Added
 - Ajout d'un bouton **"Sélectionner depuis Piwigo"** directement dans le bloc espace réservé (Placeholder) du bloc Image natif de Gutenberg pour une ergonomie optimale.
 
+### Changed
+- Alignement visuel du bouton **"Sélectionner depuis Piwigo"** dans l'espace réservé (Placeholder) du bloc Image en appliquant les classes de dimensions natives de WordPress (`is-next-40px-default-size` et `block-editor-media-placeholder__button`).
+
 ### Fixed
 - Correction du titre générique temporaire (`téléversement...`) des images importées de Piwigo en forçant le titre de l'attachement à correspondre au nom réel de l'image de Piwigo lors de l'insertion dans la base de données.
 
