@@ -302,9 +302,8 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent( ( OriginalComponent 
 						const fieldset = blockContainer.querySelector( '.components-placeholder__fieldset' );
 						if ( fieldset && ! fieldset.querySelector( '.eg-piwigo-placeholder-button' ) ) {
 							const btn = document.createElement( 'button' );
-							btn.className = 'components-button is-secondary eg-piwigo-placeholder-button';
+							btn.className = 'components-button is-secondary is-next-40px-default-size block-editor-media-placeholder__button eg-piwigo-placeholder-button';
 							btn.type = 'button';
-							btn.style.marginLeft = '10px';
 							btn.innerText = __( 'Sélectionner depuis Piwigo', 'eg-media' );
 							btn.onclick = ( e ) => {
 								e.preventDefault();
