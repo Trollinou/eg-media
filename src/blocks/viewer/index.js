@@ -295,8 +295,9 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent( ( OriginalComponent 
 		useEffect( () => {
 			if ( ! props.attributes.url ) {
 				const timer = setTimeout( () => {
-					const blockContainer = document.getElementById( `block-${ props.clientId }` ) || 
-					                      document.querySelector( `[data-block="${ props.clientId }"]` );
+					const doc = document.querySelector( 'iframe[name="editor-canvas"]' )?.contentDocument || document;
+					const blockContainer = doc.getElementById( `block-${ props.clientId }` ) || 
+					                      doc.querySelector( `[data-block="${ props.clientId }"]` );
 					if ( blockContainer ) {
 						const fieldset = blockContainer.querySelector( '.components-placeholder__fieldset' );
 						if ( fieldset && ! fieldset.querySelector( '.eg-piwigo-placeholder-button' ) ) {
