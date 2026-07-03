@@ -57,6 +57,8 @@ Dès qu'une image au format **JPEG**, **PNG** ou **WebP** est ajoutée à la bib
 - **Liaison d'albums** : Possibilité de connecter une instance Piwigo (v16.4.0+) à l'aide d'une clé d'accès personnel (identifiant public et secret séparés).
 - **Visionneuse Piwigo** : Option de source "Album distant (Piwigo)" ajoutée au bloc de la visionneuse pour charger et afficher directement des photos stockées sur Piwigo dans le diaporama ou la grille justifiée.
 - **Importation d'image mise en avant** : Bouton d'action "Set Piwigo Featured Image" intégré sous le bloc d'image mise en avant natif de l'éditeur d'articles WordPress. Il permet de parcourir un album Piwigo, d'en importer une photo localement dans la bibliothèque de médias en un clic, et de la définir comme image mise en avant du post.
+- **Importation dans le bloc Image natif** : Intégration d'un bouton "Sélectionner depuis Piwigo" directement dans l'espace réservé (Placeholder) et dans la barre latérale du bloc Image standard de WordPress pour importer des photos sans quitter l'éditeur de page.
+- **Rangement automatique en Galerie** : Classement systématique de chaque image importée depuis Piwigo dans une galerie locale dédiée au format `Piwigo - [Nom de l'album]` afin d'assurer l'organisation et d'éviter d'encombrer la médiathèque générale.
 - **Cache Transient** : Persistence des données Piwigo pendant 1 heure via l'API Transients de WordPress pour garantir des performances optimales.
 
 ### 6. Albums (Regroupement de Galeries)

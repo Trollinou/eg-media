@@ -51,12 +51,12 @@ Pour afficher l'album sur votre site, il vous suffit de coller le code court cop
 
 ## 3. Insertion d'Images Piwigo dans vos Pages (Bloc Image Natif)
 
-Vous pouvez insérer n'est-ce qu'une seule image provenant de Piwigo dans le contenu de votre page en utilisant le bloc **Image** standard de WordPress :
+Vous pouvez insérer une image provenant de Piwigo dans le contenu de votre page en utilisant le bloc **Image** standard de WordPress :
 1. Insérez un bloc **Image** classique dans votre page ou article.
-2. Dans la barre latérale droite de réglages du bloc, localisez l'onglet **"Intégration Piwigo"**.
-3. Cliquez sur le bouton **"Sélectionner depuis Piwigo"**.
-4. Dans la fenêtre modale, sélectionnez votre album Piwigo puis cliquez sur la photo de votre choix.
-5. L'image est automatiquement téléchargée en arrière-plan et insérée dans votre bloc.
+2. Si le bloc est vide, cliquez directement sur le bouton **"Sélectionner depuis Piwigo"** présent au milieu du bloc (à côté du bouton "Médiathèque").
+3. Si le bloc contient déjà une image ou si vous préférez utiliser la barre latérale droite de réglages du bloc, ouvrez l'onglet **"Intégration Piwigo"** et cliquez sur **"Sélectionner depuis Piwigo"**.
+4. Dans la fenêtre modale qui s'ouvre, choisissez votre album Piwigo puis cliquez sur la photo de votre choix.
+5. L'image est automatiquement téléchargée en arrière-plan, importée dans votre médiathèque locale avec son titre d'origine, puis insérée à la place ou à l'intérieur du bloc.
 
 ### Rangement et Classement Automatique
 Pour éviter d'encombrer votre médiathèque en vrac, chaque image importée de Piwigo (que ce soit via le bloc Image ou comme Image mise en avant) est **automatiquement classée** dans une galerie locale nommée **`Piwigo - [Nom de l'album]`**. Vous pouvez ensuite filtrer vos images par galerie ou réutiliser ces imports organisés dans d'autres contenus.
