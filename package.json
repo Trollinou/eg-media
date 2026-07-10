@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "@babel/runtime": "^8.0.0",
-    "@wordpress/scripts": "^32.4.0",
-    "adm-zip": "^0.5.17",
+    "@wordpress/scripts": "^32.6.0",
+    "adm-zip": "^0.5.18",
     "minimatch": "^10.2.5"
   },
   "author": "Etienne Gagnon",
