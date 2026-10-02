@@ -16,12 +16,14 @@
 ### Versions Cibles (Stack Technique)
 | Outil | Version Requise | Impact sur le code |
 | :--- | :--- | :--- |
-| **WordPress** | **6.9.1** | Utiliser les API récentes (**Interactivity API**, Block Bindings) plutôt que jQuery. Transients API pour le cache. |
+| **WordPress** | **7.1** | Utiliser les API natives modernes (**Interactivity API**, Script Modules `viewScriptModule`, Block Bindings API, HTML Tag Processor). |
 | **PHP** | **8.4** | **ZERO COMPOSER EN PROD**. **STRICT_TYPES=1 OBLIGATOIRE**. Utiliser un autoloader natif SPL. Typage strict, Enums, Readonly classes, Constructor Promotion, New Fetch in array, etc. |
+| **TypeScript** | **6.0.3** | **Mode Strict obligatoire** (`strict: true`, `noImplicitAny`). Typage fort de tous les blocs, stores et interactions. |
+| **React** | **18.3.1** | Alignement strict sur la version React et les types `@types/react` supportés par le cœur WordPress 7.1. |
 | **Node.js** | **24 LTS** | **DEV ONLY**. Sert uniquement à compiler les assets (Build step). |
 | **Styles** | **SCSS** | Préprocesseur obligatoire + Convention BEM. |
-| **Standards** | **ES2021** | Syntaxe JS moderne obligatoire. |
-| **Livrable** | **Zip Autonome** | Le plugin final ne contient ni `node_modules`, ni `vendor`, ni fichiers sources `.scss`/`.jsx`. |
+| **Standards** | **ES2022+** | Syntaxe JS/TS moderne obligatoire. |
+| **Livrable** | **Zip Autonome** | Le plugin final ne contient ni `node_modules`, ni `vendor`, ni fichiers sources `.scss`/`.ts`/`.tsx`. |
 
 ---
 

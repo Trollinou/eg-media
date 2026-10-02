@@ -51,6 +51,14 @@ class AlbumMetabox {
 			.eg-album-item-type { font-size: 11px; background: #e0e0e0; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; color: #555; }
 			.eg-album-item-remove { color: #d63638; cursor: pointer; text-decoration: underline; font-size: 13px; }
 		" );
+
+		wp_enqueue_script(
+			'eg-media-admin-album-metabox',
+			plugins_url( 'assets/js/admin-album-metabox.js', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -171,169 +179,6 @@ class AlbumMetabox {
 
 			<input type="hidden" name="eg_media_album_items" id="eg_media_album_items_input" value="<?php echo esc_attr( (string) $items_meta ); ?>" />
 		</div>
-
-		<script>
-		document.addEventListener('DOMContentLoaded', () => {
-			const container = document.getElementById('eg_media_album_items_container');
-			const input = document.getElementById('eg_media_album_items_input');
-			const sortSelect = document.getElementById('eg_media_album_sort');
-			const sortDesc = document.getElementById('eg_media_sort_desc');
-
-			let items = [];
-			try {
-				const val = input.value;
-				if (val) {
-					items = JSON.parse(val);
-				}
-			} catch (e) {
-				items = [];
-			}
-
-			if (!Array.isArray(items)) {
-				items = [];
-			}
-
-			// Rendu initial
-			renderItems();
-
-			sortSelect.addEventListener('change', () => {
-				const val = sortSelect.value;
-				if (val === 'manual') {
-					sortDesc.textContent = "Faites glisser les éléments pour réorganiser l'ordre d'affichage.";
-				} else {
-					sortDesc.textContent = "Le tri automatique est activé. L'ordre ci-dessous n'a pas d'influence.";
-				}
-			});
-
-			document.getElementById('eg_media_btn_add_local').addEventListener('click', () => {
-				const select = document.getElementById('eg_media_add_local_gallery');
-				const option = select.options[select.selectedIndex];
-				if (!option.value) return;
-
-				const id = parseInt(option.value, 10);
-				const name = option.getAttribute('data-name');
-
-				if (items.some(item => item.type === 'local' && item.id === id)) {
-					alert("Cette galerie locale est déjà présente dans l'album.");
-					return;
-				}
-
-				items.push({ type: 'local', id: id, name: name });
-				saveAndRender();
-				select.value = '';
-			});
-
-			document.getElementById('eg_media_btn_add_piwigo').addEventListener('click', () => {
-				const select = document.getElementById('eg_media_add_piwigo_album');
-				const option = select.options[select.selectedIndex];
-				if (!option.value) return;
-
-				const id = parseInt(option.value, 10);
-				const name = option.getAttribute('data-name');
-
-				if (items.some(item => item.type === 'piwigo' && item.id === id)) {
-					alert("Cet album Piwigo est déjà présent dans l'album.");
-					return;
-				}
-
-				items.push({ type: 'piwigo', id: id, name: name });
-				saveAndRender();
-				select.value = '';
-			});
-
-			function renderItems() {
-				container.innerHTML = '';
-				if (items.length === 0) {
-					container.innerHTML = '<div style="color: #999; text-align: center; padding: 15px 0;">Aucune galerie associée.</div>';
-					return;
-				}
-
-				items.forEach((item, index) => {
-					const div = document.createElement('div');
-					div.className = 'eg-album-item';
-					div.setAttribute('draggable', sortSelect.value === 'manual' ? 'true' : 'false');
-					div.dataset.index = index;
-
-					const contentSpan = document.createElement('span');
-					contentSpan.className = 'eg-album-item-title';
-					contentSpan.textContent = item.name + ' ';
-
-					const typeSpan = document.createElement('span');
-					typeSpan.className = 'eg-album-item-type';
-					typeSpan.textContent = item.type === 'local' ? 'Locale' : 'Piwigo';
-
-					const textWrap = document.createElement('div');
-					textWrap.appendChild(contentSpan);
-					textWrap.appendChild(typeSpan);
-
-					const removeLink = document.createElement('span');
-					removeLink.className = 'eg-album-item-remove';
-					removeLink.textContent = 'Retirer';
-					removeLink.addEventListener('click', () => {
-						items.splice(index, 1);
-						saveAndRender();
-					});
-
-					div.appendChild(textWrap);
-					div.appendChild(removeLink);
-
-					// Setup Drag and Drop events
-					if (sortSelect.value === 'manual') {
-						div.addEventListener('dragstart', handleDragStart);
-						div.addEventListener('dragover', handleDragOver);
-						div.addEventListener('drop', handleDrop);
-						div.addEventListener('dragend', handleDragEnd);
-					}
-
-					container.appendChild(div);
-				});
-			}
-
-			function saveAndRender() {
-				input.value = JSON.stringify(items);
-				renderItems();
-			}
-
-			let dragSrcEl = null;
-
-			function handleDragStart(e) {
-				dragSrcEl = this;
-				this.classList.add('dragging');
-				e.dataTransfer.effectAllowed = 'move';
-				e.dataTransfer.setData('text/plain', this.dataset.index);
-			}
-
-			function handleDragOver(e) {
-				if (e.preventDefault) {
-					e.preventDefault();
-				}
-				e.dataTransfer.dropEffect = 'move';
-				return false;
-			}
-
-			function handleDrop(e) {
-				e.stopPropagation();
-				e.preventDefault();
-				if (dragSrcEl !== this) {
-					const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
-					const toIndex = parseInt(this.dataset.index, 10);
-
-					const temp = items[fromIndex];
-					items.splice(fromIndex, 1);
-					items.splice(toIndex, 0, temp);
-
-					saveAndRender();
-				}
-				return false;
-			}
-
-			function handleDragEnd() {
-				this.classList.remove('dragging');
-				const draggingItems = container.querySelectorAll('.eg-album-item');
-				draggingItems.forEach(el => el.classList.remove('dragging'));
-			}
-		});
-		</script>
 		<?php
 	}
 

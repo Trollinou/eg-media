@@ -1,19 +1,22 @@
 /**
- * Script front-end pour le bloc Visionneuse de Galerie.
+ * Script front-end TypeScript pour le bloc Visionneuse de Galerie.
  *
- * ES2021 Vanilla JS.
+ * ES2022+ TypeScript en mode strict.
  */
 
-document.addEventListener( 'DOMContentLoaded', () => {
-	const viewers = document.querySelectorAll( '.eg-viewer' );
+import type { GalleryImage } from '../../types/gallery';
+import type { ViewerLayout } from '../../types/viewer';
 
-	viewers.forEach( ( viewer ) => {
-		const mainImage = viewer.querySelector( '.eg-viewer__main-image' );
-		const track = viewer.querySelector( '.eg-viewer__track' );
-		const thumbnailsContainer = viewer.querySelector(
+document.addEventListener( 'DOMContentLoaded', () => {
+	const viewers = document.querySelectorAll<HTMLElement>( '.eg-viewer' );
+
+	viewers.forEach( ( viewer: HTMLElement ) => {
+		const mainImage = viewer.querySelector<HTMLElement>( '.eg-viewer__main-image' );
+		const track = viewer.querySelector<HTMLElement>( '.eg-viewer__track' );
+		const thumbnailsContainer = viewer.querySelector<HTMLElement>(
 			'.eg-viewer__thumbnails'
 		);
-		const thumbnails = viewer.querySelectorAll( '.eg-viewer__thumbnail' );
+		const thumbnails = viewer.querySelectorAll<HTMLElement>( '.eg-viewer__thumbnail' );
 
 		if (
 			! mainImage ||
@@ -24,30 +27,29 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			return;
 		}
 
-		const arrowLeft = viewer.querySelector( '.eg-viewer__arrow--left' );
-		const arrowRight = viewer.querySelector( '.eg-viewer__arrow--right' );
+		const arrowLeft = viewer.querySelector<HTMLElement>( '.eg-viewer__arrow--left' );
+		const arrowRight = viewer.querySelector<HTMLElement>( '.eg-viewer__arrow--right' );
 
-		// Vérifier également les flèches si elles existent
 		if ( ! arrowLeft || ! arrowRight ) {
 			return;
 		}
 
-		const layout = viewer.dataset.layout || 'viewer';
+		const layout = ( viewer.dataset.layout || 'viewer' ) as ViewerLayout;
 		const isSlideshow =
 			viewer.dataset.slideshow === 'true' && layout !== 'justified';
-		const tempo = parseInt( viewer.dataset.tempo, 10 ) || 3000;
+		const tempo = parseInt( viewer.dataset.tempo || '3000', 10 ) || 3000;
 
 		let currentIndex = 0;
-		let slideshowInterval = null;
+		let slideshowInterval: ReturnType<typeof setInterval> | null = null;
 		let trackOffset = 0;
 
 		// 1. Calculer la largeur dynamique des miniatures
-		const initThumbnailWidths = () => {
+		const initThumbnailWidths = (): void => {
 			const trackHeight = track.clientHeight || 50; // Hauteur de la piste (10% du conteneur)
 
-			thumbnails.forEach( ( thumb ) => {
-				const naturalWidth = parseFloat( thumb.dataset.width ) || 150;
-				const naturalHeight = parseFloat( thumb.dataset.height ) || 150;
+			thumbnails.forEach( ( thumb: HTMLElement ) => {
+				const naturalWidth = parseFloat( thumb.dataset.width || '150' ) || 150;
+				const naturalHeight = parseFloat( thumb.dataset.height || '150' ) || 150;
 				const ratio = naturalWidth / naturalHeight;
 				const calculatedWidth = trackHeight * ratio;
 
@@ -56,15 +58,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			} );
 		};
 
-		// Initialisation et adaptation lors du redimensionnement
-		initThumbnailWidths();
-		window.addEventListener( 'resize', () => {
-			initThumbnailWidths();
-			updateTrackPosition();
-		} );
-
 		// 2. Mettre à jour l'image active et la classe active
-		const setActiveImage = ( index ) => {
+		const setActiveImage = ( index: number ): void => {
 			// S'assurer que l'index reste dans les limites (boucle circulaire)
 			if ( index < 0 ) {
 				currentIndex = thumbnails.length - 1;
@@ -76,16 +71,20 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 			// Changer la source et l'alt de l'image principale avec un effet de fondu
 			const activeThumb = thumbnails[ currentIndex ];
-			const newSrc = activeThumb.dataset.fullSrc;
-			const imgEl = activeThumb.querySelector( 'img' );
+			if ( ! activeThumb ) {
+				return;
+			}
+
+			const newSrc = activeThumb.dataset.fullSrc || '';
+			const imgEl = activeThumb.querySelector<HTMLImageElement>( 'img' );
 			const newAlt = imgEl ? imgEl.alt : '';
 
-			const mainContainer = viewer.querySelector( '.eg-viewer__main' );
+			const mainContainer = viewer.querySelector<HTMLElement>( '.eg-viewer__main' );
 			if ( ! mainContainer ) {
 				return;
 			}
 
-			const currentImg = mainContainer.querySelector(
+			const currentImg = mainContainer.querySelector<HTMLImageElement>(
 				'.eg-viewer__main-image'
 			);
 			if ( currentImg ) {
@@ -99,8 +98,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				}
 
 				// Nettoyer d'éventuelles images dupliquées résiduelles
-				const extraImages = mainContainer.querySelectorAll( 'img' );
-				extraImages.forEach( ( img ) => {
+				const extraImages = mainContainer.querySelectorAll<HTMLImageElement>( 'img' );
+				extraImages.forEach( ( img: HTMLImageElement ) => {
 					img.remove();
 				} );
 
@@ -109,8 +108,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				newImg.className = 'eg-viewer__main-image';
 				newImg.style.opacity = '0';
 				newImg.style.cursor =
-					document.fullscreenElement === viewer ||
-					document.webkitFullscreenElement === viewer
+					document.fullscreenElement === viewer
 						? 'zoom-out'
 						: 'zoom-in';
 
@@ -124,7 +122,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					newImg.alt = newAlt;
 					mainContainer.appendChild( newImg );
 					// Forcer un reflow pour déclencher l'animation d'opacité
-					/* eslint-disable-next-line no-unused-expressions */
+					/* eslint-disable-next-line @typescript-eslint/no-unused-expressions */
 					newImg.offsetHeight;
 					newImg.style.opacity = '1';
 				};
@@ -132,7 +130,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			}, 150 );
 
 			// Mettre à jour les classes actives
-			thumbnails.forEach( ( thumb, i ) => {
+			thumbnails.forEach( ( thumb: HTMLElement, i: number ) => {
 				if ( i === currentIndex ) {
 					thumb.classList.add( 'eg-viewer__thumbnail--active' );
 				} else {
@@ -144,7 +142,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		// 3. Déplacement de la piste des miniatures
-		const updateTrackPosition = () => {
+		const updateTrackPosition = (): void => {
 			const viewportWidth = thumbnailsContainer.clientWidth;
 			const activeThumb = thumbnails[ currentIndex ];
 			if ( ! activeThumb ) {
@@ -173,7 +171,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		// Décaler la piste au clic sur une flèche sans changer l'image active
-		const shiftTrack = ( direction ) => {
+		const shiftTrack = ( direction: 'prev' | 'next' ): void => {
 			const viewportWidth = thumbnailsContainer.clientWidth;
 			const scrollAmount = viewportWidth * 0.6; // Défilement de 60% de la largeur visible
 			const maxScroll = -( track.scrollWidth - viewportWidth );
@@ -204,17 +202,17 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		} );
 
 		// Clic direct sur une miniature
-		thumbnails.forEach( ( thumb, index ) => {
+		thumbnails.forEach( ( thumb: HTMLElement, index: number ) => {
 			thumb.addEventListener( 'click', () => {
 				setActiveImage( index );
 			} );
 		} );
 
 		// Défilement de la piste des miniatures à la roulette sans changer l'image active
-		let wheelTimeout = null;
+		let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 		thumbnailsContainer.addEventListener(
 			'wheel',
-			( e ) => {
+			( e: WheelEvent ) => {
 				e.preventDefault();
 
 				// Désactiver la transition CSS pour un défilement immédiat et sans tremblement (surtout au trackpad)
@@ -228,7 +226,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				const maxScroll = -( track.scrollWidth - viewportWidth );
 				const delta = e.deltaY || e.deltaX;
 
-				// Ajuster la vitesse/sensibilité (passée à 1.2 pour la souris)
+				// Ajuster la vitesse/sensibilité
 				trackOffset -= delta * 1.2;
 
 				if ( trackOffset > 0 ) {
@@ -251,12 +249,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 		// 3.5 Gestion de la grille justifiée
 		if ( layout === 'justified' ) {
-			const limit = parseInt( viewer.dataset.limit, 10 ) || 30;
+			const limit = parseInt( viewer.dataset.limit || '30', 10 ) || 30;
 			const imagesJsonStr = viewer.dataset.imagesJson;
-			let imagesData = [];
+			let imagesData: GalleryImage[] = [];
 			try {
 				if ( imagesJsonStr ) {
-					imagesData = JSON.parse( imagesJsonStr );
+					imagesData = JSON.parse( imagesJsonStr ) as GalleryImage[];
 				}
 			} catch ( e ) {
 				// eslint-disable-next-line no-console
@@ -265,23 +263,24 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 			let currentLoadedCount = Math.min( imagesData.length, limit );
 
-			const justifiedGrid = viewer.querySelector(
+			const justifiedGrid = viewer.querySelector<HTMLElement>(
 				'.eg-viewer__justified-grid'
 			);
 			if ( justifiedGrid ) {
-				justifiedGrid.addEventListener( 'click', ( e ) => {
-					const item = e.target.closest(
+				justifiedGrid.addEventListener( 'click', ( e: MouseEvent ) => {
+					const target = e.target as HTMLElement | null;
+					const item = target?.closest<HTMLElement>(
 						'.eg-viewer__justified-item'
 					);
 					if ( item ) {
-						const index = parseInt( item.dataset.index, 10 );
+						const index = parseInt( item.dataset.index || '0', 10 );
 						setActiveImage( index );
 						toggleFullscreen();
 					}
 				} );
 			}
 
-			const loadMoreBtn = viewer.querySelector(
+			const loadMoreBtn = viewer.querySelector<HTMLButtonElement>(
 				'.eg-viewer__load-more-btn'
 			);
 			if ( loadMoreBtn && justifiedGrid ) {
@@ -290,13 +289,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 						currentLoadedCount,
 						currentLoadedCount + limit
 					);
-					nextBatch.forEach( ( img ) => {
+					nextBatch.forEach( ( img: GalleryImage ) => {
 						const aspect = img.width / img.height;
 						const flexBasis = aspect * 150;
 						const itemDiv = document.createElement( 'div' );
 						itemDiv.className = 'eg-viewer__justified-item';
-						itemDiv.dataset.index = img.index;
-						itemDiv.style.flexGrow = aspect;
+						itemDiv.dataset.index = String( img.index );
+						itemDiv.style.flexGrow = String( aspect );
 						itemDiv.style.flexBasis = `${ flexBasis }px`;
 
 						const imgEl = document.createElement( 'img' );
@@ -311,7 +310,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					currentLoadedCount += nextBatch.length;
 
 					if ( currentLoadedCount >= imagesData.length ) {
-						const container = viewer.querySelector(
+						const container = viewer.querySelector<HTMLElement>(
 							'.eg-viewer__load-more-container'
 						);
 						if ( container ) {
@@ -323,7 +322,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 
 		// 4. Gestion du diaporama
-		const startSlideshow = () => {
+		const startSlideshow = (): void => {
 			if ( ! isSlideshow || slideshowInterval ) {
 				return;
 			}
@@ -332,7 +331,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			}, tempo );
 		};
 
-		const stopSlideshow = () => {
+		const stopSlideshow = (): void => {
 			if ( slideshowInterval ) {
 				clearInterval( slideshowInterval );
 				slideshowInterval = null;
@@ -340,26 +339,15 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		// 5. Gestion du plein écran (HTML5 Fullscreen API)
-		const closeBtn = viewer.querySelector( '.eg-viewer__close' );
+		const closeBtn = viewer.querySelector<HTMLElement>( '.eg-viewer__close' );
 
-		const toggleFullscreen = () => {
-			if (
-				! document.fullscreenElement &&
-				! document.webkitFullscreenElement
-			) {
+		const toggleFullscreen = (): void => {
+			if ( ! document.fullscreenElement ) {
 				if ( viewer.requestFullscreen ) {
 					viewer.requestFullscreen();
-				} else if ( viewer.webkitRequestFullscreen ) {
-					viewer.webkitRequestFullscreen();
-				} else if ( viewer.msRequestFullscreen ) {
-					viewer.msRequestFullscreen();
 				}
 			} else if ( document.exitFullscreen ) {
 				document.exitFullscreen();
-			} else if ( document.webkitExitFullscreen ) {
-				document.webkitExitFullscreen();
-			} else if ( document.msExitFullscreen ) {
-				document.msExitFullscreen();
 			}
 		};
 
@@ -369,32 +357,24 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 
 		if ( closeBtn ) {
-			closeBtn.addEventListener( 'click', ( e ) => {
+			closeBtn.addEventListener( 'click', ( e: MouseEvent ) => {
 				e.stopPropagation();
-				if (
-					document.fullscreenElement ||
-					document.webkitFullscreenElement
-				) {
+				if ( document.fullscreenElement ) {
 					if ( document.exitFullscreen ) {
 						document.exitFullscreen();
-					} else if ( document.webkitExitFullscreen ) {
-						document.webkitExitFullscreen();
 					}
 				}
 			} );
 		}
 
-		const handleFullscreenChange = () => {
-			const isFull =
-				document.fullscreenElement === viewer ||
-				document.webkitFullscreenElement === viewer;
-			const currentImg = viewer.querySelector( '.eg-viewer__main-image' );
+		const handleFullscreenChange = (): void => {
+			const isFull = document.fullscreenElement === viewer;
+			const currentImg = viewer.querySelector<HTMLImageElement>( '.eg-viewer__main-image' );
 			if ( isFull ) {
 				viewer.classList.add( 'eg-viewer--fullscreen' );
 				if ( currentImg ) {
 					currentImg.style.cursor = 'zoom-out';
 				}
-				// Forcer le redémarrage du diaporama en plein écran (la souris survole forcément l'écran)
 				if ( isSlideshow ) {
 					startSlideshow();
 				}
@@ -403,7 +383,6 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				if ( currentImg ) {
 					currentImg.style.cursor = 'zoom-in';
 				}
-				// Si on quitte le plein écran, vérifier si la souris survole toujours la visionneuse
 				if ( isSlideshow ) {
 					if ( viewer.matches( ':hover' ) ) {
 						stopSlideshow();
@@ -418,18 +397,14 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			}, 100 );
 		};
 
-		const handleKeyDown = ( e ) => {
-			const isFull =
-				document.fullscreenElement === viewer ||
-				document.webkitFullscreenElement === viewer;
+		const handleKeyDown = ( e: KeyboardEvent ): void => {
+			const isFull = document.fullscreenElement === viewer;
 			const isViewerMode = layout === 'viewer';
 
-			// Only handle keys if in viewer layout or in fullscreen mode
 			if ( ! isViewerMode && ! isFull ) {
 				return;
 			}
 
-			// If another viewer is in fullscreen, ignore this one
 			if (
 				document.fullscreenElement &&
 				document.fullscreenElement !== viewer
@@ -447,33 +422,30 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		document.addEventListener( 'keydown', handleKeyDown );
-
 		document.addEventListener( 'fullscreenchange', handleFullscreenChange );
-		document.addEventListener(
-			'webkitfullscreenchange',
-			handleFullscreenChange
-		);
 
 		if ( isSlideshow ) {
 			startSlideshow();
 
-			// Pause au survol uniquement hors plein écran
 			viewer.addEventListener( 'mouseenter', () => {
-				const isFull =
-					document.fullscreenElement === viewer ||
-					document.webkitFullscreenElement === viewer;
+				const isFull = document.fullscreenElement === viewer;
 				if ( ! isFull ) {
 					stopSlideshow();
 				}
 			} );
 			viewer.addEventListener( 'mouseleave', () => {
-				const isFull =
-					document.fullscreenElement === viewer ||
-					document.webkitFullscreenElement === viewer;
+				const isFull = document.fullscreenElement === viewer;
 				if ( ! isFull ) {
 					startSlideshow();
 				}
 			} );
 		}
+
+		// Initialisation et adaptation au redimensionnement
+		initThumbnailWidths();
+		window.addEventListener( 'resize', () => {
+			initThumbnailWidths();
+			updateTrackPosition();
+		} );
 	} );
 } );

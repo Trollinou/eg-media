@@ -7,7 +7,7 @@
 ## 📋 Prérequis Techniques
 
 Pour fonctionner de manière optimale, le plugin nécessite la configuration serveur suivante :
-- **WordPress** : version 6.0 ou supérieure (recommandé : 6.9.1+)
+- **WordPress** : version **7.1** ou supérieure
 - **PHP** : version **8.4** ou supérieure (avec typage strict activé)
 - **Extension PHP Imagick** : installée et active sur le serveur (requise pour le traitement d'images)
 

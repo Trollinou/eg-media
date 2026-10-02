@@ -8,6 +8,12 @@ vendor/
 dist-temp/
 build/
 
+# --- Assets compilés ---
+assets/js/*.js
+assets/js/*.asset.php
+assets/js/*.map
+!assets/js/index.php
+
 # --- OS & Système ---
 Thumbs.db
 ehthumbs.db

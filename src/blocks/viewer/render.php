@@ -175,13 +175,16 @@ if ( 'justified' === $layout ) {
 }
 
 $wrapper_attributes = get_block_wrapper_attributes( [
-	'class'            => $wrapper_classes,
-	'data-slideshow'   => $slideshow ? 'true' : 'false',
-	'data-tempo'       => esc_attr( (string) $tempo ),
-	'data-layout'      => esc_attr( $layout ),
-	'data-limit'       => esc_attr( (string) $images_per_page ),
-	'data-images-json' => esc_attr( wp_json_encode( $images_data ) ),
+	'class'                 => $wrapper_classes,
+	'data-wp-interactive'   => 'eg-media/viewer',
+	'data-slideshow'        => $slideshow ? 'true' : 'false',
+	'data-tempo'            => esc_attr( (string) $tempo ),
+	'data-layout'           => esc_attr( $layout ),
+	'data-limit'            => esc_attr( (string) $images_per_page ),
+	'data-images-json'      => esc_attr( wp_json_encode( $images_data ) ),
 ] );
+
+ob_start();
 ?>
 <div <?php echo $wrapper_attributes; ?>>
 
@@ -200,8 +203,7 @@ $wrapper_attributes = get_block_wrapper_attributes( [
 					 data-index="<?php echo $i; ?>"
 					 style="flex-grow: <?php echo $aspect_ratio; ?>; flex-basis: <?php echo $flex_basis; ?>px;">
 					<img src="<?php echo esc_url( $img_data['thumbSrc'] ); ?>"
-						 alt="<?php echo esc_attr( $img_data['alt'] ); ?>"
-						 loading="lazy" />
+						 alt="<?php echo esc_attr( $img_data['alt'] ); ?>" />
 				</div>
 			<?php endfor; ?>
 		</div>
@@ -234,7 +236,7 @@ $wrapper_attributes = get_block_wrapper_attributes( [
 							 data-full-src="<?php echo esc_url( $full_src ); ?>"
 							 data-width="<?php echo esc_attr( (string) $dims['width'] ); ?>"
 							 data-height="<?php echo esc_attr( (string) $dims['height'] ); ?>">
-							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) ( $image['name'] ?: $image['file'] ) ); ?>" loading="lazy" />
+							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) ( $image['name'] ?: $image['file'] ) ); ?>" />
 						</div>
 					<?php endforeach; ?>
 				<?php else : ?>
@@ -252,7 +254,7 @@ $wrapper_attributes = get_block_wrapper_attributes( [
 							 data-full-src="<?php echo esc_url( $full_src ); ?>"
 							 data-width="<?php echo esc_attr( (string) $width ); ?>"
 							 data-height="<?php echo esc_attr( (string) $height ); ?>">
-							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) $alt ); ?>" loading="lazy" />
+							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) $alt ); ?>" />
 						</div>
 					<?php endforeach; ?>
 				<?php endif; ?>
@@ -262,3 +264,25 @@ $wrapper_attributes = get_block_wrapper_attributes( [
 		<button class="eg-viewer__arrow eg-viewer__arrow--right" aria-label="<?php esc_attr_e( 'Suivant', 'eg-media' ); ?>">&rsaquo;</button>
 	</div>
 </div>
+<?php
+$html = ob_get_clean();
+
+// Post-traitement avec WP_HTML_Tag_Processor pour optimiser les attributs de performance
+if ( class_exists( 'WP_HTML_Tag_Processor' ) && is_string( $html ) ) {
+	$processor = new \WP_HTML_Tag_Processor( $html );
+
+	while ( $processor->next_tag( 'img' ) ) {
+		$class = $processor->get_attribute( 'class' ) ?? '';
+		if ( str_contains( $class, 'eg-viewer__main-image' ) ) {
+			$processor->set_attribute( 'fetchpriority', 'high' );
+			$processor->set_attribute( 'decoding', 'async' );
+		} else {
+			$processor->set_attribute( 'loading', 'lazy' );
+			$processor->set_attribute( 'decoding', 'async' );
+		}
+	}
+
+	$html = $processor->get_updated_html();
+}
+
+echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

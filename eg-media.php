@@ -4,7 +4,7 @@
  * Plugin URI:        https://example.com/eg-media
  * Description:       Gestionnaire de Média by EG
  * Version:           1.1.5
- * Requires at least: 6.0
+ * Requires at least: 7.1
  * Requires PHP:      8.4
  * Author:            Etienne Gagnon
  * Author URI:        https://github.com/Trollinou/eg-media
@@ -88,6 +88,9 @@ add_action( 'plugins_loaded', function () : void {
 
 	$eg_media_viewer_block = new \EG_MEDIA\Blocks\Viewer();
 	$eg_media_viewer_block->register();
+
+	$eg_media_block_bindings = new \EG_MEDIA\Core\BlockBindings();
+	$eg_media_block_bindings->register();
 
 	add_action( 'rest_api_init', function () : void {
 		$eg_media_piwigo_api = new \EG_MEDIA\API\Piwigo();

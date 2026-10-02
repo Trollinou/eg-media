@@ -184,6 +184,19 @@ class Album {
 			<?php endforeach; ?>
 		</div>
 		<?php
-		return ob_get_clean();
+		$html = ob_get_clean();
+
+		if ( class_exists( 'WP_HTML_Tag_Processor' ) && is_string( $html ) ) {
+			$processor = new \WP_HTML_Tag_Processor( $html );
+
+			while ( $processor->next_tag( 'img' ) ) {
+				$processor->set_attribute( 'loading', 'lazy' );
+				$processor->set_attribute( 'decoding', 'async' );
+			}
+
+			$html = $processor->get_updated_html();
+		}
+
+		return (string) $html;
 	}
 }

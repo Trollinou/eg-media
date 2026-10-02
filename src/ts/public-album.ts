@@ -1,13 +1,13 @@
 /**
  * Script front-end pour la fonctionnalité d'Albums de EG Media Manager.
  *
- * ES2021 Vanilla JS.
+ * ES2022 TypeScript en mode strict.
  */
 
 document.addEventListener( 'DOMContentLoaded', () => {
-	const cards = document.querySelectorAll( '.eg-album__card' );
+	const cards = document.querySelectorAll<HTMLElement>( '.eg-album__card' );
 
-	cards.forEach( ( card ) => {
+	cards.forEach( ( card: HTMLElement ) => {
 		card.addEventListener( 'click', () => {
 			const targetId = card.dataset.targetViewer;
 			if ( ! targetId ) {
@@ -25,18 +25,17 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			document.body.style.overflow = 'hidden';
 
 			// Déclencher le recalcul de la grille justified si nécessaire
-			// (Certains navigateurs ont besoin d'un évènement de resize pour ajuster le flex-basis)
 			window.dispatchEvent( new Event( 'resize' ) );
 		} );
 	} );
 
 	// Écouter les évènements de fermeture sur tous les overlays d'albums
-	const overlays = document.querySelectorAll( '.eg-album__overlay' );
+	const overlays = document.querySelectorAll<HTMLElement>( '.eg-album__overlay' );
 
-	overlays.forEach( ( overlay ) => {
-		const closeBtn = overlay.querySelector( '.eg-album__overlay-close' );
+	overlays.forEach( ( overlay: HTMLElement ) => {
+		const closeBtn = overlay.querySelector<HTMLElement>( '.eg-album__overlay-close' );
 
-		const closeModal = () => {
+		const closeModal = (): void => {
 			overlay.classList.remove( 'is-active' );
 			// Attendre la fin de la transition d'opacité avant de masquer
 			setTimeout( () => {
@@ -46,21 +45,21 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 
 		if ( closeBtn ) {
-			closeBtn.addEventListener( 'click', ( e ) => {
+			closeBtn.addEventListener( 'click', ( e: MouseEvent ) => {
 				e.stopPropagation();
 				closeModal();
 			} );
 		}
 
 		// Fermer au clic en dehors du contenu
-		overlay.addEventListener( 'click', ( e ) => {
+		overlay.addEventListener( 'click', ( e: MouseEvent ) => {
 			if ( e.target === overlay ) {
 				closeModal();
 			}
 		} );
 
 		// Échappe pour fermer
-		document.addEventListener( 'keydown', ( e ) => {
+		document.addEventListener( 'keydown', ( e: KeyboardEvent ) => {
 			if ( e.key === 'Escape' && overlay.classList.contains( 'is-active' ) ) {
 				closeModal();
 			}

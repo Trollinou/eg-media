@@ -7,7 +7,22 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
-## [1.1.5] - 2026-07-03
+### Added
+- Migration complète du code JavaScript vers **TypeScript 6.0.3** en mode strict (`strict: true`, `noImplicitAny: true`).
+- Exploitation des APIs modernes de **WordPress 7.1** :
+  - **Interactivity API** et Modules de scripts (`viewScriptModule`) pour le bloc Visionneuse de Galerie.
+  - **Block Bindings API** (`eg-media/gallery-data`) pour la liaison native des données de galeries.
+  - **`WP_HTML_Tag_Processor`** pour l'injection optimisée des attributs d'images (`fetchpriority="high"`, `loading="lazy"`, `decoding="async"`).
+- Script utilitaire de synchronisation de version (`script/version-sync.cjs` via `npm run version-sync`).
+- Configuration Webpack avancée pour compiler les scripts TypeScript autonomes directement vers `assets/js/` et les blocs Gutenberg dans `build/`.
+
+### Changed
+- Élévation du prérequis système minimal à **WordPress 7.1**.
+- Alignement des dépendances React sur la version **18.3.1**.
+- Extraction et modularisation du JavaScript inline des fichiers PHP (notamment `AlbumMetabox.php`) vers des modules TypeScript dédiés (`src/ts/`).
+- Exclusion stricte des fichiers et dossiers compilés (`build/`, `assets/js/*.js`, `assets/js/*.asset.php`) du dépôt Git (`.gitignore`).
+
+## [1.1.5] - 2026-10-02
 
 ### Added
 - Ajout d'un bouton **"Vider le cache Piwigo"** dans l'onglet Configuration du tableau de bord d'administration pour forcer le nettoyage immédiat du cache des albums et des images récupérés de Piwigo.

@@ -1,7 +1,11 @@
+/**
+ * Composant d'édition pour le bloc Visionneuse de Galerie.
+ */
+
+import React, { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import {
 	PanelBody,
@@ -10,44 +14,59 @@ import {
 	RangeControl,
 	Placeholder,
 } from '@wordpress/components';
+import type {
+	ViewerAttributes,
+	GallerySource,
+	ViewerLayout,
+	ImageResolution,
+	SortByField,
+	SortOrder,
+} from '../../types/viewer';
+import type { GalleryTerm } from '../../types/gallery';
+import type { PiwigoAlbum } from '../../types/piwigo';
 
-export default function Edit( { attributes, setAttributes } ) {
+interface EditProps {
+	attributes: ViewerAttributes;
+	setAttributes: ( attributes: Partial<ViewerAttributes> ) => void;
+}
+
+export default function Edit( { attributes, setAttributes }: EditProps ): React.ReactElement {
 	const {
 		galleryId,
-		gallerySource,
-		sortBy,
-		sortOrder,
-		slideshow,
-		tempo,
-		resolution,
-		layout,
-		imagesPerPage,
+		gallerySource = 'local',
+		sortBy = 'date',
+		sortOrder = 'DESC',
+		slideshow = false,
+		tempo = 3000,
+		resolution = 'full',
+		layout = 'viewer',
+		imagesPerPage = 30,
 	} = attributes;
 
 	const blockProps = useBlockProps( {
 		className: 'eg-viewer-editor-wrapper',
 	} );
 
-	const [ piwigoAlbums, setPiwigoAlbums ] = useState( [] );
-	const [ isPiwigoLoading, setIsPiwigoLoading ] = useState( false );
+	const [ piwigoAlbums, setPiwigoAlbums ] = useState<PiwigoAlbum[]>( [] );
+	const [ isPiwigoLoading, setIsPiwigoLoading ] = useState<boolean>( false );
 
-	// Récupérer la liste des galeries via la taxonomie eg_media_gallery
-	const galleries = useSelect( ( select ) => {
-		return select( 'core' ).getEntityRecords(
+	// Récupérer la liste des galeries locales via la taxonomie eg_media_gallery
+	const galleries = useSelect( ( select: any ) => {
+		return select( 'core' )?.getEntityRecords(
 			'taxonomy',
 			'eg_media_gallery',
 			{
 				per_page: -1,
 			}
-		);
+		) as GalleryTerm[] | null | undefined;
 	}, [] );
 
 	// Charger les albums Piwigo si la source est Piwigo
 	useEffect( () => {
 		if ( gallerySource === 'piwigo' ) {
 			setIsPiwigoLoading( true );
-			apiFetch( { path: '/eg-media/v1/piwigo/albums' } )
-				.then( ( data ) => {
+			apiFetch<PiwigoAlbum[]>( { path: '/eg-media/v1/piwigo/albums' } )
+				.then( ( data: PiwigoAlbum[] ) => {
 					setPiwigoAlbums( data || [] );
 					setIsPiwigoLoading( false );
 				} )
@@ -60,38 +79,38 @@ export default function Edit( { attributes, setAttributes } ) {
 
 	// Construire les options pour le SelectControl des galeries
 	const galleryOptions = [
-		{ label: __( 'Sélectionnez une galerie…', 'eg-media' ), value: '' },
+		{ label: __( 'Sélectionnez une galerie…', 'eg-media' ) as string, value: '' },
 	];
 
 	if ( gallerySource === 'piwigo' ) {
-		piwigoAlbums.forEach( ( album ) => {
+		piwigoAlbums.forEach( ( album: PiwigoAlbum ) => {
 			galleryOptions.push( {
 				label: album.name,
-				value: album.id,
+				value: String( album.id ),
 			} );
 		} );
-	} else {
-		if ( galleries ) {
-			galleries.forEach( ( gallery ) => {
-				galleryOptions.push( {
-					label: gallery.name,
-					value: gallery.id,
-				} );
+	} else if ( galleries && Array.isArray( galleries ) ) {
+		galleries.forEach( ( gallery: GalleryTerm ) => {
+			galleryOptions.push( {
+				label: gallery.name,
+				value: String( gallery.id ),
 			} );
-		}
+		} );
 	}
 
 	// Trouver le nom de la galerie sélectionnée pour l'affichage
-	let selectedGallery = null;
-	if ( gallerySource === 'piwigo' ) {
-		selectedGallery = piwigoAlbums.find( ( a ) => a.id === parseInt( galleryId, 10 ) );
-	} else {
-		selectedGallery = galleries
-			? galleries.find( ( g ) => g.id === parseInt( galleryId, 10 ) )
-			: null;
+	let selectedGalleryName = '';
+	if ( galleryId ) {
+		if ( gallerySource === 'piwigo' ) {
+			const found = piwigoAlbums.find( ( a: PiwigoAlbum ) => String( a.id ) === String( galleryId ) );
+			selectedGalleryName = found ? found.name : `ID: ${ galleryId }`;
+		} else if ( galleries && Array.isArray( galleries ) ) {
+			const found = galleries.find( ( g: GalleryTerm ) => g.id === galleryId );
+			selectedGalleryName = found ? found.name : `ID: ${ galleryId }`;
+		}
 	}
 
-	const handleGalleryChange = ( value ) => {
+	const handleGalleryChange = ( value: string ) => {
 		setAttributes( {
 			galleryId: value ? parseInt( value, 10 ) : undefined,
 		} );
@@ -101,119 +120,119 @@ export default function Edit( { attributes, setAttributes } ) {
 		<>
 			<InspectorControls>
 				<PanelBody
-					title={ __( 'Réglages de la Visionneuse', 'eg-media' ) }
+					title={ __( 'Réglages de la Visionneuse', 'eg-media' ) as string }
 					initialOpen={ true }
 				>
 					<SelectControl
-						label={ __( 'Source', 'eg-media' ) }
-						value={ gallerySource || 'local' }
+						label={ __( 'Source', 'eg-media' ) as string }
+						value={ gallerySource }
 						options={ [
-							{ label: __( 'Galerie locale (WordPress)', 'eg-media' ), value: 'local' },
-							{ label: __( 'Album distant (Piwigo)', 'eg-media' ), value: 'piwigo' },
+							{ label: __( 'Galerie locale (WordPress)', 'eg-media' ) as string, value: 'local' },
+							{ label: __( 'Album distant (Piwigo)', 'eg-media' ) as string, value: 'piwigo' },
 						] }
-						onChange={ ( value ) => {
+						onChange={ ( value: string ) => {
 							setAttributes( {
-								gallerySource: value,
+								gallerySource: value as GallerySource,
 								galleryId: undefined, // Reset selection
 							} );
 						} }
 					/>
 					<SelectControl
-						label={ gallerySource === 'piwigo' ? __( 'Album Piwigo', 'eg-media' ) : __( 'Galerie', 'eg-media' ) }
-						value={ galleryId || '' }
+						label={ ( gallerySource === 'piwigo' ? __( 'Album Piwigo', 'eg-media' ) : __( 'Galerie', 'eg-media' ) ) as string }
+						value={ galleryId ? String( galleryId ) : '' }
 						options={ galleryOptions }
 						onChange={ handleGalleryChange }
-						help={ isPiwigoLoading ? __( 'Chargement des albums Piwigo...', 'eg-media' ) : null }
+						help={ isPiwigoLoading ? ( __( 'Chargement des albums Piwigo...', 'eg-media' ) as string ) : undefined }
 					/>
 					<SelectControl
-						label={ __( 'Mise en page', 'eg-media' ) }
-						value={ layout || 'viewer' }
+						label={ __( 'Mise en page', 'eg-media' ) as string }
+						value={ layout }
 						options={ [
 							{
 								label: __(
 									'Visionneuse (Diaporama)',
 									'eg-media'
-								),
+								) as string,
 								value: 'viewer',
 							},
 							{
-								label: __( 'Grille justifiée', 'eg-media' ),
+								label: __( 'Grille justifiée', 'eg-media' ) as string,
 								value: 'justified',
 							},
 						] }
-						onChange={ ( value ) =>
-							setAttributes( { layout: value } )
+						onChange={ ( value: string ) =>
+							setAttributes( { layout: value as ViewerLayout } )
 						}
 					/>
 					<SelectControl
-						label={ __( 'Résolution', 'eg-media' ) }
-						value={ resolution || 'full' }
+						label={ __( 'Résolution', 'eg-media' ) as string }
+						value={ resolution }
 						options={ [
 							{
 								label: __(
 									'Taille originale (Full)',
 									'eg-media'
-								),
+								) as string,
 								value: 'full',
 							},
 							{
-								label: __( 'Grande (Large)', 'eg-media' ),
+								label: __( 'Grande (Large)', 'eg-media' ) as string,
 								value: 'large',
 							},
 							{
-								label: __( 'Moyenne (Medium)', 'eg-media' ),
+								label: __( 'Moyenne (Medium)', 'eg-media' ) as string,
 								value: 'medium',
 							},
 							{
 								label: __(
 									'Miniature (Thumbnail)',
 									'eg-media'
-								),
+								) as string,
 								value: 'thumbnail',
 							},
 						] }
-						onChange={ ( value ) =>
-							setAttributes( { resolution: value } )
+						onChange={ ( value: string ) =>
+							setAttributes( { resolution: value as ImageResolution } )
 						}
 					/>
 					<SelectControl
-						label={ __( 'Trier par', 'eg-media' ) }
+						label={ __( 'Trier par', 'eg-media' ) as string }
 						value={ sortBy }
 						options={ [
 							{
-								label: __( 'Date de prise de vue', 'eg-media' ),
+								label: __( 'Date de prise de vue', 'eg-media' ) as string,
 								value: 'date',
 							},
 							{
-								label: __( 'Nom de fichier', 'eg-media' ),
+								label: __( 'Nom de fichier', 'eg-media' ) as string,
 								value: 'name',
 							},
 						] }
-						onChange={ ( value ) =>
-							setAttributes( { sortBy: value } )
+						onChange={ ( value: string ) =>
+							setAttributes( { sortBy: value as SortByField } )
 						}
 					/>
 					<SelectControl
-						label={ __( 'Ordre', 'eg-media' ) }
+						label={ __( 'Ordre', 'eg-media' ) as string }
 						value={ sortOrder }
 						options={ [
 							{
 								label: __(
 									'Descendant (Z-A / Nouveau en premier)',
 									'eg-media'
-								),
+								) as string,
 								value: 'DESC',
 							},
 							{
 								label: __(
 									'Ascendant (A-Z / Ancien en premier)',
 									'eg-media'
-								),
+								) as string,
 								value: 'ASC',
 							},
 						] }
-						onChange={ ( value ) =>
-							setAttributes( { sortOrder: value } )
+						onChange={ ( value: string ) =>
+							setAttributes( { sortOrder: value as SortOrder } )
 						}
 					/>
 					{ layout !== 'justified' && (
@@ -222,18 +241,18 @@ export default function Edit( { attributes, setAttributes } ) {
 								label={ __(
 									'Activer le Diaporama',
 									'eg-media'
-								) }
+								) as string }
 								checked={ slideshow }
-								onChange={ ( value ) =>
+								onChange={ ( value: boolean ) =>
 									setAttributes( { slideshow: value } )
 								}
 							/>
 							{ slideshow && (
 								<RangeControl
-									label={ __( 'Tempo (ms)', 'eg-media' ) }
+									label={ __( 'Tempo (ms)', 'eg-media' ) as string }
 									value={ tempo }
-									onChange={ ( value ) =>
-										setAttributes( { tempo: value } )
+									onChange={ ( value: number | undefined ) =>
+										setAttributes( { tempo: value || 3000 } )
 									}
 									min={ 1000 }
 									max={ 10000 }
@@ -244,10 +263,10 @@ export default function Edit( { attributes, setAttributes } ) {
 					) }
 					{ layout === 'justified' && (
 						<RangeControl
-							label={ __( 'Images par lot', 'eg-media' ) }
-							value={ imagesPerPage || 30 }
-							onChange={ ( value ) =>
-								setAttributes( { imagesPerPage: value } )
+							label={ __( 'Images par lot', 'eg-media' ) as string }
+							value={ imagesPerPage }
+							onChange={ ( value: number | undefined ) =>
+								setAttributes( { imagesPerPage: value || 30 } )
 							}
 							min={ 10 }
 							max={ 100 }
@@ -261,11 +280,11 @@ export default function Edit( { attributes, setAttributes } ) {
 				{ ! galleryId ? (
 					<Placeholder
 						icon="images-alt"
-						label={ __( 'Visionneuse de Galerie', 'eg-media' ) }
+						label={ __( 'Visionneuse de Galerie', 'eg-media' ) as string }
 						instructions={ __(
 							'Veuillez sélectionner une galerie/un album dans la barre latérale des réglages.',
 							'eg-media'
-						) }
+						) as string }
 					/>
 				) : (
 					<div className="eg-viewer-placeholder">
@@ -274,17 +293,15 @@ export default function Edit( { attributes, setAttributes } ) {
 						</div>
 						<div className="eg-viewer-placeholder__content">
 							<h3>
-								{ __( 'Visionneuse de Galerie', 'eg-media' ) }
+								{ __( 'Visionneuse de Galerie', 'eg-media' ) as string }
 							</h3>
 							<p>
 								<strong>
 									{ gallerySource === 'piwigo'
-										? __( 'Album Piwigo active :', 'eg-media' )
-										: __( 'Galerie active :', 'eg-media' ) }
+										? ( __( 'Album Piwigo active :', 'eg-media' ) as string )
+										: ( __( 'Galerie active :', 'eg-media' ) as string ) }
 								</strong>{ ' ' }
-								{ selectedGallery
-									? selectedGallery.name
-									: `ID: ${ galleryId }` }
+								{ selectedGalleryName }
 							</p>
 							<div className="eg-viewer-placeholder__meta">
 								<span>
@@ -299,7 +316,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								</span>
 								<span>
 									<strong>Résolution :</strong>{ ' ' }
-									{ resolution || 'full' }
+									{ resolution }
 								</span>
 								<span>
 									<strong>Tri :</strong>{ ' ' }
@@ -317,7 +334,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								{ layout === 'justified' && (
 									<span>
 										<strong>Images par lot :</strong>{ ' ' }
-										{ imagesPerPage || 30 }
+										{ imagesPerPage }
 									</span>
 								) }
 							</div>
