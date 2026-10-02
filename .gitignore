@@ -13,6 +13,9 @@ assets/js/*.js
 assets/js/*.asset.php
 assets/js/*.map
 !assets/js/index.php
+assets/css/*.css
+assets/css/*.map
+!assets/css/index.php
 
 # --- OS & Système ---
 Thumbs.db

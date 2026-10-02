@@ -172,7 +172,7 @@ class Album {
 					],
 				] );
 			?>
-				<div id="eg-viewer-overlay-<?php echo esc_attr( $unique_item_id ); ?>" class="eg-album__overlay" style="display: none;">
+				<div id="eg-viewer-overlay-<?php echo esc_attr( $unique_item_id ); ?>" class="eg-album__overlay">
 					<div class="eg-album__overlay-content">
 						<button class="eg-album__overlay-close" aria-label="<?php esc_attr_e( 'Fermer', 'eg-media' ); ?>">&times;</button>
 						<h2 class="eg-album__overlay-title"><?php echo esc_html( $item['name'] ); ?></h2>

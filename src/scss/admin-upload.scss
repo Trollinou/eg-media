@@ -1,0 +1,119 @@
+/**
+ * Styles d'administration pour l'interface de téléversement et les modales médias.
+ */
+
+@use "abstracts/variables" as *;
+@use "abstracts/mixins" as *;
+
+// Conteneur de sélection de galerie lors de l'upload classique (pre-upload-ui)
+.eg-media-upload-gallery-container {
+	margin: 15px 0;
+	padding: 15px;
+	background: #fff;
+	border: 1px solid $wp-admin-border-color;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+
+	&__label {
+		font-weight: 600;
+		display: block;
+		margin-bottom: 8px;
+		color: $wp-admin-text-main;
+	}
+
+	&__controls {
+		display: flex;
+		gap: 15px;
+		align-items: center;
+		flex-wrap: wrap;
+		margin-bottom: 8px;
+	}
+
+	&__select {
+		max-width: 300px;
+		width: 100%;
+		height: 32px;
+	}
+
+	&__separator {
+		font-size: 13px;
+		color: $wp-admin-text-muted;
+	}
+
+	&__input {
+		max-width: 300px;
+		width: 100%;
+		height: 32px;
+	}
+
+	&__description {
+		margin: 4px 0 0 0;
+		font-style: italic;
+		color: $wp-admin-text-muted;
+	}
+}
+
+// Ajustements de la barre d'outils secondaire dans la modale média Backbone
+.media-modal .media-frame .media-toolbar-secondary {
+	display: grid !important;
+	grid-template-rows: auto auto !important;
+	grid-auto-flow: column !important;
+	gap: 4px 12px !important;
+	max-width: 85% !important;
+	float: left !important;
+	position: relative !important;
+
+	label {
+		position: static !important;
+		display: block !important;
+		font-size: 12px !important;
+		font-weight: 600 !important;
+		color: #1e1e1e !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		width: auto !important;
+		height: auto !important;
+		clip: auto !important;
+		clip-path: none !important;
+		white-space: nowrap !important;
+	}
+
+	.spinner {
+		position: absolute !important;
+		left: 100% !important;
+		top: 50% !important;
+		transform: translateY(-50%) !important;
+		margin: 0 0 0 10px !important;
+		display: inline-block !important;
+	}
+}
+
+.media-modal select.attachment-filters {
+	width: 100% !important;
+	max-width: 200px !important;
+	margin: 0 !important;
+	float: none !important;
+	display: block !important;
+	height: 32px !important;
+}
+
+// Badge étoile pour l'image de référence
+.eg-media-star-badge {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	background: $wp-admin-color-star;
+	color: #fff;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	line-height: 1;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+	z-index: 10;
+	pointer-events: none;
+	font-family: dashicons, sans-serif;
+}

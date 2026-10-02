@@ -1,0 +1,139 @@
+/**
+ * Styles d'administration pour le tableau de bord EG Media Manager.
+ *
+ * Utilise les standards graphiques et variables CSS de WordPress Admin.
+ */
+
+@use "abstracts/variables" as *;
+@use "abstracts/mixins" as *;
+
+.eg-media-dashboard {
+	// Contenu des onglets
+	&__tab-content {
+		margin-top: 20px;
+	}
+
+	// Grille des statistiques
+	&__stats-grid {
+		display: flex;
+		gap: 20px;
+		flex-wrap: wrap;
+	}
+
+	// Carte individuelle de statistique
+	&__stat-card {
+		flex: 1;
+		min-width: 250px;
+		background: #fff;
+		padding: 20px;
+		border: 1px solid $wp-admin-border-color;
+		border-radius: 4px;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+		transition: border-color 0.2s ease;
+
+		&:hover {
+			border-color: $wp-admin-theme-color;
+		}
+
+		.dashicons {
+			font-size: 32px;
+			width: 32px;
+			height: 32px;
+			color: $wp-admin-theme-color;
+			margin-bottom: 10px;
+		}
+
+		h3 {
+			margin: 0 0 8px 0;
+			font-size: 14px;
+			color: $wp-admin-text-muted;
+			font-weight: 500;
+		}
+
+		&-value {
+			font-size: 24px;
+			font-weight: 600;
+			margin: 5px 0 0;
+			color: $wp-admin-text-main;
+		}
+	}
+
+	// Section état du serveur
+	&__server-status {
+		margin-bottom: 20px;
+
+		.dashicons {
+			vertical-align: middle;
+			margin-right: 5px;
+
+			&--success {
+				color: $wp-admin-color-success;
+			}
+
+			&--error {
+				color: $wp-admin-color-error;
+			}
+		}
+	}
+
+	// Conteneurs de panneaux d'optimisation et réglages
+	&__panel {
+		padding: 20px;
+		margin-top: 10px;
+		max-width: 800px;
+		box-sizing: border-box;
+
+		&--danger {
+			border-left: 4px solid $wp-admin-color-error;
+
+			.title {
+				color: $wp-admin-color-error;
+			}
+		}
+
+		&--card {
+			background: #fff;
+			padding: 20px;
+			border: 1px solid $wp-admin-border-color;
+			border-radius: 4px;
+			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+			margin-top: 20px;
+		}
+	}
+
+	// Barre de progression pour l'optimisation en masse
+	&__bulk-progress-wrap {
+		margin: 20px 0;
+	}
+
+	&__bulk-count {
+		font-weight: 600;
+		font-size: 16px;
+	}
+
+	&__progress-bar {
+		width: 100%;
+		height: 24px;
+		display: none;
+		margin-top: 10px;
+		accent-color: $wp-admin-theme-color;
+	}
+
+	&__bulk-status {
+		margin-top: 10px;
+		font-weight: 600;
+		color: $wp-admin-theme-color-darker;
+	}
+
+	// Formulaire de configuration
+	&__form {
+		max-width: 800px;
+		background: #fff;
+		padding: 20px;
+		border: 1px solid $wp-admin-border-color;
+		border-radius: 4px;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+		margin-top: 20px;
+		box-sizing: border-box;
+	}
+}

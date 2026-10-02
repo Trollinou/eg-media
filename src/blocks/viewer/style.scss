@@ -9,7 +9,7 @@
 	border-radius: 12px;
 	overflow: hidden;
 	position: relative;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	font-family: var(--wp--preset--font-family--base, inherit);
 
 	@media (min-width: 768px) {
 		aspect-ratio: 16 / 9;
@@ -69,14 +69,14 @@
 		z-index: 10;
 
 		&:hover {
-			background: var(--theme-palette-color-1, #ffcd00);
-			color: var(--theme-palette-color-4, #0a0500);
+			background: var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00));
+			color: var(--wp--preset--color--contrast, var(--theme-palette-color-4, #0a0500));
 			transform: scale(1.1);
 		}
 
 		&:focus {
 			outline: none;
-			box-shadow: 0 0 0 2px var(--theme-palette-color-1, #ffcd00);
+			box-shadow: 0 0 0 2px var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00));
 		}
 	}
 
@@ -123,9 +123,9 @@
 
 		&--active {
 			opacity: 1;
-			border-color: var(--theme-palette-color-1, #ffcd00); /* Adapté au thème WordPress */
+			border-color: var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00)); /* Adapté au thème WordPress */
 			transform: scale(1.1);
-			box-shadow: 0 0 10px var(--theme-palette-color-1, rgba(255, 205, 0, 0.5));
+			box-shadow: 0 0 10px var(--wp--preset--color--primary, var(--theme-palette-color-1, rgba(255, 205, 0, 0.5)));
 		}
 	}
 
@@ -150,14 +150,14 @@
 		z-index: 99;
 
 		&:hover {
-			background: var(--theme-palette-color-1, #ffcd00);
-			color: var(--theme-palette-color-4, #0a0500);
+			background: var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00));
+			color: var(--wp--preset--color--contrast, var(--theme-palette-color-4, #0a0500));
 			transform: scale(1.1);
 		}
 
 		&:focus {
 			outline: none;
-			box-shadow: 0 0 0 2px var(--theme-palette-color-1, #ffcd00);
+			box-shadow: 0 0 0 2px var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00));
 		}
 	}
 
@@ -269,25 +269,25 @@
 	}
 
 	&__load-more-btn {
-		background: var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00));
-		border: 1px solid var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00));
-		color: var(--theme-palette-color-4, #0a0500);
+		background: var(--wp--preset--color--primary, var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00)));
+		border: 1px solid var(--wp--preset--color--primary, var(--theme-button-background-initial-color, var(--theme-palette-color-1, #ffcd00)));
+		color: var(--wp--preset--color--contrast, var(--theme-palette-color-4, #0a0500));
 		padding: 10px 24px;
-		border-radius: 20px;
+		border-radius: var(--wp--custom--button--border-radius, 20px);
 		font-size: 14px;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
 
 		&:hover {
-			background: var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800));
-			border-color: var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800));
-			color: var(--theme-palette-color-4, #0a0500);
+			background: var(--wp--preset--color--primary-hover, var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800)));
+			border-color: var(--wp--preset--color--primary-hover, var(--theme-button-background-hover-color, var(--theme-palette-color-2, #e6b800)));
+			color: var(--wp--preset--color--contrast, var(--theme-palette-color-4, #0a0500));
 		}
 
 		&:focus {
 			outline: none;
-			box-shadow: 0 0 0 2px var(--theme-palette-color-1, #ffcd00);
+			box-shadow: 0 0 0 2px var(--wp--preset--color--primary, var(--theme-palette-color-1, #ffcd00));
 		}
 	}
 }

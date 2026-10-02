@@ -161,6 +161,13 @@ class Main {
 			return;
 		}
 
+		wp_enqueue_style(
+			'eg-media-admin-dashboard',
+			plugins_url( 'assets/css/admin-dashboard.css', dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION
+		);
+
 		wp_enqueue_script(
 			'eg-media-admin-dashboard',
 			plugins_url( 'assets/js/admin-dashboard.js', dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/eg-media.php' ),
@@ -227,7 +234,7 @@ class Main {
 		}
 
 		?>
-		<div class="wrap">
+		<div class="wrap eg-media-dashboard">
 			<h1>EG Media Manager</h1>
 			<p class="description">Gestionnaire de Média et optimisation des images.</p>
 
@@ -240,7 +247,7 @@ class Main {
 				<a href="<?php echo esc_url( admin_url( 'upload.php?page=eg-media-dashboard&tab=config' ) ); ?>" class="nav-tab <?php echo 'config' === $active_tab ? 'nav-tab-active' : ''; ?>">Configuration</a>
 			</h2>
 
-			<div class="tab-content" style="margin-top: 20px;">
+			<div class="eg-media-dashboard__tab-content">
 				<?php
 				if ( 'config' === $active_tab ) {
 					$this->config_tab->render();

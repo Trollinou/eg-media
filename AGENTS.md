@@ -63,6 +63,14 @@ L'agent endosse les rôles suivants :
 * **Règle Unique** : TOUS les fichiers statiques (CSS, Javascript, PDF, images, polices) DOIVENT être placés dans le répertoire central `assets/` (ex: `assets/css/`, `assets/js/`, `assets/pdf/`).
 * Le répertoire `public/` est **obsolète et interdit**.
 
+### Cycle de Vie des Assets (Sources Git vs Compilés)
+* **Sources (Git / GitHub)** :
+  * Tous les fichiers sources (`src/blocks/`, `src/ts/`, `src/scss/`, `src/types/`) **DOIVENT** être commités dans Git.
+  * Les fichiers compilés (`build/`, `assets/js/*.js`, `assets/js/*.asset.php`, `assets/css/*.css` minifié) **NE DOIVENT JAMAIS** être commités sur Git et figurent dans `.gitignore` (à l'exception des stubs `index.php`).
+* **Livraison & Packaging (`.distignore`)** :
+  * Le script de packaging (`npm run package`) compile automatiquement les assets en production avant de générer le ZIP.
+  * Le ZIP final embarque les dossiers compilés `build/`, `assets/js/` et `assets/css/`, et exclut `src/`, `node_modules/`, `vendor/` dev, etc. via `.distignore`.
+
 ### Convention de Nommage des Fichiers Statiques (Assets)
 * **Lisibilité (Noms de fichiers physiques)** : Les fichiers dans `assets/css/` et `assets/js/` doivent adopter le format `{contexte}-{composant}.{ext}`. Le préfixe du plugin ne doit PAS être inclus dans le nom du fichier.
   * **Les 3 contextes stricts :**
@@ -79,10 +87,11 @@ Le projet doit respecter cette structure stricte. L'agent doit placer les fichie
 
 wp-content/plugins/[SLUG]/
 ├─ build/               # [PROD](GÉNÉRÉ) JS/CSS compilés des Blocs Gutenberg
-├─ src/                 # [DEV] (SOURCES) Code Source (JS, SCSS, Blocs)
-│  ├─ blocks/           # [DEV] Un sous-dossier par bloc
-│  ├─ js/               # [DEV] Sources Javascript (Admin \& Front)
-│  └─ scss/             # [DEV] Sources SCSS (Admin \& Front)
+├─ src/                 # [DEV] (SOURCES) Code Source (TS, SCSS, Blocs)
+│  ├─ blocks/           # [DEV] Un sous-dossier par bloc (TSX, SCSS, block.json)
+│  ├─ ts/               # [DEV] Sources TypeScript (Admin & Front)
+│  ├─ types/            # [DEV] Définitions & interfaces TypeScript
+│  └─ scss/             # [DEV] Sources SCSS (Admin & Front)
 ├─ assets/              # [PROD] Assets compilés et médias
 │  ├─ css/              # [PROD] (GÉNÉRÉ) CSS compilé et minifié
 │  ├─ js/               # [PROD] (GÉNÉRÉ) JS minifié
@@ -200,28 +209,30 @@ Pour les fonctionnalités à multiples facettes (ex: une page d'options à ongle
 * **Manager (ou Main)** : Le point d'entrée. Il initialise, charge les composants et orchestre.
 * **Components** : Les classes "ouvrières" situées dans des sous-dossiers, appelées par le Manager.
 
-### Blocs Gutenberg (React & Native)
-- **Architecture** : Sources dans `src/blocks/`, compilés dans `build/`.
-- **Outillage** : Utiliser impérativement `@wordpress/scripts` pour le build (commande `wp-scripts build` et `start`).
-- **Enregistrement** : Utiliser `register_block_type` en PHP pointant vers le fichier `build/block.json` (metadata).
+### Blocs Gutenberg (React, TypeScript & Interactivity API)
+- **Architecture** : Sources dans `src/blocks/`, compilés dans `build/blocks/`.
+- **Outillage** : Utiliser impérativement `@wordpress/scripts` pour le build avec le flag `--experimental-modules` (`wp-scripts build --experimental-modules`) pour la prise en charge des modules de script (`viewScriptModule`).
+- **Enregistrement** : Utiliser `register_block_type` en PHP pointant vers le sous-dossier de build contenant `block.json`.
 - **Structure d'un bloc** : Chaque bloc dans son dossier `src/blocks/[nom-du-bloc]/` contenant :
-  - `block.json` (Définition)
-  - `index.js` (Point d'entrée)
-  - `edit.js` (Composant Éditeur)
-  - `save.js` (Composant Front - ou `render.php` pour les blocs dynamiques)
+  - `block.json` (Définition avec `"supports": { "interactivity": true }` et `"viewScriptModule": "file:./view.js"` si interactif)
+  - `index.tsx` (Point d'entrée TypeScript)
+  - `edit.tsx` (Composant Éditeur React / TypeScript)
+  - `view.ts` (Interactivity API store / client-side logique)
+  - `render.php` (Rendu dynamique serveur)
   - `style.scss` (Styles Front & Back)
   - `editor.scss` (Styles Éditeur uniquement)
 
-### JS & CSS : Compilation Obligatoire
+### Organisation TypeScript & Webpack
+- **Blocs Gutenberg** : Sources dans `src/blocks/[bloc]/` -> Compilés dans `build/blocks/[bloc]/`.
+- **Scripts Autonomes (Admin & Public)** : Sources dans `src/ts/[contexte]-[composant].ts` -> Compilés via `webpack.config.js` directement dans `assets/js/[contexte]-[composant].js`.
+- **Loi du "Build First"** : Le code PHP (`wp_enqueue_script`) ne doit jamais pointer vers `src/`. Il doit pointer vers `assets/js/*.js` pour les scripts autonomes ou `build/blocks/*` pour les blocs.
+- **Interdiction stricte du JS Inline** : Aucun code JavaScript brut (`<script>`) ne doit être injecté dans les fichiers PHP (Metaboxes, templates, etc.). Tout comportement JS doit faire l'objet d'un fichier TypeScript dédié dans `src/ts/`, typé en mode strict et enfilé proprement via `wp_enqueue_script` / `wp_localize_script`.
 
-- **Loi du "Build First"** : Le code PHP (enqueue_script) ne doit jamais pointer vers `src/`. Il doit pointer vers `build/index.js` ou `assets/css/style.css`.
-- L'agent doit rappeler que toute modification JS/SCSS nécessite la commande `npm run build` pour être visible en production.
-
-### JavaScript (ES2021 / Node 20)
-- **Standard** : **ES2021** (Arrow functions, Optional chaining `?.`, Nullish coalescing `??`, Async/Await).
-- **Style** : Pas de jQuery si évitable. Utiliser Vanilla JS ou les paquets `@wordpress`.
-- **Modules** : Code encapsulé (Modules ou IIFE) pour ne pas polluer `window`.
-- **I18n** : Utiliser `wp.i18n` pour toutes les chaînes.
+### TypeScript (6.0.3) & React (18.3.1)
+- **Standard & Mode** : TypeScript 6.0.3 en mode **strict** (`strict: true`, `noImplicitAny: true`).
+- **Typage fort** : Définition systématique des interfaces et types dans `src/types/`.
+- **Validation** : Commande de vérification de type `npm run type-check` (`tsc --noEmit`).
+- **I18n** : Utiliser `@wordpress/i18n` (`__`, `_x`, `_n`, `sprintf`) pour toutes les chaînes d'interface.
 
 ### Styles & SCSS
 - **Préprocesseur** : SCSS (`.scss`) obligatoire pour tous les styles.
@@ -362,27 +373,15 @@ L'agent est responsable de la mise à jour continue de la documentation. Aucune 
 ### Gestion des Versions & Synchronisation
 
 * **Règle d'Or** : Le numéro de version doit être identique partout.
-* **Emplacements Obligatoires** :
-1. **En-tête du fichier principal** (`[SLUG].php`) :
-```php
-/*
- * Plugin Name: [NOM_PLUGIN]
- * Version: 1.0.0  <-- DOIT ÊTRE À JOUR
+* **Emplacements Obligatoires Synchronisés** :
+1. **En-tête du fichier principal** (`[SLUG].php`)
+2. **Constante PHP** : `define( '[SLUG_MAJ]_VERSION', '1.0.0' );`
+3. **`package.json`**
+4. **`README.md`**
+5. **`CHANGELOG.md`** (Nouvelle entrée)
 
- */
-
-```
-
-
-2. **Constante PHP** : Définie au début du fichier principal.
-```php
-define( '[SLUG_MAJ]_VERSION', '1.0.0' ); // Ex: DAME_VERSION
-
-```
-
-
-3. **package.json** (si présent).
-4. **CHANGELOG.md** (Nouvelle entrée).
+* **Script d'Automatisation** :
+  * Utiliser la commande `npm run version-sync` (script `script/version-sync.cjs`) pour mettre à jour et synchroniser automatiquement la version à travers tous les fichiers du projet.
 
 
 

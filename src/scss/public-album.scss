@@ -1,0 +1,197 @@
+/**
+ * Styles publics pour la fonctionnalité d'Albums de EG Media Manager.
+ *
+ * S'adapte harmonieusement aux thèmes WordPress (Block Themes / FSE / Classiques).
+ */
+
+@use "abstracts/variables" as *;
+@use "abstracts/mixins" as *;
+
+.eg-album {
+	margin: var(--wp--preset--spacing--40, 2rem) 0;
+	font-family: $font-family-theme;
+
+	// Grille d'albums
+	&__grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--wp--preset--spacing--30, 24px);
+
+		@include tablet-up {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	// Cartes de galerie
+	&__card {
+		background: $theme-color-base;
+		border: 1px solid $theme-color-border;
+		border-radius: var(--wp--custom--card--border-radius, 16px);
+		overflow: hidden;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+		transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+			box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+			border-color 0.4s ease;
+		cursor: pointer;
+		display: flex;
+		flex-direction: column;
+
+		&:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+			border-color: $theme-color-primary;
+
+			.eg-album__card-cover {
+				transform: scale(1.06);
+			}
+
+			.eg-album__card-title {
+				color: $theme-color-primary;
+			}
+		}
+	}
+
+	// Enveloppe de l'image de couverture
+	&__card-cover-wrap {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		background: rgba(0, 0, 0, 0.03);
+	}
+
+	&__card-cover {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+		display: block;
+	}
+
+	// Informations de la carte
+	&__card-info {
+		padding: var(--wp--preset--spacing--20, 20px);
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+		border-top: 1px solid $theme-color-border;
+	}
+
+	&__card-title {
+		margin: 0;
+		font-family: $font-family-headings;
+		font-size: var(--wp--preset--font-size--large, 1.25rem);
+		font-weight: 700;
+		color: $theme-color-contrast;
+		line-height: 1.4;
+		transition: color 0.3s ease;
+	}
+
+	// Calque Modal Overlay
+	&__overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(17, 17, 17, 0.92);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		z-index: 99999;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+		padding: 20px;
+		box-sizing: border-box;
+
+		&.is-active {
+			display: flex;
+			opacity: 1;
+			pointer-events: auto;
+
+			.eg-album__overlay-content {
+				transform: scale(1);
+			}
+		}
+
+		&-content {
+			position: relative;
+			width: 100%;
+			max-width: 1300px;
+			height: 90vh;
+			background: $theme-color-base;
+			border-radius: var(--wp--custom--card--border-radius, 20px);
+			box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			transform: scale(0.95);
+			transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+		}
+
+		&-title {
+			margin: 0;
+			padding: 20px 40px;
+			font-family: $font-family-headings;
+			font-size: var(--wp--preset--font-size--x-large, 1.5rem);
+			font-weight: 700;
+			color: $theme-color-contrast;
+			border-bottom: 1px solid $theme-color-border;
+			background: rgba(0, 0, 0, 0.02);
+		}
+
+		&-body {
+			flex-grow: 1;
+			overflow-y: auto;
+			padding: 30px 40px;
+			background: $theme-color-base;
+		}
+
+		&-close {
+			position: absolute;
+			top: 16px;
+			right: 24px;
+			background: none;
+			border: none;
+			color: $theme-color-contrast;
+			font-size: 2.25rem;
+			line-height: 1;
+			font-weight: 300;
+			cursor: pointer;
+			z-index: 100000;
+			transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+
+			&:hover {
+				color: #d63638;
+				transform: rotate(90deg);
+				background: rgba(0, 0, 0, 0.05);
+			}
+		}
+
+		// Ajustements pour intégrer la visionneuse dans le modal
+		.eg-viewer {
+			margin: 0;
+			box-shadow: none;
+			border: none;
+			background: transparent;
+			padding: 0;
+
+			&:not(.eg-viewer--fullscreen) {
+				.eg-viewer__main,
+				.eg-viewer__track-container,
+				.eg-viewer__close {
+					display: none;
+				}
+			}
+		}
+	}
+}

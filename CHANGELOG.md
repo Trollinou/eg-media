@@ -8,6 +8,16 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ## [Unreleased]
 
 ### Added
+- Migration complète de l'ensemble des styles CSS vers **SCSS modulaire** (`src/scss/`) avec compilation automatisée (`webpack.config.js` / `@wordpress/scripts`).
+- Génération automatique des fichiers CSS minifiés et de leurs équivalents RTL (`*-rtl.css`) dans `assets/css/` :
+  - `admin-dashboard.css` : Tableau de bord, statistiques et configuration.
+  - `admin-album-metabox.css` : Composition et réorganisation des albums.
+  - `admin-upload.css` : Sélecteur d'upload et intégration dans les modales médias Backbone.
+  - `admin-media-fields.css` : Champs personnalisés des pièces jointes et badges étoiles.
+  - `public-album.css` : Grille d'albums et calque modal responsive.
+- Adaptation dynamique aux styles et thèmes WordPress :
+  - **Back-Office (Admin)** : Utilisation des variables CSS natives du noyau WordPress (`var(--wp-admin-theme-color)`) pour une adaptation immédiate aux schémas de couleurs de profil de l'administrateur.
+  - **Front-End (Shortcode Album & Bloc Visionneuse)** : Intégration transparente aux thèmes modernes (Full Site Editing / Block Themes via les presets `--wp--preset--color--*`, `--wp--preset--font-family--*`, `.wp-element-button`) avec fallbacks en cascade pour les thèmes classiques.
 - Migration complète du code JavaScript vers **TypeScript 6.0.3** en mode strict (`strict: true`, `noImplicitAny: true`).
 - Exploitation des APIs modernes de **WordPress 7.1** :
   - **Interactivity API** et Modules de scripts (`viewScriptModule`) pour le bloc Visionneuse de Galerie.
@@ -17,6 +27,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Configuration Webpack avancée pour compiler les scripts TypeScript autonomes directement vers `assets/js/` et les blocs Gutenberg dans `build/`.
 
 ### Changed
+- Suppression intégrale de tous les styles inline, des balises `<style>` embarquées et des appels `wp_add_inline_style()` dans les classes PHP au profit de classes CSS BEM modulaires enfilées via `wp_enqueue_style()`.
+- Remplacement des déclarations de polices statiques en dur (`-apple-system, ...`) par une typographie héritée du thème actif (`font-family: inherit`).
 - Élévation du prérequis système minimal à **WordPress 7.1**.
 - Alignement des dépendances React sur la version **18.3.1**.
 - Extraction et modularisation du JavaScript inline des fichiers PHP (notamment `AlbumMetabox.php`) vers des modules TypeScript dédiés (`src/ts/`).

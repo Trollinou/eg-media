@@ -1,0 +1,51 @@
+/**
+ * Mixins SCSS pour EG Media Manager.
+ */
+
+@use "variables" as *;
+
+// Media queries alignées sur les standards WordPress
+@mixin mobile {
+	@media (max-width: #{$breakpoint-mobile - 1px}) {
+		@content;
+	}
+}
+
+@mixin tablet-up {
+	@media (min-width: #{$breakpoint-mobile}) {
+		@content;
+	}
+}
+
+@mixin desktop-up {
+	@media (min-width: #{$breakpoint-tablet}) {
+		@content;
+	}
+}
+
+@mixin wide-up {
+	@media (min-width: #{$breakpoint-desktop}) {
+		@content;
+	}
+}
+
+// Bouton standard WP / Thème
+@mixin theme-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 16px;
+	font-family: $font-family-theme;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.4;
+	text-decoration: none;
+	border-radius: var(--wp--custom--button--border-radius, 4px);
+	cursor: pointer;
+	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+
+	&:focus {
+		outline: 2px solid $wp-admin-theme-color;
+		outline-offset: 2px;
+	}
+}

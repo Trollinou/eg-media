@@ -24,7 +24,6 @@ class MediaUpload {
 		add_filter( 'bulk_actions-upload', [ $this, 'register_bulk_actions' ], 10, 1 );
 		add_filter( 'handle_bulk_actions-upload', [ $this, 'handle_bulk_actions' ], 10, 3 );
 		add_action( 'admin_notices', [ $this, 'show_bulk_action_notice' ] );
-		add_action( 'admin_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'wp_ajax_eg_media_get_galleries', [ $this, 'ajax_get_galleries' ] );
 	}
 
@@ -41,12 +40,12 @@ class MediaUpload {
 
 		$galleries = is_array( $terms ) ? $terms : [];
 		?>
-		<div class="eg-media-upload-gallery-container" style="margin: 15px 0; padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-			<label for="eg_media_target_gallery" style="font-weight: 600; display: block; margin-bottom: 8px;">
+		<div class="eg-media-upload-gallery-container">
+			<label for="eg_media_target_gallery" class="eg-media-upload-gallery-container__label">
 				<?php esc_html_e( 'Associer les fichiers importés à cette galerie :', 'eg-media' ); ?>
 			</label>
-			<div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
-				<select name="eg_media_target_gallery" id="eg_media_target_gallery" style="max-width: 300px; width: 100%;">
+			<div class="eg-media-upload-gallery-container__controls">
+				<select name="eg_media_target_gallery" id="eg_media_target_gallery" class="eg-media-upload-gallery-container__select">
 					<option value=""><?php esc_html_e( '— Aucune galerie par défaut —', 'eg-media' ); ?></option>
 					<?php foreach ( $galleries as $gallery ) : ?>
 						<?php if ( $gallery instanceof \WP_Term ) : ?>
@@ -56,14 +55,14 @@ class MediaUpload {
 						<?php endif; ?>
 					<?php endforeach; ?>
 				</select>
-				<span style="font-size: 13px; color: #646970;"><?php esc_html_e( 'ou', 'eg-media' ); ?></span>
+				<span class="eg-media-upload-gallery-container__separator"><?php esc_html_e( 'ou', 'eg-media' ); ?></span>
 				<input type="text" 
 					   name="eg_media_new_target_gallery" 
 					   id="eg_media_new_target_gallery" 
 					   placeholder="<?php esc_attr_e( 'Créer et associer à une nouvelle galerie...', 'eg-media' ); ?>" 
-					   style="max-width: 300px; width: 100%; height: 30px;" />
+					   class="eg-media-upload-gallery-container__input" />
 			</div>
-			<p class="description" style="margin: 4px 0 0 0; font-style: italic;">
+			<p class="description eg-media-upload-gallery-container__description">
 				<?php esc_html_e( 'Sélectionnez une galerie existante ou tapez un nom pour en créer une nouvelle lors du téléversement.', 'eg-media' ); ?>
 			</p>
 		</div>
@@ -71,7 +70,7 @@ class MediaUpload {
 	}
 
 	/**
-	 * Charge le script JS d'interception d'upload.
+	 * Charge les scripts et styles JS/CSS d'interception d'upload.
 	 *
 	 * @param string $hook_suffix Le nom de la page courante dans le back-office.
 	 * @return void
@@ -87,6 +86,20 @@ class MediaUpload {
 		if ( ! in_array( $hook_suffix, $allowed_hooks, true ) ) {
 			return;
 		}
+
+		wp_enqueue_style(
+			'eg-media-admin-upload',
+			plugins_url( 'assets/css/admin-upload.css', dirname( __FILE__, 3 ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION
+		);
+
+		wp_enqueue_style(
+			'eg-media-admin-media-fields',
+			plugins_url( 'assets/css/admin-media-fields.css', dirname( __FILE__, 3 ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION
+		);
 
 		wp_enqueue_script(
 			'eg-media-admin-upload',
@@ -289,130 +302,7 @@ class MediaUpload {
 		}
 	}
 
-	/**
-	 * Imprime les styles CSS personnalisés pour ajuster la disposition des filtres dans la médiathèque.
-	 *
-	 * @return void
-	 */
-	public function print_inline_styles(): void {
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( ! $screen ) {
-			return;
-		}
 
-		$allowed_bases = [ 'post', 'upload', 'media' ];
-		if ( ! in_array( $screen->base, $allowed_bases, true ) ) {
-			return;
-		}
-
-		?>
-		<style id="eg-media-modal-filters-style">
-			/* Élargir le conteneur des filtres Backbone dans les modales pour afficher 3 filtres côte à côte */
-			.media-modal .media-frame .media-toolbar-secondary {
-				display: grid !important;
-				grid-template-rows: auto auto !important;
-				grid-auto-flow: column !important;
-				gap: 4px 12px !important;
-				max-width: 85% !important;
-				float: left !important;
-				position: relative !important;
-			}
-			/* Afficher correctement les labels au-dessus de chaque sélecteur */
-			.media-modal .media-toolbar-secondary label {
-				position: static !important;
-				display: block !important;
-				font-size: 12px !important;
-				font-weight: 600 !important;
-				color: #1e1e1e !important;
-				margin: 0 !important;
-				padding: 0 !important;
-				width: auto !important;
-				height: auto !important;
-				clip: auto !important;
-				clip-path: none !important;
-				white-space: nowrap !important;
-			}
-			/* Adapter la taille des sélecteurs de filtres */
-			.media-modal select.attachment-filters {
-				width: 100% !important;
-				max-width: 200px !important;
-				margin: 0 !important;
-				float: none !important;
-				display: block !important;
-				height: 32px !important;
-			}
-			/* Sortir le spinner du flux de la grille pour ne pas perturber les colonnes */
-			.media-modal .media-toolbar-secondary .spinner {
-				position: absolute !important;
-				left: 100% !important;
-				top: 50% !important;
-				transform: translateY(-50%) !important;
-				margin: 0 0 0 10px !important;
-				display: inline-block !important;
-			}
-			/* Styles pour l'image de référence dans la galerie */
-			.eg-media-star-badge {
-				position: absolute;
-				top: 8px;
-				left: 8px;
-				background: #f3b007;
-				color: #fff;
-				width: 22px;
-				height: 22px;
-				border-radius: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-size: 14px;
-				line-height: 1;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-				z-index: 10;
-				pointer-events: none;
-				font-family: dashicons, sans-serif;
-			}
-			<?php
-			// Récupérer toutes les images de référence pour injecter l'étoile sur les miniatures en mode liste
-			$terms = get_terms( [
-				'taxonomy'   => 'eg_media_gallery',
-				'hide_empty' => false,
-			] );
-			if ( is_array( $terms ) ) {
-				foreach ( $terms as $term ) {
-					if ( $term instanceof \WP_Term ) {
-						$ref_id = (int) get_term_meta( $term->term_id, '_eg_media_featured_image_id', true );
-						if ( $ref_id > 0 ) {
-							?>
-							#post-<?php echo (int) $ref_id; ?> .column-title .has-media-icon a {
-								position: relative;
-								display: inline-block;
-							}
-							#post-<?php echo (int) $ref_id; ?> .column-title .has-media-icon a::after {
-								content: "★";
-								position: absolute;
-								top: -5px;
-								left: -5px;
-								background: #f3b007;
-								color: #fff;
-								width: 18px;
-								height: 18px;
-								border-radius: 50%;
-								display: flex;
-								align-items: center;
-								justify-content: center;
-								font-size: 11px;
-								line-height: 1;
-								box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-								z-index: 5;
-							}
-							<?php
-						}
-					}
-				}
-			}
-			?>
-		</style>
-		<?php
-	}
 
 	/**
 	 * Récupère la liste des galeries en AJAX.

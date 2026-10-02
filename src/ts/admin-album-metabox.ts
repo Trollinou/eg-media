@@ -77,37 +77,38 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	const handleDragEnd = function( this: HTMLElement ): void {
 		this.classList.remove( 'dragging' );
-		const draggingItems = container.querySelectorAll( '.eg-album-item' );
+		const draggingItems = container.querySelectorAll( '.eg-album-metabox__item, .eg-album-item' );
 		draggingItems.forEach( ( el ) => el.classList.remove( 'dragging' ) );
 	};
 
 	const renderItems = (): void => {
 		container.innerHTML = '';
 		if ( items.length === 0 ) {
-			container.innerHTML = '<div style="color: #999; text-align: center; padding: 15px 0;">Aucune galerie associée.</div>';
+			container.innerHTML = '<div class="eg-album-metabox__empty">Aucune galerie associée.</div>';
 			return;
 		}
 
 		items.forEach( ( item: AlbumItem, index: number ) => {
 			const div = document.createElement( 'div' );
-			div.className = 'eg-album-item';
+			div.className = 'eg-album-metabox__item eg-album-item';
 			div.setAttribute( 'draggable', sortSelect.value === 'manual' ? 'true' : 'false' );
 			div.dataset.index = String( index );
 
 			const contentSpan = document.createElement( 'span' );
-			contentSpan.className = 'eg-album-item-title';
+			contentSpan.className = 'eg-album-metabox__item-title eg-album-item-title';
 			contentSpan.textContent = item.name + ' ';
 
 			const typeSpan = document.createElement( 'span' );
-			typeSpan.className = 'eg-album-item-type';
+			typeSpan.className = 'eg-album-metabox__item-type eg-album-item-type';
 			typeSpan.textContent = item.type === 'local' ? 'Locale' : 'Piwigo';
 
 			const textWrap = document.createElement( 'div' );
 			textWrap.appendChild( contentSpan );
 			textWrap.appendChild( typeSpan );
 
-			const removeLink = document.createElement( 'span' );
-			removeLink.className = 'eg-album-item-remove';
+			const removeLink = document.createElement( 'button' );
+			removeLink.type = 'button';
+			removeLink.className = 'eg-album-metabox__item-remove eg-album-item-remove button-link button-link-delete';
 			removeLink.textContent = 'Retirer';
 			removeLink.addEventListener( 'click', () => {
 				items.splice( index, 1 );

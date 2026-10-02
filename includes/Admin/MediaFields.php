@@ -24,6 +24,27 @@ class MediaFields {
 		add_filter( 'wp_prepare_attachment_for_js', [ $this, 'prepare_attachment_for_js' ], 10, 3 );
 		add_filter( 'manage_media_columns', [ $this, 'register_custom_media_columns' ], 99, 1 );
 		add_action( 'manage_media_custom_column', [ $this, 'render_custom_media_column' ], 10, 2 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ], 10, 1 );
+	}
+
+	/**
+	 * Charge la feuille de style des champs de média dans l'administration.
+	 *
+	 * @param string $hook_suffix Le nom de la page courante dans le back-office.
+	 * @return void
+	 */
+	public function enqueue_admin_assets( string $hook_suffix ): void {
+		$allowed_hooks = [ 'post.php', 'post-new.php', 'upload.php', 'media.php' ];
+		if ( ! in_array( $hook_suffix, $allowed_hooks, true ) ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'eg-media-admin-media-fields',
+			plugins_url( 'assets/css/admin-media-fields.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION
+		);
 	}
 
 	/**
@@ -73,7 +94,7 @@ class MediaFields {
 		ob_start();
 		?>
 		<div class="eg-media-gallery-fields">
-			<select name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_gallery_select]" id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_gallery_select" style="width: 100%; margin-bottom: 8px;">
+			<select name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_gallery_select]" id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_gallery_select" class="eg-media-gallery-fields__select">
 				<option value=""><?php esc_html_e( '-- Aucune galerie --', 'eg-media' ); ?></option>
 				<?php foreach ( $galleries as $gallery ) : ?>
 					<?php if ( $gallery instanceof \WP_Term ) : ?>
@@ -88,10 +109,10 @@ class MediaFields {
 				   name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_new_gallery]" 
 				   id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_new_gallery" 
 				   placeholder="<?php esc_attr_e( 'Nouvelle galerie...', 'eg-media' ); ?>" 
-				   style="width: 100%; margin-bottom: 8px;" />
+				   class="eg-media-gallery-fields__input" />
 
-			<div style="margin-bottom: 8px;">
-				<label for="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+			<div class="eg-media-gallery-fields__reference-wrap">
+				<label for="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" class="eg-media-gallery-fields__reference-label">
 					<input type="checkbox" 
 						   name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_is_reference]" 
 						   id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" 
@@ -102,7 +123,7 @@ class MediaFields {
 				</label>
 			</div>
 
-			<p class="description" style="margin-top: 4px; font-style: italic;">
+			<p class="description eg-media-gallery-fields__description">
 				<?php esc_html_e( 'Sélectionnez une galerie existante ou saisissez un nom pour en créer une nouvelle, puis cochez la case si vous souhaitez en faire la référence.', 'eg-media' ); ?>
 			</p>
 		</div>
@@ -309,7 +330,7 @@ class MediaFields {
 				// Vérifier si ce post est l'image de référence de ce terme.
 				$ref_id = (int) get_term_meta( $term->term_id, '_eg_media_featured_image_id', true );
 				if ( $ref_id === $post_id ) {
-					$star_html = ' <span class="dashicons dashicons-star-filled" style="color: #f3b007; font-size: 18px; width: 18px; height: 18px; vertical-align: text-top; margin-left: 2px;" title="' . esc_attr__( 'Image de référence de la galerie', 'eg-media' ) . '"></span>';
+					$star_html = ' <span class="dashicons dashicons-star-filled eg-media-star-icon" title="' . esc_attr__( 'Image de référence de la galerie', 'eg-media' ) . '"></span>';
 					$term_link .= $star_html;
 				}
 				$out[] = $term_link;

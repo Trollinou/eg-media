@@ -35,22 +35,12 @@ class AlbumMetabox {
 			return;
 		}
 
-		// Ajout de styles en ligne minimalistes pour la metabox
-		wp_add_inline_style( 'wp-admin', "
-			.eg-album-metabox { font-family: sans-serif; }
-			.eg-album-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
-			.eg-album-col { flex: 1; }
-			.eg-album-col label { display: block; font-weight: bold; margin-bottom: 5px; }
-			.eg-album-col select { width: 100%; height: 35px; }
-			.eg-album-btn { background: #007cba; border: none; color: white; padding: 8px 16px; border-radius: 3px; cursor: pointer; height: 35px; }
-			.eg-album-btn:hover { background: #006ba1; }
-			.eg-album-items-list { border: 1px solid #ccc; background: #fff; padding: 10px; border-radius: 4px; min-height: 50px; margin-top: 15px; }
-			.eg-album-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid #dfdfdf; background: #f9f9f9; margin-bottom: 6px; border-radius: 3px; cursor: grab; }
-			.eg-album-item.dragging { opacity: 0.5; border: 1px dashed #007cba; }
-			.eg-album-item-title { font-weight: 500; }
-			.eg-album-item-type { font-size: 11px; background: #e0e0e0; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; color: #555; }
-			.eg-album-item-remove { color: #d63638; cursor: pointer; text-decoration: underline; font-size: 13px; }
-		" );
+		wp_enqueue_style(
+			'eg-media-admin-album-metabox',
+			plugins_url( 'assets/css/admin-album-metabox.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			[],
+			EG_MEDIA_VERSION
+		);
 
 		wp_enqueue_script(
 			'eg-media-admin-album-metabox',
@@ -112,16 +102,16 @@ class AlbumMetabox {
 		?>
 		<div class="eg-album-metabox">
 			<?php if ( 'publish' === $post->post_status || 'draft' === $post->post_status || 'pending' === $post->post_status ) : ?>
-				<div style="background: #f0f6fc; border-left: 4px solid #007cba; padding: 12px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
-					<p style="margin: 0; font-size: 13px; color: #1d2327;">
+				<div class="eg-album-metabox__callout">
+					<p>
 						<strong>Code court à insérer dans votre page :</strong> 
-						<code style="background: #fff; padding: 3px 6px; border: 1px solid #ccd0d4; border-radius: 3px; font-family: monospace; font-size: 13px;">[eg_media_album id="<?php echo esc_attr( (string) $post->ID ); ?>"]</code>
+						<code>[eg_media_album id="<?php echo esc_attr( (string) $post->ID ); ?>"]</code>
 					</p>
 				</div>
 			<?php endif; ?>
 
-			<div class="eg-album-row">
-				<div class="eg-album-col">
+			<div class="eg-album-metabox__row">
+				<div class="eg-album-metabox__col">
 					<label for="eg_media_album_sort">Mode de Tri des Galeries</label>
 					<select name="eg_media_album_sort" id="eg_media_album_sort">
 						<option value="manual" <?php selected( $sort_mode, 'manual' ); ?>>Tri manuel (Glisser-Déposer)</option>
@@ -130,10 +120,10 @@ class AlbumMetabox {
 				</div>
 			</div>
 
-			<hr style="margin: 15px 0;" />
+			<hr class="eg-album-metabox__divider" />
 
-			<div class="eg-album-row">
-				<div class="eg-album-col" style="flex: 2;">
+			<div class="eg-album-metabox__row">
+				<div class="eg-album-metabox__col eg-album-metabox__col--grow">
 					<label for="eg_media_add_local_gallery">Ajouter une Galerie Locale</label>
 					<select id="eg_media_add_local_gallery">
 						<option value="">-- Sélectionner une galerie locale --</option>
@@ -146,13 +136,13 @@ class AlbumMetabox {
 						<?php endforeach; ?>
 					</select>
 				</div>
-				<div class="eg-album-col" style="flex: 0;">
-					<button type="button" class="eg-album-btn" id="eg_media_btn_add_local">Ajouter</button>
+				<div class="eg-album-metabox__col eg-album-metabox__col--auto">
+					<button type="button" class="button button-secondary eg-album-metabox__btn" id="eg_media_btn_add_local">Ajouter</button>
 				</div>
 			</div>
 
-			<div class="eg-album-row">
-				<div class="eg-album-col" style="flex: 2;">
+			<div class="eg-album-metabox__row">
+				<div class="eg-album-metabox__col eg-album-metabox__col--grow">
 					<label for="eg_media_add_piwigo_album">Ajouter un Album Piwigo</label>
 					<select id="eg_media_add_piwigo_album">
 						<option value="">-- Sélectionner un album Piwigo --</option>
@@ -163,17 +153,17 @@ class AlbumMetabox {
 						<?php endforeach; ?>
 					</select>
 				</div>
-				<div class="eg-album-col" style="flex: 0;">
-					<button type="button" class="eg-album-btn" id="eg_media_btn_add_piwigo">Ajouter</button>
+				<div class="eg-album-metabox__col eg-album-metabox__col--auto">
+					<button type="button" class="button button-secondary eg-album-metabox__btn" id="eg_media_btn_add_piwigo">Ajouter</button>
 				</div>
 			</div>
 
-			<h3 style="margin-top: 20px; margin-bottom: 5px;">Galeries contenues dans l'Album</h3>
+			<h3 class="eg-album-metabox__section-title">Galeries contenues dans l'Album</h3>
 			<p class="description" id="eg_media_sort_desc">
 				<?php echo 'manual' === $sort_mode ? "Faites glisser les éléments pour réorganiser l'ordre d'affichage." : "Le tri automatique est activé. L'ordre ci-dessous n'a pas d'influence."; ?>
 			</p>
 
-			<div class="eg-album-items-list" id="eg_media_album_items_container">
+			<div class="eg-album-metabox__items-list" id="eg_media_album_items_container">
 				<!-- Généré par JS -->
 			</div>
 

@@ -1,0 +1,74 @@
+/**
+ * Styles d'administration pour les champs de média (Galerie & Image de référence).
+ */
+
+@use "abstracts/variables" as *;
+@use "abstracts/mixins" as *;
+
+.eg-media-gallery-fields {
+	&__select {
+		width: 100%;
+		margin-bottom: 8px;
+		height: 32px;
+	}
+
+	&__input {
+		width: 100%;
+		margin-bottom: 8px;
+		height: 32px;
+	}
+
+	&__reference-wrap {
+		margin-bottom: 8px;
+	}
+
+	&__reference-label {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-weight: normal;
+		cursor: pointer;
+		color: $wp-admin-text-main;
+	}
+
+	&__description {
+		margin-top: 4px;
+		font-style: italic;
+		color: $wp-admin-text-muted;
+	}
+}
+
+// Indicateur étoile dans les colonnes de la médiathèque
+.eg-media-star-icon {
+	color: $wp-admin-color-star;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	vertical-align: text-top;
+	margin-left: 2px;
+}
+
+// Étoile sur la vignette en mode liste
+.column-title .has-media-icon.has-eg-reference-star a {
+	position: relative;
+	display: inline-block;
+
+	&::after {
+		content: "★";
+		position: absolute;
+		top: -5px;
+		left: -5px;
+		background: $wp-admin-color-star;
+		color: #fff;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 11px;
+		line-height: 1;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		z-index: 5;
+	}
+}
