@@ -103,17 +103,16 @@ Intégré directement sous le menu **Médias > EG Media Manager**, il propose :
 
 ---
 
-## 🛠️ Architecture du Code
+## 🛠️ Architecture du Code & Standards
 
 Le plugin respecte des standards de développement stricts :
-- **Autoloading natif** : Chargement automatique des classes PHP via un autoloader SPL dans `eg-media.php`.
-- **Modèle Orienté Objet** : Organisation modulaire sous le namespace `EG_MEDIA` dans le dossier `includes/`.
-  - `includes/Core/` : Logique fondamentale du plugin.
-  - `includes/Admin/` : Gestion du tableau de bord, des filtres de médias Backbone (Uploads, Filtres, Actions) et de la metabox d'album.
-  - `includes/CPT/` : Enregistrement de la taxonomie personnalisée `eg_media_gallery` et du CPT `eg_media_album`.
-  - `includes/Blocks/` : Contrôleurs d'enregistrement des blocs Gutenberg dynamiques.
-  - `includes/Shortcodes/` : Gestionnaires des codes courts (Shortcodes) publics comme `[eg_media_album]`.
-  - `includes/Services/` : Services de traitement d'images et liaisons API (`Processor`, `BulkProcessor` et `Piwigo`).
-  - `includes/API/` : Points de terminaison REST API (Intégration Gutenberg/Piwigo).
-  - `includes/Enums/` : Énumérations typées PHP 8.4.
+- **PHP 8.4 avec typage strict** :
+  - **Autoloading natif** : Chargement automatique des classes PHP via un autoloader SPL dans `eg-media.php`.
+  - **Architecture modulaire** sous le namespace `EG_MEDIA` (`Core/`, `Admin/`, `CPT/`, `Blocks/`, `Shortcodes/`, `Services/`, `API/`, `DTO/`, `Enums/`).
+- **Frontend Moderne (TypeScript & SCSS)** :
+  - **TypeScript 6.0.3 en mode strict** : Code source dans `src/ts/` et `src/blocks/` typé à 100%.
+  - **SCSS modulaire (BEM)** : Code source dans `src/scss/` compilé automatiquement via Webpack (`@wordpress/scripts`) vers `assets/css/` (minification, autoprefixer, support RTL).
+  - **Zéro CSS/JS inline** : Aucun script ou style brut dans les fichiers PHP.
+  - **Adaptation aux Thèmes WordPress** : Typographie héritée (`font-family: inherit`), raccordement aux palettes Full Site Editing (`var(--wp--preset--color--primary)`) et palettes de l'administration (`var(--wp-admin-theme-color)`).
+- **APIs Modernes WordPress 7.1** : Interactivity API (`viewScriptModule`), Block Bindings API, `WP_HTML_Tag_Processor`.
 - **Sécurité renforcée** : Utilisation systématique de Nonces, de vérifications de rôles (`current_user_can`) et d'échappement des données à l'affichage (`esc_html`, `esc_attr`, `esc_url`).

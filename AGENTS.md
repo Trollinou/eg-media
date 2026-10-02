@@ -66,9 +66,9 @@ L'agent endosse les rôles suivants :
 ### Cycle de Vie des Assets (Sources Git vs Compilés)
 * **Sources (Git / GitHub)** :
   * Tous les fichiers sources (`src/blocks/`, `src/ts/`, `src/scss/`, `src/types/`) **DOIVENT** être commités dans Git.
-  * Les fichiers compilés (`build/`, `assets/js/*.js`, `assets/js/*.asset.php`, `assets/css/*.css` minifié) **NE DOIVENT JAMAIS** être commités sur Git et figurent dans `.gitignore` (à l'exception des stubs `index.php`).
+  * Les fichiers compilés (`build/`, `assets/js/*.js`, `assets/js/*.asset.php`, `assets/css/*.css`, `assets/css/*-rtl.css`) **NE DOIVENT JAMAIS** être commités sur Git et figurent dans `.gitignore` (à l'exception des stubs `index.php`).
 * **Livraison & Packaging (`.distignore`)** :
-  * Le script de packaging (`npm run package`) compile automatiquement les assets en production avant de générer le ZIP.
+  * Le script de packaging (`npm run package`) compile automatiquement les assets en production (`npm run build`) avant de générer le ZIP.
   * Le ZIP final embarque les dossiers compilés `build/`, `assets/js/` et `assets/css/`, et exclut `src/`, `node_modules/`, `vendor/` dev, etc. via `.distignore`.
 
 ### Convention de Nommage des Fichiers Statiques (Assets)
@@ -236,14 +236,20 @@ Pour les fonctionnalités à multiples facettes (ex: une page d'options à ongle
 
 ### Styles & SCSS
 - **Préprocesseur** : SCSS (`.scss`) obligatoire pour tous les styles.
-- **Architecture** :
-  - **Global/Admin** : Sources dans `assets/scss/` -> Compilés vers `assets/css/`.
-  - **Blocs** : Sources dans `src/blocks/` (`style.scss`, `editor.scss`) -> Compilés dans `build/`.
+- **Architecture des sources (`src/scss/`)** :
+  - **Global / Admin & Public** : Sources dans `src/scss/[contexte]-[composant].scss` (avec partiels `src/scss/abstracts/_variables.scss` et `_mixins.scss`) -> Compilés automatiquement via Webpack vers `assets/css/[contexte]-[composant].css` et leurs variantes RTL `assets/css/[contexte]-[composant]-rtl.css`.
+  - **Blocs Gutenberg** : Sources dans `src/blocks/[bloc]/` (`style.scss`, `editor.scss`) -> Compilés dans `build/blocks/[bloc]/`.
 - **Méthodologie** : Respecter la convention **BEM** (Block Element Modifier).
-- **Bonnes pratiques** :
-  - Utiliser des variables CSS (Custom Properties) pour les couleurs/fonts.
-  - Éviter le nesting excessif (max 3 niveaux).
-  - Mobile-first (Media Queries).
+- **Loi du "Build First" pour le CSS** : Le code PHP (`wp_enqueue_style`) ne doit JAMAIS pointer vers `src/`. Il doit pointer exclusivement vers `assets/css/*.css` ou `build/blocks/*`.
+- **Interdiction stricte du CSS Inline & Embarqué** :
+  - Aucun style CSS brut (`<style>`) ou appel `wp_add_inline_style` ne doit être injecté dans les fichiers PHP (Admin, Metaboxes, Shortcodes, Templates).
+  - Aucun attribut HTML `style="..."` avec des valeurs statiques (couleurs, padding, display) ne doit être utilisé dans le balisage PHP.
+  - Tout style doit faire l'objet d'un fichier SCSS dédié dans `src/scss/` et d'une classe BEM enfilée proprement via `wp_enqueue_style`.
+- **Uniformisation Back-Office (Admin WordPress)** :
+  - Utiliser impérativement les composants et variables CSS natives de WordPress Admin (`var(--wp-admin-theme-color)`, `var(--wp-admin-theme-color-darker-10)`, `.button`, `.card`, `.notice`, `.welcome-panel`, `.form-table`) pour respecter le schéma de couleur de profil de chaque administrateur.
+- **Adaptation aux Thèmes WordPress (Front-End)** :
+  - Proscrire les polices imposées en dur (`-apple-system, Arial, sans-serif`) au profit de la typographie du thème (`font-family: inherit;` et `var(--wp--preset--font-family--base)`).
+  - Brancher les couleurs d'accentuation et boutons sur les variables standard Full Site Editing (`var(--wp--preset--color--primary)`, `.wp-element-button`) avec une cascade de fallbacks pour les thèmes classiques (`var(--theme-palette-color-1)`).
 
 ### Sécurité & Performance
 - **Nonces & Caps** : Obligatoire pour toute action d'écriture (Formulaires, AJAX, REST).
