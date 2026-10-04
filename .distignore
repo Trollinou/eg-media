@@ -1,14 +1,48 @@
+# Fichiers et dossiers Git & GitHub
 .git
 .gitignore
+.gitattributes
+.github/
+
+# Outils IA & Directives de développement
+.agents/
+AGENTS.md
+
+# Configuration Linters, QA & Tests
 .editorconfig
 .eslintrc.json
+phpcs.xml
 phpstan.neon
+phpunit.xml
+phpunit.xml.dist
+.phpunit.cache/
+.phpunit.result.cache
+.eslintcache
+
+# Environnement de Dev WordPress
+.wp-env.json
+.wp-env.override.json
+
+# Tooling Node.js, TypeScript & Webpack
 package.json
 package-lock.json
+tsconfig.json
+webpack.config.js
+node_modules/
+scripts/
+
+# Tooling PHP & Composer
 composer.json
 composer.lock
-node_modules
-vendor
-src
-assets/scss
-tests
+vendor/
+
+# Sources de développement
+src/
+assets/scss/
+tests/
+
+# Configuration de packaging & archives
+.distignore
+dist-temp/
+*.zip
+

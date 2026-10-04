@@ -145,8 +145,8 @@ function isIgnored( relPath ) {
 		return true;
 	}
 	if (
-		normalizedPath === 'script' ||
-		normalizedPath.startsWith( 'script/' )
+		normalizedPath === 'scripts' ||
+		normalizedPath.startsWith( 'scripts/' )
 	) {
 		return true;
 	}

@@ -7,6 +7,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-04
+
 ### Added
 - Ajout d'une option de tri individuel des photos pour chaque galerie composant un album (date de prise de vue croissante/décroissante, ordre alphabétique A-Z/Z-A) avec valeur par défaut sur date de prise de vue croissante.
 - Couche Repository dédiée [`includes/Repositories/MediaRepository.php`](file:///Users/etienne/Developments/eg-media/includes/Repositories/MediaRepository.php) pour encapsuler et sécuriser les requêtes SQL `$wpdb` directes.
