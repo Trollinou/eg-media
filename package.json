@@ -5,13 +5,13 @@
   "main": "eg-media.php",
   "scripts": {
     "build:blocks": "wp-scripts build --experimental-modules",
-    "build:js": "node build-js.js",
-    "build:css": "node build-css.js",
+    "build:js": "node scripts/build-js.js",
+    "build:css": "node scripts/build-css.js",
     "build": "npm run build:blocks && npm run build:js && npm run build:css",
     "start": "wp-scripts start --experimental-modules",
     "type-check": "tsc --noEmit",
-    "version-sync": "node script/version-sync.cjs",
-    "package": "node script/package.cjs"
+    "version-sync": "node scripts/version-sync.cjs",
+    "package": "node scripts/package.cjs"
   },
   "devDependencies": {
     "@babel/runtime": "^8.0.0",

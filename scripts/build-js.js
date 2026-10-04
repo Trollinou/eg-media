@@ -2,7 +2,7 @@ const fs = require( 'fs' );
 const path = require( 'path' );
 const esbuild = require( 'esbuild' );
 
-const rootDir = __dirname;
+const rootDir = path.resolve( __dirname, '..' );
 const srcDir = path.join( rootDir, 'src/ts' );
 const distDir = path.join( rootDir, 'assets/js' );
 

@@ -3,7 +3,7 @@ const path = require( 'path' );
 const sass = require( 'sass' );
 const rtlcss = require( 'rtlcss' );
 
-const rootDir = __dirname;
+const rootDir = path.resolve( __dirname, '..' );
 const srcDir = path.join( rootDir, 'src/scss' );
 const distDir = path.join( rootDir, 'assets/css' );
 
