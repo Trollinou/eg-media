@@ -40,7 +40,9 @@ if ( 'piwigo' === $gallery_source ) {
 			$val_b = ! empty( $b['name'] ) ? $b['name'] : $b['file'];
 			$comparison = strcasecmp( (string) $val_a, (string) $val_b );
 		} else {
-			$comparison = $a['id'] <=> $b['id'];
+			$time_a = ! empty( $a['date_creation'] ) ? strtotime( (string) $a['date_creation'] ) : ( ! empty( $a['date_available'] ) ? strtotime( (string) $a['date_available'] ) : (int) $a['id'] );
+			$time_b = ! empty( $b['date_creation'] ) ? strtotime( (string) $b['date_creation'] ) : ( ! empty( $b['date_available'] ) ? strtotime( (string) $b['date_available'] ) : (int) $b['id'] );
+			$comparison = $time_a <=> $time_b;
 		}
 
 		return 'DESC' === $sort_order ? -$comparison : $comparison;

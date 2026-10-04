@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace EG_MEDIA\Admin;
 
+use EG_MEDIA\Utils\Request;
+
 /**
  * Class MediaFilter
  *
@@ -152,9 +154,7 @@ class MediaFilter {
 	 * @return array<string, mixed> Arguments de la requête modifiés.
 	 */
 	public function filter_ajax_attachments_query( array $query_args ): array {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Handled by core in wp_ajax_query_attachments.
-		$raw_query  = isset( $_POST['query'] ) && is_array( $_POST['query'] ) ? wp_unslash( $_POST['query'] ) : array();
-		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$raw_query  = Request::post_array( 'query' );
 		$gallery_id = isset( $raw_query['eg_media_gallery_filter'] ) ? sanitize_text_field( (string) $raw_query['eg_media_gallery_filter'] ) : '';
 
 		if ( '' === $gallery_id ) {

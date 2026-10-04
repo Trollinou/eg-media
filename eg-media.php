@@ -21,21 +21,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-// Version du plugin.
+// Constantes globales du plugin.
 define( 'EG_MEDIA_VERSION', '1.1.5' );
+define( 'EG_MEDIA_FILE', __FILE__ );
+define( 'EG_MEDIA_DIR', plugin_dir_path( __FILE__ ) );
+define( 'EG_MEDIA_URL', plugin_dir_url( __FILE__ ) );
 
 // Autoloader SPL natif pour le namespace EG_MEDIA.
 spl_autoload_register(
-	static function ( string $class ): void {
+	static function ( string $class_name ): void {
 		$prefix   = 'EG_MEDIA\\';
 		$base_dir = plugin_dir_path( __FILE__ ) . 'includes/';
 
 		$len = strlen( $prefix );
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		if ( strncmp( $prefix, $class_name, $len ) !== 0 ) {
 			return;
 		}
 
-		$relative_class = substr( $class, $len );
+		$relative_class = substr( $class_name, $len );
 		$file           = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
 		if ( file_exists( $file ) ) {

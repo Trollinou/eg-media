@@ -40,6 +40,24 @@
         <exclude-pattern>*/index.php</exclude-pattern>
     </rule>
 
+    <!-- Autoriser error_log uniquement dans la classe utilitaire Logger -->
+    <rule ref="WordPress.PHP.DevelopmentFunctions">
+        <exclude-pattern>includes/Utils/Logger.php</exclude-pattern>
+    </rule>
+
+    <!-- Autoriser les requêtes directes SQL dans la couche Repository -->
+    <rule ref="WordPress.DB.DirectDatabaseQuery">
+        <exclude-pattern>includes/Repositories/*</exclude-pattern>
+    </rule>
+
+    <!-- Autoriser l'accès aux superglobales dans la couche utilitaire Request -->
+    <rule ref="WordPress.Security.NonceVerification">
+        <exclude-pattern>includes/Utils/Request.php</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.ValidatedSanitizedInput">
+        <exclude-pattern>includes/Utils/Request.php</exclude-pattern>
+    </rule>
+
     <!-- 2. Fichiers & dossiers à analyser -->
     <file>eg-media.php</file>
     <file>includes</file>

@@ -146,18 +146,16 @@ final class Plugin {
 	 * @return void
 	 */
 	public function register_public_assets(): void {
-		$plugin_url = plugin_dir_url( dirname( __DIR__ ) . '/eg-media.php' );
-
 		wp_register_style(
 			'eg-media-public-album',
-			$plugin_url . 'assets/css/public-album.css',
+			EG_MEDIA_URL . 'assets/css/public-album.css',
 			array(),
 			self::VERSION
 		);
 
 		wp_register_script(
 			'eg-media-public-album',
-			$plugin_url . 'assets/js/public-album.js',
+			EG_MEDIA_URL . 'assets/js/public-album.js',
 			array(),
 			self::VERSION,
 			true

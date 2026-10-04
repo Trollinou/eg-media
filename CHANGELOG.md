@@ -8,6 +8,10 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ## [Unreleased]
 
 ### Added
+- Ajout d'une option de tri individuel des photos pour chaque galerie composant un album (date de prise de vue croissante/décroissante, ordre alphabétique A-Z/Z-A) avec valeur par défaut sur date de prise de vue croissante.
+- Couche Repository dédiée [`includes/Repositories/MediaRepository.php`](file:///Users/etienne/Developments/eg-media/includes/Repositories/MediaRepository.php) pour encapsuler et sécuriser les requêtes SQL `$wpdb` directes.
+- Utilitaire d'accès aux requêtes HTTP [`includes/Utils/Request.php`](file:///Users/etienne/Developments/eg-media/includes/Utils/Request.php) pour typage et assainissement automatique des superglobales (`$_POST`, `$_GET`, `$_REQUEST`).
+- Utilitaire de journalisation [`includes/Utils/Logger.php`](file:///Users/etienne/Developments/eg-media/includes/Utils/Logger.php) pour isoler les messages de débogage et éliminer les appels directs à `error_log()`.
 - Orchestration du cycle de vie du plugin via `EG_MEDIA\Core\Plugin` avec **lazy-loading conditionnel** des services (`Admin`, `REST`, `Frontend`) réduisant l'empreinte mémoire à chaque requête.
 - Modernisation du code sous **PHP 8.4** : utilisation de constantes typées, DTOs immuables et nouveaux Backed Enums (`Png_Compression`, `Viewer_Layout`).
 - Refonte intégrale du bloc Visionneuse vers le store réactif **Interactivity API** (`@wordpress/interactivity`) avec directives déclaratives (`data-wp-interactive`, `data-wp-context`, `data-wp-bind`, `data-wp-on`, etc.).
@@ -35,6 +39,7 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Mappings PSR-4 `autoload` (`EG_MEDIA\`) et `autoload-dev` (`EG_MEDIA\Tests\`) dans `composer.json`.
 
 ### Changed
+- Élimination intégrale (100%) des annotations `phpcs:ignore` et `phpcs:disable` dans l'ensemble du codebase au profit d'une architecture modulaire (Repositories, Request Helper, Logger, Late-Escaping via `wp_kses_post`).
 - Conformité intégrale de l'ensemble des classes PHP aux standards de code WordPress (WPCS) et validation stricte (0 erreur PHPCS, 0 erreur PHPStan Level 8).
 - Suppression intégrale de tous les styles inline, des balises `<style>` embarquées et des appels `wp_add_inline_style()` dans les classes PHP au profit de classes CSS BEM modulaires enfilées via `wp_enqueue_style()`.
 - Remplacement des déclarations de polices statiques en dur (`-apple-system, ...`) par une typographie héritée du thème actif (`font-family: inherit`).
@@ -42,6 +47,10 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Alignement des dépendances React sur la version **18.3.1**.
 - Extraction et modularisation du JavaScript inline des fichiers PHP (notamment `AlbumMetabox.php`) vers des modules TypeScript dédiés (`src/ts/`).
 - Exclusion stricte des fichiers et dossiers compilés (`build/`, `assets/js/*.js`, `assets/js/*.asset.php`) du dépôt Git (`.gitignore`).
+
+### Fixed
+- Définition des constantes globales `EG_MEDIA_URL`, `EG_MEDIA_DIR` et `EG_MEDIA_FILE` pour corriger les chemins de chargement des feuilles de style (`public-album.css`, `admin-*.css`) et scripts (`public-album.js`, `admin-*.js`) publics et d'administration.
+- Rétablissement du rendu en grille 2 colonnes et du fonctionnement des fenêtres modales superposées pour le shortcode `[eg_media_album]`.
 
 ## [1.1.5] - 2026-10-02
 

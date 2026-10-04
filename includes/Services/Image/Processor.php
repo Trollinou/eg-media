@@ -11,6 +11,7 @@ namespace EG_MEDIA\Services\Image;
 
 use EG_MEDIA\DTO\Image_Settings;
 use EG_MEDIA\Enums\Png_Compression;
+use EG_MEDIA\Utils\Logger;
 
 /**
  * Class Processor
@@ -108,7 +109,7 @@ class Processor {
 	 * @return int|null Nombre d'octets économisés, ou null en cas d'erreur/non applicable.
 	 */
 	public function optimize_image_file( string $file_path ): ?int {
-		if ( '' === $file_path || ! file_exists( $file_path ) ) {
+		if ( '' === $file_path || ! file_exists( $file_path ) || ! is_readable( $file_path ) ) {
 			return null;
 		}
 
@@ -118,27 +119,28 @@ class Processor {
 
 		try {
 			clearstatcache( true, $file_path );
-			$original_size = (int) @filesize( $file_path );
+			$file_size     = filesize( $file_path );
+			$original_size = false !== $file_size ? (int) $file_size : 0;
 
 			$imagick  = new \Imagick( $file_path );
 			$settings = Image_Settings::load_from_options();
 
-			// 1. Redressement automatique
+			// 1. Redressement automatique.
 			if ( $settings->use_auto_orient ) {
 				$imagick->autoOrient();
 			}
 
-			// 2. Redimensionnement
+			// 2. Redimensionnement.
 			if ( $settings->max_width > 0 && $imagick->getImageWidth() > $settings->max_width ) {
 				$imagick->resizeImage( $settings->max_width, 0, \Imagick::FILTER_LANCZOS, 1.0 );
 			}
 
-			// 3. Unsharp Mask
+			// 3. Unsharp Mask.
 			if ( $settings->use_unsharp_mask ) {
 				$imagick->unsharpMaskImage( 0.0, 0.75, 0.75, 0.008 );
 			}
 
-			// 4. Compression en fonction du format
+			// 4. Compression en fonction du format.
 			$format = strtoupper( $imagick->getImageFormat() );
 			if ( 'PNG' === $format ) {
 				$png_level = $settings->get_png_compression_enum()->to_imagick_level() * 10;
@@ -147,12 +149,12 @@ class Processor {
 				$imagick->setImageCompressionQuality( $settings->compression_quality );
 			}
 
-			// 5. Chrominance 4:2:0 (Sampling factors pour JPEG/WebP)
+			// 5. Chrominance 4:2:0 (Sampling factors pour JPEG/WebP).
 			if ( $settings->use_chrominance && in_array( $format, array( 'JPEG', 'JPG' ), true ) ) {
 				$imagick->setSamplingFactors( array( '2x2', '1x1', '1x1' ) );
 			}
 
-			// 6. Mode progressif (Interlace)
+			// 6. Mode progressif (Interlace).
 			if ( $settings->use_interlace && in_array( $format, array( 'JPEG', 'JPG', 'PNG' ), true ) ) {
 				$imagick->setImageInterlaceScheme( \Imagick::INTERLACE_PLANE );
 			}
@@ -162,14 +164,15 @@ class Processor {
 			$imagick->destroy();
 
 			clearstatcache( true, $file_path );
-			$new_size = (int) @filesize( $file_path );
+			$new_file_size = filesize( $file_path );
+			$new_size      = false !== $new_file_size ? (int) $new_file_size : 0;
 
 			return $original_size - $new_size;
 
 		} catch ( \ImagickException $e ) {
-			error_log( "EG Media Manager - Erreur Imagick lors du traitement de {$file_path} : " . $e->getMessage() );
-		} catch ( \Exception $e ) {
-			error_log( "EG Media Manager - Erreur générale lors du traitement de {$file_path} : " . $e->getMessage() );
+			Logger::error( "Erreur Imagick lors du traitement de {$file_path} : " . $e->getMessage() );
+		} catch ( \Throwable $e ) {
+			Logger::error( "Erreur générale lors du traitement de {$file_path} : " . $e->getMessage() );
 		}
 
 		return null;
@@ -182,30 +185,31 @@ class Processor {
 	 * @return int|null Nombre d'octets économisés, ou null en cas d'erreur/non applicable.
 	 */
 	public function optimize_image_file_fallback( string $file_path ): ?int {
-		if ( '' === $file_path || ! file_exists( $file_path ) ) {
+		if ( '' === $file_path || ! file_exists( $file_path ) || ! is_readable( $file_path ) ) {
 			return null;
 		}
 
 		if ( ! function_exists( 'gd_info' ) ) {
-			error_log( "EG Media Manager - Fallback GD non disponible : l'extension GD est absente du serveur." );
+			Logger::error( "Fallback GD non disponible : l'extension GD est absente du serveur." );
 			return null;
 		}
 
 		try {
 			clearstatcache( true, $file_path );
-			$original_size = (int) @filesize( $file_path );
+			$file_size     = filesize( $file_path );
+			$original_size = false !== $file_size ? (int) $file_size : 0;
 
-			$info = @getimagesize( $file_path );
+			$info = getimagesize( $file_path );
 			if ( ! $info ) {
 				return null;
 			}
 
 			$mime  = $info['mime'];
 			$image = match ( $mime ) {
-				'image/jpeg' => @imagecreatefromjpeg( $file_path ),
-				'image/png'  => @imagecreatefrompng( $file_path ),
-				'image/webp' => function_exists( 'imagecreatefromwebp' ) ? @imagecreatefromwebp( $file_path ) : null,
-				'image/avif' => function_exists( 'imagecreatefromavif' ) ? @imagecreatefromavif( $file_path ) : null,
+				'image/jpeg' => imagecreatefromjpeg( $file_path ),
+				'image/png'  => imagecreatefrompng( $file_path ),
+				'image/webp' => function_exists( 'imagecreatefromwebp' ) ? imagecreatefromwebp( $file_path ) : null,
+				'image/avif' => function_exists( 'imagecreatefromavif' ) ? imagecreatefromavif( $file_path ) : null,
 				default      => null,
 			};
 
@@ -215,15 +219,15 @@ class Processor {
 
 			$settings = Image_Settings::load_from_options();
 
-			// 1. Redressement automatique via EXIF
+			// 1. Redressement automatique via EXIF.
 			if ( $settings->use_auto_orient && 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
-				$exif = @exif_read_data( $file_path );
-				if ( ! empty( $exif['Orientation'] ) ) {
+				$exif = exif_read_data( $file_path );
+				if ( is_array( $exif ) && ! empty( $exif['Orientation'] ) ) {
 					$orientation = (int) $exif['Orientation'];
 					$rotated     = match ( $orientation ) {
-						3 => @imagerotate( $image, 180, 0 ),
-						6 => @imagerotate( $image, -90, 0 ),
-						8 => @imagerotate( $image, 90, 0 ),
+						3 => imagerotate( $image, 180, 0 ),
+						6 => imagerotate( $image, -90, 0 ),
+						8 => imagerotate( $image, 90, 0 ),
 						default => null,
 					};
 					if ( $rotated ) {
@@ -238,7 +242,7 @@ class Processor {
 			if ( $settings->max_width > 0 && $width > $settings->max_width ) {
 				$new_width  = $settings->max_width;
 				$new_height = (int) round( $height * ( $settings->max_width / $width ) );
-				$resized    = @imagescale( $image, $new_width, $new_height, IMG_BILINEAR_FIXED );
+				$resized    = imagescale( $image, $new_width, $new_height, IMG_BILINEAR_FIXED );
 				if ( $resized ) {
 					$image = $resized;
 				}
@@ -251,23 +255,24 @@ class Processor {
 					array( -1.0, 9.0, -1.0 ),
 					array( -1.0, -1.0, -1.0 ),
 				);
-				@imageconvolution( $image, $matrix, 1.0, 0.0 );
+				imageconvolution( $image, $matrix, 1.0, 0.0 );
 			}
 
 			// 4. Mode progressif (Interlace).
 			if ( $settings->use_interlace && in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
-				@imageinterlace( $image, true );
+				imageinterlace( $image, true );
 			}
 
 			// 5. Sauvegarde selon le format.
 			$saved = match ( $mime ) {
-				'image/jpeg' => @imagejpeg( $image, $file_path, $settings->compression_quality ),
-				'image/webp' => function_exists( 'imagewebp' ) ? @imagewebp( $image, $file_path, $settings->compression_quality ) : false,
-				'image/avif' => function_exists( 'imageavif' ) ? @imageavif( $image, $file_path, $settings->compression_quality ) : false,
-				'image/png'  => @imagepng(
+				'image/jpeg' => imagejpeg( $image, $file_path, $settings->compression_quality ),
+				'image/webp' => function_exists( 'imagewebp' ) ? imagewebp( $image, $file_path, $settings->compression_quality ) : false,
+				'image/avif' => function_exists( 'imageavif' ) ? imageavif( $image, $file_path, $settings->compression_quality ) : false,
+				'image/png'  => imagepng(
 					$image,
-					$file_path, match ( $settings->get_png_compression_enum() ) {
-					Png_Compression::LOW    => 3,
+					$file_path,
+					match ( $settings->get_png_compression_enum() ) {
+						Png_Compression::LOW    => 3,
 					Png_Compression::MEDIUM => 6,
 					Png_Compression::HIGH   => 9,
 					}
@@ -276,17 +281,18 @@ class Processor {
 			};
 
 			if ( ! $saved ) {
-				error_log( "EG Media Manager - Fallback : Impossible de sauvegarder l'image optimisée : {$file_path}" );
+				Logger::error( "Fallback : Impossible de sauvegarder l'image optimisée : {$file_path}" );
 				return null;
 			}
 
 			clearstatcache( true, $file_path );
-			$new_size = (int) @filesize( $file_path );
+			$new_file_size = filesize( $file_path );
+			$new_size      = false !== $new_file_size ? (int) $new_file_size : 0;
 
 			return $original_size - $new_size;
 
-		} catch ( \Exception $e ) {
-			error_log( "EG Media Manager - Fallback : Erreur lors du traitement de {$file_path} : " . $e->getMessage() );
+		} catch ( \Throwable $e ) {
+			Logger::error( "Fallback : Erreur lors du traitement de {$file_path} : " . $e->getMessage() );
 		}
 
 		return null;

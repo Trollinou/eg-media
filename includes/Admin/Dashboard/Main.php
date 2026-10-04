@@ -13,6 +13,8 @@ namespace EG_MEDIA\Admin\Dashboard;
 
 use EG_MEDIA\Admin\Dashboard\Tabs\Stats;
 use EG_MEDIA\Admin\Dashboard\Tabs\Config;
+use EG_MEDIA\Repositories\MediaRepository;
+use EG_MEDIA\Utils\Request;
 
 /**
  * Classe Main du tableau de bord.
@@ -68,15 +70,9 @@ class Main {
 		// Vérification du nonce.
 		check_admin_referer( 'eg_media_reset_opt_action', 'eg_media_reset_nonce' );
 
-		global $wpdb;
-
-		// Suppression de la clé _eg_media_optimized pour tous les médias.
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
-				'_eg_media_optimized'
-			)
-		);
+		// Suppression de la clé _eg_media_optimized pour tous les médias via le repository.
+		$repository = new MediaRepository();
+		$repository->reset_all_optimization_meta();
 
 		// Invalider le cache temporaire (transient) du nombre de médias restants à optimiser.
 		delete_transient( 'eg_media_unoptimized_count' );
@@ -163,14 +159,14 @@ class Main {
 
 		wp_enqueue_style(
 			'eg-media-admin-dashboard',
-			plugins_url( 'assets/css/admin-dashboard.css', dirname( dirname( dirname( __DIR__ ) ) ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/css/admin-dashboard.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_script(
 			'eg-media-admin-dashboard',
-			plugins_url( 'assets/js/admin-dashboard.js', dirname( dirname( dirname( __DIR__ ) ) ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/js/admin-dashboard.js',
 			array(),
 			EG_MEDIA_VERSION,
 			true
@@ -219,7 +215,7 @@ class Main {
 		}
 
 		// Récupérer l'onglet actif.
-		$active_tab = isset( $_GET['tab'] ) && 'config' === $_GET['tab'] ? 'config' : 'stats';
+		$active_tab = 'config' === Request::get_string( 'tab' ) ? 'config' : 'stats';
 
 		// Récupérer et afficher les notifications persistées.
 		$errors = get_transient( 'settings_errors' );

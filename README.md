@@ -62,7 +62,8 @@ Dès qu'une image au format **AVIF**, **WebP**, **JPEG** ou **PNG** est ajoutée
 
 ### 7. Albums & CPT
 - Regroupement de galeries locales et distantes au sein d'albums (`eg_media_album`).
-- Rendu en grille moderne avec modal overlay interactif.
+- Rendu en grille moderne responsive avec modal overlay interactif.
+- Ordonnancement global des galeries (tri manuel ou alphabétique) et tri individuel des photos par galerie (date de prise de vue croissante/décroissante, alphabétique A-Z/Z-A).
 
 ---
 

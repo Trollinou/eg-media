@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace EG_MEDIA\Admin;
 
+use EG_MEDIA\Utils\Request;
+
 /**
  * Class MediaUpload
  *
@@ -97,21 +99,21 @@ class MediaUpload {
 
 		wp_enqueue_style(
 			'eg-media-admin-upload',
-			plugins_url( 'assets/css/admin-upload.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/css/admin-upload.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_style(
 			'eg-media-admin-media-fields',
-			plugins_url( 'assets/css/admin-media-fields.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/css/admin-media-fields.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_script(
 			'eg-media-admin-upload',
-			plugins_url( 'assets/js/admin-upload.js', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/js/admin-upload.js',
 			array( 'jquery', 'media-views' ),
 			EG_MEDIA_VERSION,
 			true
@@ -168,8 +170,7 @@ class MediaUpload {
 		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
 
 		// 1. Vérifier si une nouvelle galerie doit être créée à la volée.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by WordPress media upload handler.
-		$new_gallery = isset( $_POST['eg_media_new_target_gallery'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['eg_media_new_target_gallery'] ) ) : '';
+		$new_gallery = Request::post_string( 'eg_media_new_target_gallery' );
 		if ( '' !== trim( $new_gallery ) ) {
 			if ( $can_create_terms ) {
 				$term_info = wp_insert_term( $new_gallery, 'eg_media_gallery' );
@@ -187,8 +188,7 @@ class MediaUpload {
 				}
 			} else {
 				// Fallback si création impossible, on tente d'utiliser la galerie existante sélectionnée.
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by WordPress media upload handler.
-				$target_gallery = isset( $_POST['eg_media_target_gallery'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['eg_media_target_gallery'] ) ) : '';
+				$target_gallery = Request::post_string( 'eg_media_target_gallery' );
 				if ( '' !== $target_gallery ) {
 					$gallery_id = (int) $target_gallery;
 					if ( $gallery_id > 0 ) {
@@ -200,8 +200,7 @@ class MediaUpload {
 		}
 
 		// 2. Sinon, vérifier si une galerie existante est sélectionnée.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by WordPress media upload handler.
-		$target_gallery = isset( $_POST['eg_media_target_gallery'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['eg_media_target_gallery'] ) ) : '';
+		$target_gallery = Request::post_string( 'eg_media_target_gallery' );
 		if ( '' !== $target_gallery ) {
 			$gallery_id = (int) $target_gallery;
 			if ( $gallery_id > 0 ) {
@@ -241,10 +240,8 @@ class MediaUpload {
 
 		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce already verified by WP list table handle_bulk_actions.
-		$gallery_id  = isset( $_REQUEST['eg_media_bulk_gallery'] ) ? sanitize_text_field( wp_unslash( (string) $_REQUEST['eg_media_bulk_gallery'] ) ) : '';
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce already verified by WP list table handle_bulk_actions.
-		$new_gallery = isset( $_REQUEST['eg_media_bulk_new_gallery'] ) ? sanitize_text_field( wp_unslash( (string) $_REQUEST['eg_media_bulk_new_gallery'] ) ) : '';
+		$gallery_id  = Request::request_string( 'eg_media_bulk_gallery' );
+		$new_gallery = Request::request_string( 'eg_media_bulk_new_gallery' );
 
 		$final_gallery_id = 0;
 

@@ -17,14 +17,19 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
-if ( ! function_exists( 'esc_html__' ) ) {
-	function esc_html__( string $text, string $domain = 'default' ): string {
-		return $text;
-	}
+if ( ! defined( 'EG_MEDIA_VERSION' ) ) {
+	define( 'EG_MEDIA_VERSION', '1.1.5' );
 }
 
-if ( ! function_exists( 'esc_attr__' ) ) {
-	function esc_attr__( string $text, string $domain = 'default' ): string {
-		return $text;
-	}
+if ( ! defined( 'EG_MEDIA_FILE' ) ) {
+	define( 'EG_MEDIA_FILE', dirname( __DIR__, 2 ) . '/eg-media.php' );
 }
+
+if ( ! defined( 'EG_MEDIA_DIR' ) ) {
+	define( 'EG_MEDIA_DIR', dirname( __DIR__, 2 ) . '/' );
+}
+
+if ( ! defined( 'EG_MEDIA_URL' ) ) {
+	define( 'EG_MEDIA_URL', 'http://example.com/wp-content/plugins/eg-media/' );
+}
+

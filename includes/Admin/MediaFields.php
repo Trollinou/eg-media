@@ -47,7 +47,7 @@ class MediaFields {
 
 		wp_enqueue_style(
 			'eg-media-admin-media-fields',
-			plugins_url( 'assets/css/admin-media-fields.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/css/admin-media-fields.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
@@ -342,6 +342,6 @@ class MediaFields {
 			}
 		}
 
-		echo implode( ', ', $out ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses_post( implode( ', ', $out ) );
 	}
 }

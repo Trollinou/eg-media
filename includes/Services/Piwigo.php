@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace EG_MEDIA\Services;
 
+use EG_MEDIA\Repositories\MediaRepository;
+use EG_MEDIA\Utils\Logger;
+
 /**
  * Classe Piwigo.
  * Gère les appels à l'API de Piwigo avec mise en cache par Transients.
@@ -98,30 +101,30 @@ class Piwigo {
 		$response = wp_remote_post( $api_url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			error_log( 'EG Media Piwigo API Error: ' . $response->get_error_message() );
+			Logger::error( 'Piwigo API Error: ' . $response->get_error_message() );
 			return null;
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $response_code ) {
-			error_log( 'EG Media Piwigo API HTTP Error Code: ' . $response_code );
+			Logger::error( 'Piwigo API HTTP Error Code: ' . $response_code );
 			return null;
 		}
 
 		$response_body = wp_remote_retrieve_body( $response );
 		if ( empty( $response_body ) ) {
-			error_log( 'EG Media Piwigo API Empty Response Body' );
+			Logger::error( 'Piwigo API Empty Response Body' );
 			return null;
 		}
 
 		$data = json_decode( $response_body, true );
 		if ( ! is_array( $data ) ) {
-			error_log( 'EG Media Piwigo API JSON Decode Error. Response body: ' . substr( $response_body, 0, 1000 ) );
+			Logger::error( 'Piwigo API JSON Decode Error. Response body: ' . substr( $response_body, 0, 1000 ) );
 			return null;
 		}
 
 		if ( 'ok' !== ( $data['stat'] ?? '' ) ) {
-			error_log( 'EG Media Piwigo API Error Response: ' . wp_json_encode( $data ) );
+			Logger::error( 'Piwigo API Error Response: ' . (string) wp_json_encode( $data ) );
 			return null;
 		}
 
@@ -204,13 +207,15 @@ class Piwigo {
 			}
 
 			$images[] = array(
-				'id'          => (int) $image['id'],
-				'name'        => (string) ( $image['name'] ?? '' ),
-				'file'        => (string) ( $image['file'] ?? '' ),
-				'element_url' => (string) ( $image['element_url'] ?? '' ),
-				'width'       => (int) ( $image['width'] ?? 150 ),
-				'height'      => (int) ( $image['height'] ?? 150 ),
-				'derivatives' => $image['derivatives'] ?? array(),
+				'id'             => (int) $image['id'],
+				'name'           => (string) ( $image['name'] ?? '' ),
+				'file'           => (string) ( $image['file'] ?? '' ),
+				'date_creation'  => (string) ( $image['date_creation'] ?? '' ),
+				'date_available' => (string) ( $image['date_available'] ?? '' ),
+				'element_url'    => (string) ( $image['element_url'] ?? '' ),
+				'width'          => (int) ( $image['width'] ?? 150 ),
+				'height'         => (int) ( $image['height'] ?? 150 ),
+				'derivatives'    => $image['derivatives'] ?? array(),
 			);
 		}
 
@@ -269,22 +274,8 @@ class Piwigo {
 	public function clear_cache(): void {
 		delete_transient( 'eg_media_piwigo_albums' );
 
-		// Pour supprimer les caches individuels d'albums, on fait une requête SQL.
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_eg_media_piwigo_album_imgs_v2_%'
-			)
-		);
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_timeout_eg_media_piwigo_album_imgs_v2_%'
-			)
-		);
+		$repository = new MediaRepository();
+		$repository->clear_piwigo_transients();
 
 		/**
 		 * Déclenché lorsque l'intégralité du cache Piwigo est nettoyé.

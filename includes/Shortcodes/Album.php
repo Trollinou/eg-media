@@ -69,10 +69,13 @@ class Album {
 				continue;
 			}
 
-			$type      = (string) $item['type'];
-			$id        = (int) $item['id'];
-			$name      = (string) ( $item['name'] ?? '' );
-			$cover_url = '';
+			$type       = (string) $item['type'];
+			$id         = (int) $item['id'];
+			$name       = (string) ( $item['name'] ?? '' );
+			$image_sort = (string) ( $item['image_sort'] ?? $item['imageSort'] ?? 'date_asc' );
+			$sort_by    = str_starts_with( $image_sort, 'name' ) ? 'name' : 'date';
+			$sort_order = str_ends_with( $image_sort, '_desc' ) ? 'DESC' : 'ASC';
+			$cover_url  = '';
 
 			if ( 'local' === $type ) {
 				// Récupérer le nom à jour.
@@ -91,11 +94,11 @@ class Album {
 				}
 
 				if ( empty( $cover_url ) ) {
-					// Fallback: première image.
+					// Fallback: première image selon le tri configuré.
 					$query_args  = array(
 						'post_type'      => 'attachment',
 						'post_status'    => 'inherit',
-						'posts_per_page' => 1,
+						'posts_per_page' => -1,
 						'tax_query'      => array(
 							array(
 								'taxonomy' => 'eg_media_gallery',
@@ -106,15 +109,55 @@ class Album {
 					);
 					$attachments = get_posts( $query_args );
 					if ( ! empty( $attachments ) ) {
-						$cover_url = wp_get_attachment_image_url( $attachments[0]->ID, 'medium_large' )
-							?: wp_get_attachment_image_url( $attachments[0]->ID, 'medium' )
+						usort(
+							$attachments,
+							function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort_order ): int {
+								if ( 'name' === $sort_by ) {
+									$val_a      = ! empty( $a->post_title ) ? $a->post_title : basename( (string) get_attached_file( $a->ID ) );
+									$val_b      = ! empty( $b->post_title ) ? $b->post_title : basename( (string) get_attached_file( $b->ID ) );
+									$comparison = strcasecmp( (string) $val_a, (string) $val_b );
+								} else {
+									$meta_a = wp_get_attachment_metadata( $a->ID );
+									$meta_b = wp_get_attachment_metadata( $b->ID );
+
+									$time_a = ! empty( $meta_a['image_meta']['created_timestamp'] ) ? (int) $meta_a['image_meta']['created_timestamp'] : strtotime( $a->post_date );
+									$time_b = ! empty( $meta_b['image_meta']['created_timestamp'] ) ? (int) $meta_b['image_meta']['created_timestamp'] : strtotime( $b->post_date );
+
+									$comparison = $time_a <=> $time_b;
+								}
+
+								return 'DESC' === $sort_order ? -$comparison : $comparison;
+							}
+						);
+
+						$first_att = $attachments[0];
+						$cover_url = wp_get_attachment_image_url( $first_att->ID, 'medium_large' )
+							?: wp_get_attachment_image_url( $first_att->ID, 'medium' )
 							?: '';
 					}
 				}
 			} elseif ( 'piwigo' === $type ) {
-				// Fallback cover: première image Piwigo.
+				// Fallback cover: première image Piwigo selon le tri configuré.
 				$p_images = $piwigo_service->get_album_images( $id );
 				if ( ! empty( $p_images ) ) {
+					usort(
+						$p_images,
+						function ( array $a, array $b ) use ( $sort_by, $sort_order ): int {
+							if ( 'name' === $sort_by ) {
+								$val_a      = ! empty( $a['name'] ) ? $a['name'] : $a['file'];
+								$val_b      = ! empty( $b['name'] ) ? $b['name'] : $b['file'];
+								$comparison = strcasecmp( (string) $val_a, (string) $val_b );
+							} else {
+								$time_a = ! empty( $a['date_creation'] ) ? strtotime( (string) $a['date_creation'] ) : ( ! empty( $a['date_available'] ) ? strtotime( (string) $a['date_available'] ) : (int) $a['id'] );
+								$time_b = ! empty( $b['date_creation'] ) ? strtotime( (string) $b['date_creation'] ) : ( ! empty( $b['date_available'] ) ? strtotime( (string) $b['date_available'] ) : (int) $b['id'] );
+
+								$comparison = $time_a <=> $time_b;
+							}
+
+							return 'DESC' === $sort_order ? -$comparison : $comparison;
+						}
+					);
+
 					$first_img   = $p_images[0];
 					$derivatives = $first_img['derivatives'] ?? array();
 					$cover_url   = (string) ( $derivatives['medium']['url'] ?? $derivatives['small']['url'] ?? $first_img['element_url'] ?? '' );
@@ -127,10 +170,12 @@ class Album {
 			}
 
 			$resolved_items[] = array(
-				'type'      => $type,
-				'id'        => $id,
-				'name'      => $name,
-				'cover_url' => $cover_url,
+				'type'       => $type,
+				'id'         => $id,
+				'name'       => $name,
+				'cover_url'  => $cover_url,
+				'sort_by'    => $sort_by,
+				'sort_order' => $sort_order,
 			);
 		}
 
@@ -179,6 +224,8 @@ class Album {
 						'attrs'     => array(
 							'galleryId'     => $item['id'],
 							'gallerySource' => $item['type'],
+							'sortBy'        => $item['sort_by'],
+							'sortOrder'     => $item['sort_order'],
 							'layout'        => 'justified',
 							'imagesPerPage' => 30,
 						),
@@ -190,7 +237,7 @@ class Album {
 						<button class="eg-album__overlay-close" aria-label="<?php esc_attr_e( 'Fermer', 'eg-media' ); ?>">&times;</button>
 						<h2 class="eg-album__overlay-title"><?php echo esc_html( $item['name'] ); ?></h2>
 						<div class="eg-album__overlay-body">
-							<?php echo $viewer_block_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo wp_kses_post( $viewer_block_html ); ?>
 						</div>
 					</div>
 				</div>

@@ -32,7 +32,7 @@ class Viewer {
 	 */
 	public function register_block(): void {
 		// Le chemin pointe vers le répertoire de build contenant block.json.
-		$block_dir = plugin_dir_path( dirname( __DIR__ ) ) . 'build/blocks/viewer';
+		$block_dir = EG_MEDIA_DIR . 'build/blocks/viewer';
 
 		if ( file_exists( $block_dir . '/block.json' ) ) {
 			register_block_type( $block_dir );

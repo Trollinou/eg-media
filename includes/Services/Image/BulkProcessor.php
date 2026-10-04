@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace EG_MEDIA\Services\Image;
 
+use EG_MEDIA\Repositories\MediaRepository;
+
 use WP_Query;
 
 /**
@@ -36,23 +38,8 @@ class BulkProcessor {
 		$count = get_transient( 'eg_media_unoptimized_count' );
 
 		if ( false === $count ) {
-			global $wpdb;
-
-			$placeholders = implode( ', ', array_fill( 0, count( Processor::SUPPORTED_MIMES ), '%s' ) );
-
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$query = $wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->posts} AS p
-				LEFT JOIN {$wpdb->postmeta} AS pm ON p.ID = pm.post_id AND pm.meta_key = '_eg_media_optimized'
-				WHERE p.post_type = 'attachment'
-				AND p.post_mime_type IN ($placeholders)
-				AND p.post_status = 'inherit'
-				AND pm.post_id IS NULL",
-				...Processor::SUPPORTED_MIMES
-			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-			$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$repository = new MediaRepository();
+			$count      = $repository->get_unoptimized_count();
 
 			set_transient( 'eg_media_unoptimized_count', $count, 12 * HOUR_IN_SECONDS );
 		}
@@ -118,8 +105,8 @@ class BulkProcessor {
 
 					// Mettre à jour les dimensions de l'image dans les métadonnées WP.
 					$metadata = wp_get_attachment_metadata( $id );
-					if ( is_array( $metadata ) ) {
-						$image_size = @getimagesize( $file_path );
+					if ( is_array( $metadata ) && is_readable( $file_path ) ) {
+						$image_size = getimagesize( $file_path );
 						if ( is_array( $image_size ) ) {
 							$metadata['width']  = (int) $image_size[0];
 							$metadata['height'] = (int) $image_size[1];

@@ -43,14 +43,14 @@ class AlbumMetabox {
 
 		wp_enqueue_style(
 			'eg-media-admin-album-metabox',
-			plugins_url( 'assets/css/admin-album-metabox.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/css/admin-album-metabox.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_script(
 			'eg-media-admin-album-metabox',
-			plugins_url( 'assets/js/admin-album-metabox.js', dirname( __DIR__, 2 ) . '/eg-media.php' ),
+			EG_MEDIA_URL . 'assets/js/admin-album-metabox.js',
 			array(),
 			EG_MEDIA_VERSION,
 			true
@@ -213,12 +213,17 @@ class AlbumMetabox {
 			if ( is_array( $items_decoded ) ) {
 				// Sanitization des entrées.
 				$sanitized_items = array();
+				$valid_sorts     = array( 'date_asc', 'date_desc', 'name_asc', 'name_desc' );
 				foreach ( $items_decoded as $item ) {
 					if ( isset( $item['type'], $item['id'], $item['name'] ) ) {
+						$raw_sort   = (string) ( $item['image_sort'] ?? $item['imageSort'] ?? 'date_asc' );
+						$image_sort = in_array( $raw_sort, $valid_sorts, true ) ? $raw_sort : 'date_asc';
+
 						$sanitized_items[] = array(
-							'type' => sanitize_text_field( (string) $item['type'] ),
-							'id'   => (int) $item['id'],
-							'name' => sanitize_text_field( (string) $item['name'] ),
+							'type'       => sanitize_text_field( (string) $item['type'] ),
+							'id'         => (int) $item['id'],
+							'name'       => sanitize_text_field( (string) $item['name'] ),
+							'image_sort' => $image_sort,
 						);
 					}
 				}

@@ -157,7 +157,7 @@ class Piwigo {
 		$attachment_id = media_handle_sideload( $file_array, $post_id, $image_name, $post_data );
 
 		if ( is_wp_error( $attachment_id ) ) {
-			@unlink( $tmp_file );
+			wp_delete_file( $tmp_file );
 			return $attachment_id;
 		}
 

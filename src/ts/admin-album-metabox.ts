@@ -4,10 +4,13 @@
  * ES2022 TypeScript en mode strict.
  */
 
+export type ImageSort = 'date_asc' | 'date_desc' | 'name_asc' | 'name_desc';
+
 interface AlbumItem {
 	type: 'local' | 'piwigo';
 	id: number;
 	name: string;
+	image_sort?: ImageSort;
 }
 
 document.addEventListener( 'DOMContentLoaded', () => {
@@ -37,6 +40,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	if ( ! Array.isArray( items ) ) {
 		items = [];
 	}
+
+	// Normalisation des items existants pour inclure le tri par défaut
+	items.forEach( ( item ) => {
+		if ( ! item.image_sort ) {
+			item.image_sort = 'date_asc';
+		}
+	} );
 
 	let dragSrcEl: HTMLElement | null = null;
 
@@ -94,17 +104,51 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			div.setAttribute( 'draggable', sortSelect.value === 'manual' ? 'true' : 'false' );
 			div.dataset.index = String( index );
 
+			// Partie gauche : Nom + Badge
+			const infoWrap = document.createElement( 'div' );
+			infoWrap.className = 'eg-album-metabox__item-info eg-album-item-info';
+
 			const contentSpan = document.createElement( 'span' );
 			contentSpan.className = 'eg-album-metabox__item-title eg-album-item-title';
-			contentSpan.textContent = item.name + ' ';
+			contentSpan.textContent = item.name;
 
 			const typeSpan = document.createElement( 'span' );
 			typeSpan.className = 'eg-album-metabox__item-type eg-album-item-type';
 			typeSpan.textContent = item.type === 'local' ? 'Locale' : 'Piwigo';
 
-			const textWrap = document.createElement( 'div' );
-			textWrap.appendChild( contentSpan );
-			textWrap.appendChild( typeSpan );
+			infoWrap.appendChild( contentSpan );
+			infoWrap.appendChild( typeSpan );
+
+			// Partie droite : Sélecteur de tri des images + Bouton Retirer
+			const controlsWrap = document.createElement( 'div' );
+			controlsWrap.className = 'eg-album-metabox__item-controls eg-album-item-controls';
+
+			const sortSelectEl = document.createElement( 'select' );
+			sortSelectEl.className = 'eg-album-metabox__item-sort eg-album-item-sort';
+			sortSelectEl.setAttribute( 'aria-label', 'Tri des photos de la galerie' );
+
+			const sortOptions: Array<{ value: ImageSort; label: string }> = [
+				{ value: 'date_asc', label: 'Date de prise de vue (croissante)' },
+				{ value: 'date_desc', label: 'Date de prise de vue (décroissante)' },
+				{ value: 'name_asc', label: 'Ordre alphabétique (A → Z)' },
+				{ value: 'name_desc', label: 'Ordre alphabétique (Z → A)' },
+			];
+
+			const currentSort = item.image_sort || 'date_asc';
+			sortOptions.forEach( ( opt ) => {
+				const optEl = document.createElement( 'option' );
+				optEl.value = opt.value;
+				optEl.textContent = opt.label;
+				if ( opt.value === currentSort ) {
+					optEl.selected = true;
+				}
+				sortSelectEl.appendChild( optEl );
+			} );
+
+			sortSelectEl.addEventListener( 'change', () => {
+				item.image_sort = sortSelectEl.value as ImageSort;
+				input.value = JSON.stringify( items );
+			} );
 
 			const removeLink = document.createElement( 'button' );
 			removeLink.type = 'button';
@@ -115,8 +159,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				saveAndRender();
 			} );
 
-			div.appendChild( textWrap );
-			div.appendChild( removeLink );
+			controlsWrap.appendChild( sortSelectEl );
+			controlsWrap.appendChild( removeLink );
+
+			div.appendChild( infoWrap );
+			div.appendChild( controlsWrap );
 
 			if ( sortSelect.value === 'manual' ) {
 				div.addEventListener( 'dragstart', handleDragStart );
@@ -162,7 +209,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				return;
 			}
 
-			items.push( { type: 'local', id, name } );
+			items.push( { type: 'local', id, name, image_sort: 'date_asc' } );
 			saveAndRender();
 			selectLocal.value = '';
 		} );
@@ -183,7 +230,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				return;
 			}
 
-			items.push( { type: 'piwigo', id, name } );
+			items.push( { type: 'piwigo', id, name, image_sort: 'date_asc' } );
 			saveAndRender();
 			selectPiwigo.value = '';
 		} );

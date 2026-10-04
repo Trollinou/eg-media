@@ -28,9 +28,14 @@ La fonctionnalité d'Albums vous permet de regrouper plusieurs galeries (qu'elle
 1. Dans le menu de votre administration WordPress, allez dans **Albums** -> **Ajouter un nouveau**.
 2. Saisissez le titre de votre album (ex: "Saison 2025-2026").
 3. Dans la zone **Contenu et Organisation de l'Album** :
-   - **Mode de Tri** : Choisissez entre *Tri manuel (Glisser-Déposer)* ou *Tri automatique par ordre alphabétique*.
+   - **Mode de Tri des Galeries** : Choisissez entre *Tri manuel (Glisser-Déposer)* ou *Tri automatique par ordre alphabétique*.
    - **Ajouter des éléments** : Utilisez les listes déroulantes pour ajouter des galeries locales ou des albums Piwigo.
-   - Si vous avez choisi le *Tri manuel*, vous pouvez ordonner vos galeries en les faisant glisser verticalement.
+   - **Tri des Photos par Galerie** : Sur chaque ligne de galerie ajoutée, choisissez le tri des images au sein de cette galerie :
+     - *Date de prise de vue (croissante)* (par défaut, de la photo la plus ancienne à la plus récente)
+     - *Date de prise de vue (décroissante)* (de la plus récente à la plus ancienne)
+     - *Ordre alphabétique (A → Z)*
+     - *Ordre alphabétique (Z → A)*
+   - Si vous avez choisi le *Tri manuel*, vous pouvez réorganiser l'ordre d'affichage des galeries en les faisant glisser verticalement.
 4. Cliquez sur **Publier** ou **Mettre à jour**.
 5. Copiez le code court généré en haut de la metabox (ex: `[eg_media_album id="123"]`).
 
