@@ -8,6 +8,15 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ## [Unreleased]
 
 ### Added
+- Orchestration du cycle de vie du plugin via `EG_MEDIA\Core\Plugin` avec **lazy-loading conditionnel** des services (`Admin`, `REST`, `Frontend`) réduisant l'empreinte mémoire à chaque requête.
+- Modernisation du code sous **PHP 8.4** : utilisation de constantes typées, DTOs immuables et nouveaux Backed Enums (`Png_Compression`, `Viewer_Layout`).
+- Refonte intégrale du bloc Visionneuse vers le store réactif **Interactivity API** (`@wordpress/interactivity`) avec directives déclaratives (`data-wp-interactive`, `data-wp-context`, `data-wp-bind`, `data-wp-on`, etc.).
+- Prise en charge complète du format d'image ultra-compressé **AVIF** (`image/avif`) en plus de **WebP**, **JPEG** et **PNG**.
+- Extension des sources de données pour la **Block Bindings API** (`eg-media/gallery-data`, `eg-media/album-data`, `eg-media/media-metadata`) avec support natif du Full Site Editing (FSE).
+- Invalidation granulaire du cache Piwigo par album (`clear_album_cache`) et déclenchement de hooks d'action dédiés (`eg_media_piwigo_cache_cleared`).
+- Élévation de l'analyse statique au niveau **PHPStan Level 8** strict (0 erreur).
+- Mise en place d'une suite de tests unitaires **PHPUnit** (`tests/Unit/`) et configuration de l'environnement de test éphémère WordPress 7.1 via `.wp-env.json`.
+- Automatisation de la vérification de qualité via **GitHub Actions** (`.github/workflows/qa.yml`).
 - Migration complète de l'ensemble des styles CSS vers **SCSS modulaire** (`src/scss/`) avec compilation automatisée (`webpack.config.js` / `@wordpress/scripts`).
 - Génération automatique des fichiers CSS minifiés et de leurs équivalents RTL (`*-rtl.css`) dans `assets/css/` :
   - `admin-dashboard.css` : Tableau de bord, statistiques et configuration.
@@ -19,10 +28,6 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
   - **Back-Office (Admin)** : Utilisation des variables CSS natives du noyau WordPress (`var(--wp-admin-theme-color)`) pour une adaptation immédiate aux schémas de couleurs de profil de l'administrateur.
   - **Front-End (Shortcode Album & Bloc Visionneuse)** : Intégration transparente aux thèmes modernes (Full Site Editing / Block Themes via les presets `--wp--preset--color--*`, `--wp--preset--font-family--*`, `.wp-element-button`) avec fallbacks en cascade pour les thèmes classiques.
 - Migration complète du code JavaScript vers **TypeScript 6.0.3** en mode strict (`strict: true`, `noImplicitAny: true`).
-- Exploitation des APIs modernes de **WordPress 7.1** :
-  - **Interactivity API** et Modules de scripts (`viewScriptModule`) pour le bloc Visionneuse de Galerie.
-  - **Block Bindings API** (`eg-media/gallery-data`) pour la liaison native des données de galeries.
-  - **`WP_HTML_Tag_Processor`** pour l'injection optimisée des attributs d'images (`fetchpriority="high"`, `loading="lazy"`, `decoding="async"`).
 - Script utilitaire de synchronisation de version (`script/version-sync.cjs` via `npm run version-sync`).
 - Configuration Webpack avancée pour compiler les scripts TypeScript autonomes directement vers `assets/js/` et les blocs Gutenberg dans `build/`.
 

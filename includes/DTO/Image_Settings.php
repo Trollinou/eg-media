@@ -1,24 +1,30 @@
 <?php
-declare(strict_types=1);
-
-namespace EG_MEDIA\DTO;
-
 /**
- * Class Image_Settings
- *
  * Data Transfer Object pour les paramètres d'optimisation d'image.
  *
  * @package EG_MEDIA\DTO
  */
+
+declare(strict_types=1);
+
+namespace EG_MEDIA\DTO;
+
+use EG_MEDIA\Enums\Png_Compression;
+
+/**
+ * Class Image_Settings
+ *
+ * DTO immuable représentant la configuration d'optimisation des images.
+ */
 readonly class Image_Settings {
 
-	public const DEFAULT_MAX_WIDTH = 2000;
-	public const DEFAULT_COMPRESSION_QUALITY = 80;
-	public const DEFAULT_PNG_COMPRESSION = 'moyenne';
-	public const DEFAULT_UNSHARP_MASK = true;
-	public const DEFAULT_AUTO_ORIENT = true;
-	public const DEFAULT_CHROMINANCE = false;
-	public const DEFAULT_INTERLACE = true;
+	final public const int DEFAULT_MAX_WIDTH = 2000;
+	final public const int DEFAULT_COMPRESSION_QUALITY = 80;
+	final public const string DEFAULT_PNG_COMPRESSION = 'moyenne';
+	final public const bool DEFAULT_UNSHARP_MASK = true;
+	final public const bool DEFAULT_AUTO_ORIENT = true;
+	final public const bool DEFAULT_CHROMINANCE = false;
+	final public const bool DEFAULT_INTERLACE = true;
 
 	/**
 	 * Constructeur avec Constructor Property Promotion.
@@ -26,9 +32,9 @@ readonly class Image_Settings {
 	 * @param int    $max_width          Largeur maximale de redimensionnement (0 pour désactiver).
 	 * @param int    $compression_quality Qualité de compression JPEG/WebP (1-100).
 	 * @param string $png_compression    Niveau de compression PNG ('faible', 'moyenne', 'forte').
-	 * @param bool   $use_unsharp_mask   Indique s'il faut appliquer un masque de netteté (Unsharp Mask).
+	 * @param bool   $use_unsharp_mask   Indique s'il faut appliquer un masque de netteté.
 	 * @param bool   $use_auto_orient    Indique s'il faut redresser automatiquement l'image via EXIF.
-	 * @param bool   $use_chrominance    Indique s'il faut utiliser le sous-échantillonnage de la chrominance 4:2:0.
+	 * @param bool   $use_chrominance    Indique s'il faut utiliser le sous-échantillonnage 4:2:0.
 	 * @param bool   $use_interlace      Indique s'il faut activer l'entrelacement (mode progressif).
 	 */
 	public function __construct(
@@ -42,7 +48,16 @@ readonly class Image_Settings {
 	) {}
 
 	/**
-	 * Charge les paramètres d'optimisation depuis la base de données WordPress avec les valeurs par défaut globales.
+	 * Retourne l'enum Png_Compression correspondant au paramètre.
+	 *
+	 * @return Png_Compression
+	 */
+	public function get_png_compression_enum(): Png_Compression {
+		return Png_Compression::tryFrom( $this->png_compression ) ?? Png_Compression::MEDIUM;
+	}
+
+	/**
+	 * Charge les paramètres d'optimisation depuis les options WordPress.
 	 *
 	 * @return self
 	 */

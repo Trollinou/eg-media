@@ -189,7 +189,7 @@ class Album {
 		if ( class_exists( 'WP_HTML_Tag_Processor' ) && is_string( $html ) ) {
 			$processor = new \WP_HTML_Tag_Processor( $html );
 
-			while ( $processor->next_tag( 'img' ) ) {
+			while ( $processor->next_tag( [ 'tag_name' => 'img' ] ) ) {
 				$processor->set_attribute( 'loading', 'lazy' );
 				$processor->set_attribute( 'decoding', 'async' );
 			}

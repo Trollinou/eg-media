@@ -11,9 +11,13 @@ declare(strict_types=1);
 
 namespace EG_MEDIA\Core;
 
+use WP_Block;
+use WP_Post;
+use WP_Term;
+
 /**
  * Enregistre les sources personnalisées Block Bindings pour connecter les blocs natifs WordPress
- * aux métadonnées des galeries et médias EG Media.
+ * aux métadonnées des galeries, albums et médias EG Media.
  */
 class BlockBindings {
 
@@ -36,35 +40,55 @@ class BlockBindings {
 			return;
 		}
 
+		// 1. Source Données de Galerie
 		register_block_bindings_source(
 			'eg-media/gallery-data',
 			[
-				'label'              => __( "Données de Galerie (EG Media)", 'eg-media' ),
+				'label'              => __( 'Données de Galerie (EG Media)', 'eg-media' ),
 				'get_value_callback' => [ $this, 'get_gallery_data_value' ],
+				'uses_context'       => [ 'postId', 'postType' ],
+			]
+		);
+
+		// 2. Source Données d'Album
+		register_block_bindings_source(
+			'eg-media/album-data',
+			[
+				'label'              => __( "Données d'Album (EG Media)", 'eg-media' ),
+				'get_value_callback' => [ $this, 'get_album_data_value' ],
+				'uses_context'       => [ 'postId', 'postType' ],
+			]
+		);
+
+		// 3. Source Métadonnées de Média
+		register_block_bindings_source(
+			'eg-media/media-metadata',
+			[
+				'label'              => __( 'Métadonnées Média (EG Media)', 'eg-media' ),
+				'get_value_callback' => [ $this, 'get_media_metadata_value' ],
 				'uses_context'       => [ 'postId', 'postType' ],
 			]
 		);
 	}
 
 	/**
-	 * Callback pour résoudre la valeur dynamique de la source de liaison.
+	 * Callback pour résoudre les données d'une galerie.
 	 *
-	 * @param array<string, mixed> $source_args  Arguments passés à la source de liaison (ex: key, galleryId).
-	 * @param \WP_Block            $block_instance Instance du bloc WordPress en cours de rendu.
+	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
+	 * @param WP_Block            $block_instance Instance du bloc WordPress en cours de rendu.
 	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
 	 * @return mixed Valeur résolue pour l'attribut du bloc.
 	 */
-	public function get_gallery_data_value( array $source_args, \WP_Block $block_instance, string $attribute_name ): mixed {
-		$key = $source_args['key'] ?? '';
+	public function get_gallery_data_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+		$key = (string) ( $source_args['key'] ?? '' );
 		$gallery_id = isset( $source_args['galleryId'] ) ? (int) $source_args['galleryId'] : 0;
 
-		// Si aucun galleryId n'est fourni, tenter de le déduire du post en cours
 		if ( ! $gallery_id && isset( $block_instance->context['postId'] ) ) {
 			$post_id = (int) $block_instance->context['postId'];
 			$terms = get_the_terms( $post_id, 'eg_media_gallery' );
 			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 				$first_term = reset( $terms );
-				if ( $first_term instanceof \WP_Term ) {
+				if ( $first_term instanceof WP_Term ) {
 					$gallery_id = $first_term->term_id;
 				}
 			}
@@ -75,7 +99,7 @@ class BlockBindings {
 		}
 
 		$term = get_term( $gallery_id, 'eg_media_gallery' );
-		if ( ! $term || is_wp_error( $term ) || ! ( $term instanceof \WP_Term ) ) {
+		if ( ! $term || is_wp_error( $term ) || ! ( $term instanceof WP_Term ) ) {
 			return null;
 		}
 
@@ -84,7 +108,71 @@ class BlockBindings {
 			'gallery_description' => $term->description,
 			'image_count'         => (string) $term->count,
 			'featured_image_url'  => $this->get_featured_image_url( $gallery_id ),
+			'gallery_link'        => get_term_link( $term ),
 			default               => null,
+		};
+	}
+
+	/**
+	 * Callback pour résoudre les données d'un album.
+	 *
+	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
+	 * @param WP_Block            $block_instance Instance du bloc WordPress en cours de rendu.
+	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
+	 * @return mixed Valeur résolue pour l'attribut du bloc.
+	 */
+	public function get_album_data_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+		$key = (string) ( $source_args['key'] ?? '' );
+		$album_id = isset( $source_args['albumId'] ) ? (int) $source_args['albumId'] : 0;
+
+		if ( ! $album_id && isset( $block_instance->context['postId'] ) ) {
+			$album_id = (int) $block_instance->context['postId'];
+		}
+
+		if ( ! $album_id ) {
+			return null;
+		}
+
+		$post = get_post( $album_id );
+		if ( ! $post instanceof WP_Post || 'eg_media_album' !== $post->post_type ) {
+			return null;
+		}
+
+		return match ( $key ) {
+			'album_title'       => get_the_title( $post ),
+			'album_description' => $post->post_excerpt ?: $post->post_content,
+			'featured_image_url'=> get_the_post_thumbnail_url( $post, 'full' ) ?: null,
+			'album_link'        => get_permalink( $post ),
+			default             => null,
+		};
+	}
+
+	/**
+	 * Callback pour résoudre les métadonnées personnalisées d'une image/pièce jointe.
+	 *
+	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
+	 * @param WP_Block            $block_instance Instance du bloc WordPress en cours de rendu.
+	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
+	 * @return mixed Valeur résolue pour l'attribut du bloc.
+	 */
+	public function get_media_metadata_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+		$key = (string) ( $source_args['key'] ?? '' );
+		$attachment_id = isset( $source_args['attachmentId'] ) ? (int) $source_args['attachmentId'] : 0;
+
+		if ( ! $attachment_id && isset( $block_instance->context['postId'] ) ) {
+			$attachment_id = (int) $block_instance->context['postId'];
+		}
+
+		if ( ! $attachment_id ) {
+			return null;
+		}
+
+		return match ( $key ) {
+			'credit'   => get_post_meta( $attachment_id, '_eg_media_credit', true ) ?: null,
+			'location' => get_post_meta( $attachment_id, '_eg_media_location', true ) ?: null,
+			'caption'  => wp_get_attachment_caption( $attachment_id ) ?: null,
+			'status'   => get_post_meta( $attachment_id, '_eg_media_status', true ) ?: null,
+			default    => null,
 		};
 	}
 

@@ -1,14 +1,20 @@
 <?php
+/**
+ * Service de traitement en lot des médias.
+ *
+ * @package EG_MEDIA\Services\Image
+ */
+
 declare(strict_types=1);
 
 namespace EG_MEDIA\Services\Image;
+
+use WP_Query;
 
 /**
  * Class BulkProcessor
  *
  * Gère l'optimisation en masse des images existantes via AJAX.
- *
- * @package EG_MEDIA\Services\Image
  */
 class BulkProcessor {
 
@@ -17,26 +23,28 @@ class BulkProcessor {
 	 *
 	 * @return void
 	 */
-	public function register() : void {
+	public function register(): void {
 		add_action( 'wp_ajax_eg_media_process_bulk_batch', [ $this, 'eg_media_process_bulk_batch' ] );
 	}
 
 	/**
-	 * Compte le nombre total de médias restants à optimiser (JPEG, PNG, WebP).
+	 * Compte le nombre total de médias restants à optimiser (JPEG, PNG, WebP, AVIF).
 	 *
 	 * @return int Nombre d'images non optimisées.
 	 */
-	public function get_unoptimized_count() : int {
+	public function get_unoptimized_count(): int {
 		$count = get_transient( 'eg_media_unoptimized_count' );
 
 		if ( false === $count ) {
 			global $wpdb;
 
+			$mimes_in = "'" . implode( "','", array_map( 'esc_sql', Processor::SUPPORTED_MIMES ) ) . "'";
+
 			$count = (int) $wpdb->get_var(
 				"SELECT COUNT(*) FROM {$wpdb->posts} AS p
 				LEFT JOIN {$wpdb->postmeta} AS pm ON p.ID = pm.post_id AND pm.meta_key = '_eg_media_optimized'
 				WHERE p.post_type = 'attachment'
-				AND p.post_mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+				AND p.post_mime_type IN ({$mimes_in})
 				AND p.post_status = 'inherit'
 				AND pm.post_id IS NULL"
 			);
@@ -52,20 +60,18 @@ class BulkProcessor {
 	 *
 	 * @return void
 	 */
-	public function eg_media_process_bulk_batch() : void {
-		// Vérification de sécurité du nonce.
+	public function eg_media_process_bulk_batch(): void {
 		check_ajax_referer( 'eg-media-bulk-nonce', 'nonce' );
 
-		// Vérification de la capability de l'utilisateur.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( [
-				'message' => esc_html( "Vous n'avez pas les permissions nécessaires." ),
+				'message' => esc_html__( "Vous n'avez pas les permissions nécessaires.", 'eg-media' ),
 			] );
 		}
 
-		$query = new \WP_Query( [
+		$query = new WP_Query( [
 			'post_type'      => 'attachment',
-			'post_mime_type' => [ 'image/jpeg', 'image/png', 'image/webp' ],
+			'post_mime_type' => Processor::SUPPORTED_MIMES,
 			'post_status'    => 'inherit',
 			'posts_per_page' => 5,
 			'fields'         => 'ids',
@@ -97,7 +103,7 @@ class BulkProcessor {
 						$bytes_saved_in_this_batch += $bytes_saved;
 					}
 
-					// Mettre à jour les dimensions de l'image (largeur/hauteur) dans les métadonnées de WordPress.
+					// Mettre à jour les dimensions de l'image dans les métadonnées WP
 					$metadata = wp_get_attachment_metadata( $id );
 					if ( is_array( $metadata ) ) {
 						$image_size = @getimagesize( $file_path );
@@ -110,16 +116,15 @@ class BulkProcessor {
 				}
 			}
 
-			// Toujours marquer comme optimisé pour éviter une boucle infinie sur un fichier invalide.
+			// Toujours marquer comme optimisé pour éviter une boucle infinie
 			update_post_meta( $id, '_eg_media_optimized', '1' );
 		}
 
-		// Mettre à jour les statistiques globales.
+		// Mettre à jour les statistiques globales
 		if ( $processed_in_this_batch > 0 ) {
 			$total_processed = (int) get_option( 'eg_media_processed_count', 0 );
 			update_option( 'eg_media_processed_count', $total_processed + $processed_in_this_batch );
 
-			// Mettre à jour le décompte d'images non optimisées en cache.
 			$current_unoptimized = get_transient( 'eg_media_unoptimized_count' );
 			if ( false !== $current_unoptimized ) {
 				$new_unoptimized = max( 0, (int) $current_unoptimized - $processed_in_this_batch );

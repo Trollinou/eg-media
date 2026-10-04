@@ -60,3 +60,28 @@ Vous pouvez insérer une image provenant de Piwigo dans le contenu de votre page
 
 ### Rangement et Classement Automatique
 Pour éviter d'encombrer votre médiathèque en vrac, chaque image importée de Piwigo (que ce soit via le bloc Image ou comme Image mise en avant) est **automatiquement classée** dans une galerie locale nommée **`Piwigo - [Nom de l'album]`**. Vous pouvez ensuite filtrer vos images par galerie ou réutiliser ces imports organisés dans d'autres contenus.
+
+---
+
+## 4. Block Bindings API (Full Site Editing / Thèmes de Blocs)
+
+Sous WordPress 7.1 et les thèmes basés sur les blocs (Block Themes / FSE), vous pouvez connecter directement les blocs natifs du cœur de WordPress (Titre, Paragraphe, Image, Bouton) aux données dynamiques d'EG Media sans recourir aux shortcodes :
+
+### Sources Disponibles :
+1. **`eg-media/gallery-data`** (Données de galerie) :
+   - `gallery_name` : Nom de la galerie.
+   - `gallery_description` : Description de la galerie.
+   - `image_count` : Nombre total d'images.
+   - `featured_image_url` : URL de l'image de référence (ou 1ère image).
+   - `gallery_link` : Lien de la page d'archive de la galerie.
+2. **`eg-media/album-data`** (Données d'album) :
+   - `album_title` : Titre de l'album.
+   - `album_description` : Extrait ou description de l'album.
+   - `featured_image_url` : URL de l'image de couverture.
+   - `album_link` : Lien permanent de l'album.
+3. **`eg-media/media-metadata`** (Métadonnées de médias) :
+   - `credit` : Crédit photo / auteur.
+   - `location` : Lieu de prise de vue.
+   - `caption` : Légende du média.
+   - `status` : Statut du média (`pending`, `approved`, `rejected`).
+

@@ -243,6 +243,25 @@ class Piwigo {
 	}
 
 	/**
+	 * Invalide le cache d'un album Piwigo spécifique.
+	 *
+	 * @param int $album_id ID de l'album Piwigo.
+	 * @return void
+	 */
+	public function clear_album_cache( int $album_id ): void {
+		if ( $album_id <= 0 ) {
+			return;
+		}
+		delete_transient( 'eg_media_piwigo_album_imgs_v2_' . $album_id );
+		/**
+		 * Déclenché lorsqu'un cache d'album Piwigo est invalidé.
+		 *
+		 * @param int $album_id ID de l'album.
+		 */
+		do_action( 'eg_media_piwigo_album_cache_cleared', $album_id );
+	}
+
+	/**
 	 * Supprime tous les caches Transients liés à Piwigo.
 	 *
 	 * @return void
@@ -264,5 +283,10 @@ class Piwigo {
 				'_transient_timeout_eg_media_piwigo_album_imgs_v2_%'
 			)
 		);
+
+		/**
+		 * Déclenché lorsque l'intégralité du cache Piwigo est nettoyé.
+		 */
+		do_action( 'eg_media_piwigo_cache_cleared' );
 	}
 }

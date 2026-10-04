@@ -1,6 +1,6 @@
 <?php
 /**
- * Rendu dynamique du bloc Visionneuse de Galerie.
+ * Rendu dynamique du bloc Visionneuse de Galerie (Interactivity API).
  *
  * @package EG_MEDIA
  */
@@ -40,7 +40,6 @@ if ( 'piwigo' === $gallery_source ) {
 			$val_b = ! empty( $b['name'] ) ? $b['name'] : $b['file'];
 			$comparison = strcasecmp( (string) $val_a, (string) $val_b );
 		} else {
-			// Tri par date ou ID par défaut pour Piwigo
 			$comparison = $a['id'] <=> $b['id'];
 		}
 
@@ -81,17 +80,18 @@ if ( 'piwigo' === $gallery_source ) {
 		];
 	};
 
-	// Formater les données pour le JS
+	// Formater les données pour le store interactif
 	foreach ( $piwigo_images as $index => $image ) {
 		$thumb_src = $get_piwigo_size_url( $image, 'medium' );
 		$full_src  = $get_piwigo_size_url( $image, $resolution );
 		$dims      = $get_piwigo_size_dims( $image, $resolution );
 
 		$images_data[] = [
+			'id'       => (int) $image['id'],
 			'index'    => $index,
 			'thumbSrc' => $thumb_src,
 			'fullSrc'  => $full_src,
-			'alt'      => $image['name'] ?: $image['file'],
+			'alt'      => (string) ( $image['name'] ?: $image['file'] ),
 			'width'    => $dims['width'],
 			'height'   => $dims['height'],
 		];
@@ -99,7 +99,7 @@ if ( 'piwigo' === $gallery_source ) {
 
 	$first_img       = $piwigo_images[0];
 	$first_image_src = $get_piwigo_size_url( $first_img, $resolution );
-	$first_image_alt = $first_img['name'] ?: $first_img['file'];
+	$first_image_alt = (string) ( $first_img['name'] ?: $first_img['file'] );
 
 } else {
 	// Récupérer les pièces jointes locales
@@ -124,9 +124,6 @@ if ( 'piwigo' === $gallery_source ) {
 
 	// Logique de tri locale
 	usort( $attachments, function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort_order ) : int {
-		$val_a = '';
-		$val_b = '';
-
 		if ( 'name' === $sort_by ) {
 			$val_a = ! empty( $a->post_title ) ? $a->post_title : basename( get_attached_file( $a->ID ) ?: '' );
 			$val_b = ! empty( $b->post_title ) ? $b->post_title : basename( get_attached_file( $b->ID ) ?: '' );
@@ -144,7 +141,7 @@ if ( 'piwigo' === $gallery_source ) {
 		return 'DESC' === $sort_order ? -$comparison : $comparison;
 	} );
 
-	// Construire le tableau de données d'images pour le JS
+	// Construire le tableau de données d'images pour l'Interactivity API
 	foreach ( $attachments as $index => $attachment ) {
 		$thumb_src = wp_get_attachment_image_url( $attachment->ID, 'medium_large' ) ?: wp_get_attachment_image_url( $attachment->ID, 'medium' ) ?: wp_get_attachment_image_url( $attachment->ID, 'thumbnail' ) ?: '';
 		$full_src  = wp_get_attachment_image_url( $attachment->ID, $resolution ) ?: '';
@@ -155,10 +152,11 @@ if ( 'piwigo' === $gallery_source ) {
 		$height = ! empty( $meta['height'] ) ? (int) $meta['height'] : 150;
 
 		$images_data[] = [
+			'id'       => $attachment->ID,
 			'index'    => $index,
 			'thumbSrc' => $thumb_src,
 			'fullSrc'  => $full_src,
-			'alt'      => $alt,
+			'alt'      => (string) $alt,
 			'width'    => $width,
 			'height'   => $height,
 		];
@@ -174,21 +172,35 @@ if ( 'justified' === $layout ) {
 	$wrapper_classes .= ' eg-viewer--layout-justified';
 }
 
+$initial_context = [
+	'currentIndex'       => 0,
+	'isFullscreen'       => false,
+	'isSlideshowRunning' => $slideshow,
+	'slideshow'          => $slideshow,
+	'tempo'              => $tempo,
+	'layout'             => $layout,
+	'limit'              => $images_per_page,
+	'loadedImagesCount'  => min( count( $images_data ), $images_per_page ),
+	'images'             => $images_data,
+];
+
 $wrapper_attributes = get_block_wrapper_attributes( [
-	'class'                 => $wrapper_classes,
-	'data-wp-interactive'   => 'eg-media/viewer',
-	'data-slideshow'        => $slideshow ? 'true' : 'false',
-	'data-tempo'            => esc_attr( (string) $tempo ),
-	'data-layout'           => esc_attr( $layout ),
-	'data-limit'            => esc_attr( (string) $images_per_page ),
-	'data-images-json'      => esc_attr( wp_json_encode( $images_data ) ),
+	'class'                               => $wrapper_classes,
+	'data-wp-interactive'                 => 'eg-media/viewer',
+	'data-wp-context'                     => wp_json_encode( $initial_context ),
+	'data-wp-class--eg-viewer--fullscreen' => 'context.isFullscreen',
+	'data-wp-watch'                       => 'callbacks.init',
+	'data-wp-on-window--keydown'          => 'actions.handleKeyDown',
+	'data-wp-on-window--fullscreenchange' => 'actions.handleFullscreenChange',
 ] );
 
 ob_start();
 ?>
 <div <?php echo $wrapper_attributes; ?>>
 
-	<button class="eg-viewer__close" aria-label="<?php esc_attr_e( 'Fermer le plein écran', 'eg-media' ); ?>">&times;</button>
+	<button class="eg-viewer__close"
+			aria-label="<?php esc_attr_e( 'Fermer le plein écran', 'eg-media' ); ?>"
+			data-wp-on--click="actions.closeFullscreen">&times;</button>
 
 	<?php if ( 'justified' === $layout ) : ?>
 		<div class="eg-viewer__justified-grid">
@@ -196,11 +208,12 @@ ob_start();
 			$initial_count = min( count( $images_data ), $images_per_page );
 			for ( $i = 0; $i < $initial_count; $i++ ) :
 				$img_data = $images_data[ $i ];
-				$aspect_ratio = $img_data['width'] / $img_data['height'];
+				$aspect_ratio = $img_data['width'] / ( $img_data['height'] ?: 150 );
 				$flex_basis = $aspect_ratio * 150;
 			?>
 				<div class="eg-viewer__justified-item"
 					 data-index="<?php echo $i; ?>"
+					 data-wp-on--click="actions.selectJustifiedImage"
 					 style="flex-grow: <?php echo $aspect_ratio; ?>; flex-basis: <?php echo $flex_basis; ?>px;">
 					<img src="<?php echo esc_url( $img_data['thumbSrc'] ); ?>"
 						 alt="<?php echo esc_attr( $img_data['alt'] ); ?>" />
@@ -208,8 +221,8 @@ ob_start();
 			<?php endfor; ?>
 		</div>
 		<?php if ( count( $images_data ) > $images_per_page ) : ?>
-			<div class="eg-viewer__load-more-container">
-				<button class="eg-viewer__load-more-btn">
+			<div class="eg-viewer__load-more-container" data-wp-bind--hidden="state.hasLoadedAllImages">
+				<button class="eg-viewer__load-more-btn" data-wp-on--click="actions.loadMore">
 					<?php esc_html_e( 'Charger plus d\'images', 'eg-media' ); ?>
 				</button>
 			</div>
@@ -217,51 +230,38 @@ ob_start();
 	<?php endif; ?>
 
 	<div class="eg-viewer__main">
-		<img class="eg-viewer__main-image" src="<?php echo esc_url( $first_image_src ); ?>" alt="<?php echo esc_attr( (string) $first_image_alt ); ?>" />
+		<img class="eg-viewer__main-image"
+			 src="<?php echo esc_url( $first_image_src ); ?>"
+			 alt="<?php echo esc_attr( (string) $first_image_alt ); ?>"
+			 data-wp-bind--src="state.currentImageSrc"
+			 data-wp-bind--alt="state.currentImageAlt"
+			 data-wp-on--click="actions.toggleFullscreen" />
 	</div>
 
 	<div class="eg-viewer__track-container">
-		<button class="eg-viewer__arrow eg-viewer__arrow--left" aria-label="<?php esc_attr_e( 'Précédent', 'eg-media' ); ?>">&lsaquo;</button>
+		<button class="eg-viewer__arrow eg-viewer__arrow--left"
+				aria-label="<?php esc_attr_e( 'Précédent', 'eg-media' ); ?>"
+				data-wp-on--click="actions.prevImage">&lsaquo;</button>
 
-		<div class="eg-viewer__thumbnails">
+		<div class="eg-viewer__thumbnails" data-wp-on--wheel="actions.onWheel">
 			<div class="eg-viewer__track">
-				<?php if ( 'piwigo' === $gallery_source ) : ?>
-					<?php foreach ( $piwigo_images as $index => $image ) :
-						$thumb_src = $get_piwigo_size_url( $image, 'thumbnail' );
-						$full_src  = $get_piwigo_size_url( $image, $resolution );
-						$dims      = $get_piwigo_size_dims( $image, $resolution );
-					?>
-						<div class="eg-viewer__thumbnail<?php echo 0 === $index ? ' eg-viewer__thumbnail--active' : ''; ?>"
-							 data-index="<?php echo $index; ?>"
-							 data-full-src="<?php echo esc_url( $full_src ); ?>"
-							 data-width="<?php echo esc_attr( (string) $dims['width'] ); ?>"
-							 data-height="<?php echo esc_attr( (string) $dims['height'] ); ?>">
-							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) ( $image['name'] ?: $image['file'] ) ); ?>" />
-						</div>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<?php foreach ( $attachments as $index => $attachment ) :
-						$thumb_src = wp_get_attachment_image_url( $attachment->ID, 'thumbnail' ) ?: '';
-						$full_src  = wp_get_attachment_image_url( $attachment->ID, $resolution ) ?: '';
-						$alt       = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) ?: $attachment->post_title;
-
-						$meta = wp_get_attachment_metadata( $attachment->ID );
-						$width = ! empty( $meta['width'] ) ? (int) $meta['width'] : 150;
-						$height = ! empty( $meta['height'] ) ? (int) $meta['height'] : 150;
-					?>
-						<div class="eg-viewer__thumbnail<?php echo 0 === $index ? ' eg-viewer__thumbnail--active' : ''; ?>"
-							 data-index="<?php echo $index; ?>"
-							 data-full-src="<?php echo esc_url( $full_src ); ?>"
-							 data-width="<?php echo esc_attr( (string) $width ); ?>"
-							 data-height="<?php echo esc_attr( (string) $height ); ?>">
-							<img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( (string) $alt ); ?>" />
-						</div>
-					<?php endforeach; ?>
-				<?php endif; ?>
+				<?php foreach ( $images_data as $index => $img ) : ?>
+					<div class="eg-viewer__thumbnail<?php echo 0 === $index ? ' eg-viewer__thumbnail--active' : ''; ?>"
+						 data-index="<?php echo $index; ?>"
+						 data-width="<?php echo esc_attr( (string) $img['width'] ); ?>"
+						 data-height="<?php echo esc_attr( (string) $img['height'] ); ?>"
+						 data-wp-class--eg-viewer__thumbnail--active="state.isThumbnailActive"
+						 data-wp-on--click="actions.selectImage">
+						<img src="<?php echo esc_url( $img['thumbSrc'] ); ?>"
+							 alt="<?php echo esc_attr( (string) $img['alt'] ); ?>" />
+					</div>
+				<?php endforeach; ?>
 			</div>
 		</div>
 
-		<button class="eg-viewer__arrow eg-viewer__arrow--right" aria-label="<?php esc_attr_e( 'Suivant', 'eg-media' ); ?>">&rsaquo;</button>
+		<button class="eg-viewer__arrow eg-viewer__arrow--right"
+				aria-label="<?php esc_attr_e( 'Suivant', 'eg-media' ); ?>"
+				data-wp-on--click="actions.nextImage">&rsaquo;</button>
 	</div>
 </div>
 <?php
@@ -271,7 +271,7 @@ $html = ob_get_clean();
 if ( class_exists( 'WP_HTML_Tag_Processor' ) && is_string( $html ) ) {
 	$processor = new \WP_HTML_Tag_Processor( $html );
 
-	while ( $processor->next_tag( 'img' ) ) {
+	while ( $processor->next_tag( [ 'tag_name' => 'img' ] ) ) {
 		$class = $processor->get_attribute( 'class' ) ?? '';
 		if ( str_contains( $class, 'eg-viewer__main-image' ) ) {
 			$processor->set_attribute( 'fetchpriority', 'high' );
