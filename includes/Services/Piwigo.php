@@ -33,7 +33,7 @@ class Piwigo {
 			return '';
 		}
 
-		// S'assurer que l'URL se termine par ws.php
+		// S'assurer que l'URL se termine par ws.php.
 		$url = rtrim( $url, '/' );
 		if ( ! str_ends_with( strtolower( $url ), 'ws.php' ) ) {
 			$url .= '/ws.php';
@@ -54,11 +54,11 @@ class Piwigo {
 	/**
 	 * Effectue une requête HTTP POST vers l'API de Piwigo.
 	 *
-	 * @param string $method Méthode API Piwigo (ex: pwg.categories.getList).
+	 * @param string               $method Méthode API Piwigo (ex: pwg.categories.getList).
 	 * @param array<string, mixed> $body_args Arguments du corps de la requête.
 	 * @return array<string, mixed>|null Résultat de la requête décodé, ou null en cas d'erreur.
 	 */
-	private function make_request( string $method, array $body_args = [] ) : ?array {
+	private function make_request( string $method, array $body_args = array() ): ?array {
 		$api_url = $this->get_api_url();
 		$api_key = $this->get_api_key();
 
@@ -68,9 +68,9 @@ class Piwigo {
 
 		$api_url = add_query_arg( 'format', 'json', $api_url );
 
-		$headers = [
+		$headers = array(
 			'Accept' => 'application/json',
-		];
+		);
 
 		$api_secret = trim( (string) get_option( 'eg_media_piwigo_api_secret', '' ) );
 
@@ -81,19 +81,19 @@ class Piwigo {
 		}
 
 		$body = array_merge(
-			[
+			array(
 				'method' => $method,
 				'format' => 'json',
-			],
+			),
 			$body_args
 		);
 
-		$args = [
-			'body'        => $body,
-			'headers'     => $headers,
-			'timeout'     => 15,
-			'sslverify'   => true,
-		];
+		$args = array(
+			'body'      => $body,
+			'headers'   => $headers,
+			'timeout'   => 15,
+			'sslverify' => true,
+		);
 
 		$response = wp_remote_post( $api_url, $args );
 
@@ -134,7 +134,7 @@ class Piwigo {
 	 * @param bool $force_refresh Si vrai, force l'appel API en contournant le cache.
 	 * @return array<int, array<string, mixed>> Liste des albums.
 	 */
-	public function get_albums( bool $force_refresh = false ) : array {
+	public function get_albums( bool $force_refresh = false ): array {
 		$cache_key = 'eg_media_piwigo_albums';
 
 		if ( ! $force_refresh ) {
@@ -146,16 +146,16 @@ class Piwigo {
 
 		$data = $this->make_request( 'pwg.categories.getList' );
 		if ( null === $data || ! isset( $data['result']['categories'] ) ) {
-			return [];
+			return array();
 		}
 
-		$albums = [];
+		$albums = array();
 		foreach ( $data['result']['categories'] as $category ) {
 			if ( isset( $category['id'], $category['name'] ) ) {
-				$albums[] = [
+				$albums[] = array(
 					'id'   => (int) $category['id'],
 					'name' => (string) $category['name'],
-				];
+				);
 			}
 		}
 
@@ -171,9 +171,9 @@ class Piwigo {
 	 * @param bool $force_refresh Si vrai, force l'appel API en contournant le cache.
 	 * @return array<int, array<string, mixed>> Liste des images formatées.
 	 */
-	public function get_album_images( int $album_id, bool $force_refresh = false ) : array {
+	public function get_album_images( int $album_id, bool $force_refresh = false ): array {
 		if ( $album_id <= 0 ) {
-			return [];
+			return array();
 		}
 
 		$cache_key = 'eg_media_piwigo_album_imgs_v2_' . $album_id;
@@ -187,31 +187,31 @@ class Piwigo {
 
 		$data = $this->make_request(
 			'pwg.categories.getImages',
-			[
+			array(
 				'cat_id'   => $album_id,
-				'per_page' => 500, // On récupère un maximum d'images de l'album
-			]
+				'per_page' => 500, // On récupère un maximum d'images de l'album.
+			)
 		);
 
 		if ( null === $data || ! isset( $data['result']['images'] ) ) {
-			return [];
+			return array();
 		}
 
-		$images = [];
+		$images = array();
 		foreach ( $data['result']['images'] as $image ) {
 			if ( ! isset( $image['id'] ) ) {
 				continue;
 			}
 
-			$images[] = [
-				'id'           => (int) $image['id'],
-				'name'         => (string) ( $image['name'] ?? '' ),
-				'file'         => (string) ( $image['file'] ?? '' ),
-				'element_url'  => (string) ( $image['element_url'] ?? '' ),
-				'width'        => (int) ( $image['width'] ?? 150 ),
-				'height'       => (int) ( $image['height'] ?? 150 ),
-				'derivatives'  => $image['derivatives'] ?? [],
-			];
+			$images[] = array(
+				'id'          => (int) $image['id'],
+				'name'        => (string) ( $image['name'] ?? '' ),
+				'file'        => (string) ( $image['file'] ?? '' ),
+				'element_url' => (string) ( $image['element_url'] ?? '' ),
+				'width'       => (int) ( $image['width'] ?? 150 ),
+				'height'      => (int) ( $image['height'] ?? 150 ),
+				'derivatives' => $image['derivatives'] ?? array(),
+			);
 		}
 
 		set_transient( $cache_key, $images, self::CACHE_TTL );
@@ -225,14 +225,14 @@ class Piwigo {
 	 * @param int $image_id ID de l'image.
 	 * @return array<string, mixed>|null Infos de l'image.
 	 */
-	public function get_image_info( int $image_id ) : ?array {
+	public function get_image_info( int $image_id ): ?array {
 		if ( $image_id <= 0 ) {
 			return null;
 		}
 
 		$data = $this->make_request(
 			'pwg.images.getInfo',
-			[ 'image_id' => $image_id ]
+			array( 'image_id' => $image_id )
 		);
 
 		if ( null === $data || ! isset( $data['result'] ) ) {
@@ -271,12 +271,14 @@ class Piwigo {
 
 		// Pour supprimer les caches individuels d'albums, on fait une requête SQL.
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				'_transient_eg_media_piwigo_album_imgs_v2_%'
 			)
 		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",

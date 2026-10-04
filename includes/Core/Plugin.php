@@ -73,10 +73,10 @@ final class Plugin {
 		$this->register_media_services();
 
 		// 3. Initialisation principale au déclenchement de plugins_loaded
-		add_action( 'plugins_loaded', [ $this, 'on_plugins_loaded' ] );
+		add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 
 		// 4. Enregistrement des assets publics
-		add_action( 'wp_enqueue_scripts', [ $this, 'register_public_assets' ] );
+		add_action( 'wp_enqueue_scripts', array( $this, 'register_public_assets' ) );
 	}
 
 	/**
@@ -98,24 +98,24 @@ final class Plugin {
 	 * @return void
 	 */
 	public function on_plugins_loaded(): void {
-		// CPT et Taxonomies (toujours nécessaires pour les requêtes WP)
+		// CPT et Taxonomies (toujours nécessaires pour les requêtes WP).
 		( new Galleries() )->register();
 		( new Albums() )->register();
 
-		// Blocs Gutenberg & Block Bindings
+		// Blocs Gutenberg & Block Bindings.
 		( new ViewerBlock() )->register();
 		( new BlockBindings() )->register();
 
-		// Shortcodes
+		// Shortcodes.
 		( new AlbumShortcode() )->register();
 
-		// Context: Administration WordPress uniquement
+		// Context: Administration WordPress uniquement.
 		if ( is_admin() ) {
 			$this->init_admin_modules();
 		}
 
-		// Context: REST API
-		add_action( 'rest_api_init', [ $this, 'init_rest_api' ] );
+		// Context: REST API.
+		add_action( 'rest_api_init', array( $this, 'init_rest_api' ) );
 	}
 
 	/**
@@ -151,14 +151,14 @@ final class Plugin {
 		wp_register_style(
 			'eg-media-public-album',
 			$plugin_url . 'assets/css/public-album.css',
-			[],
+			array(),
 			self::VERSION
 		);
 
 		wp_register_script(
 			'eg-media-public-album',
 			$plugin_url . 'assets/js/public-album.js',
-			[],
+			array(),
 			self::VERSION,
 			true
 		);

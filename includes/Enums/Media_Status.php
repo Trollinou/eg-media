@@ -1,4 +1,10 @@
 <?php
+/**
+ * Media Status Enum.
+ *
+ * @package EG_Media
+ */
+
 declare(strict_types=1);
 
 namespace EG_MEDIA\Enums;

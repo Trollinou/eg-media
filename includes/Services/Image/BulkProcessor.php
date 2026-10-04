@@ -24,7 +24,7 @@ class BulkProcessor {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'wp_ajax_eg_media_process_bulk_batch', [ $this, 'eg_media_process_bulk_batch' ] );
+		add_action( 'wp_ajax_eg_media_process_bulk_batch', array( $this, 'eg_media_process_bulk_batch' ) );
 	}
 
 	/**
@@ -38,16 +38,21 @@ class BulkProcessor {
 		if ( false === $count ) {
 			global $wpdb;
 
-			$mimes_in = "'" . implode( "','", array_map( 'esc_sql', Processor::SUPPORTED_MIMES ) ) . "'";
+			$placeholders = implode( ', ', array_fill( 0, count( Processor::SUPPORTED_MIMES ), '%s' ) );
 
-			$count = (int) $wpdb->get_var(
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$query = $wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->posts} AS p
 				LEFT JOIN {$wpdb->postmeta} AS pm ON p.ID = pm.post_id AND pm.meta_key = '_eg_media_optimized'
 				WHERE p.post_type = 'attachment'
-				AND p.post_mime_type IN ({$mimes_in})
+				AND p.post_mime_type IN ($placeholders)
 				AND p.post_status = 'inherit'
-				AND pm.post_id IS NULL"
+				AND pm.post_id IS NULL",
+				...Processor::SUPPORTED_MIMES
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+			$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 			set_transient( 'eg_media_unoptimized_count', $count, 12 * HOUR_IN_SECONDS );
 		}
@@ -64,29 +69,37 @@ class BulkProcessor {
 		check_ajax_referer( 'eg-media-bulk-nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [
-				'message' => esc_html__( "Vous n'avez pas les permissions nécessaires.", 'eg-media' ),
-			] );
+			wp_send_json_error(
+				array(
+					'message' => esc_html__( "Vous n'avez pas les permissions nécessaires.", 'eg-media' ),
+				)
+			);
 		}
 
-		$query = new WP_Query( [
-			'post_type'      => 'attachment',
-			'post_mime_type' => Processor::SUPPORTED_MIMES,
-			'post_status'    => 'inherit',
-			'posts_per_page' => 5,
-			'fields'         => 'ids',
-			'no_found_rows'  => true,
-			'meta_query'     => [
-				[
-					'key'     => '_eg_media_optimized',
-					'compare' => 'NOT EXISTS',
-				],
-			],
-		] );
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => Processor::SUPPORTED_MIMES,
+				'post_status'    => 'inherit',
+				'posts_per_page' => 5,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'meta_query'     => array(
+					array(
+						'key'     => '_eg_media_optimized',
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
 
-		/** @var int[] $attachment_ids */
-		$attachment_ids = $query->posts;
-		$processed_in_this_batch = 0;
+		/**
+		 * Liste des identifiants d'attachements à traiter.
+		 *
+		 * @var int[] $attachment_ids
+		 */
+		$attachment_ids            = $query->posts;
+		$processed_in_this_batch   = 0;
 		$bytes_saved_in_this_batch = 0;
 
 		$processor = new Processor();
@@ -98,12 +111,12 @@ class BulkProcessor {
 				$bytes_saved = $processor->optimize_image_file( $file_path );
 
 				if ( null !== $bytes_saved ) {
-					$processed_in_this_batch++;
+					++$processed_in_this_batch;
 					if ( $bytes_saved > 0 ) {
 						$bytes_saved_in_this_batch += $bytes_saved;
 					}
 
-					// Mettre à jour les dimensions de l'image dans les métadonnées WP
+					// Mettre à jour les dimensions de l'image dans les métadonnées WP.
 					$metadata = wp_get_attachment_metadata( $id );
 					if ( is_array( $metadata ) ) {
 						$image_size = @getimagesize( $file_path );
@@ -116,11 +129,11 @@ class BulkProcessor {
 				}
 			}
 
-			// Toujours marquer comme optimisé pour éviter une boucle infinie
+			// Toujours marquer comme optimisé pour éviter une boucle infinie.
 			update_post_meta( $id, '_eg_media_optimized', '1' );
 		}
 
-		// Mettre à jour les statistiques globales
+		// Mettre à jour les statistiques globales.
 		if ( $processed_in_this_batch > 0 ) {
 			$total_processed = (int) get_option( 'eg_media_processed_count', 0 );
 			update_option( 'eg_media_processed_count', $total_processed + $processed_in_this_batch );
@@ -139,9 +152,11 @@ class BulkProcessor {
 
 		$remaining = $this->get_unoptimized_count();
 
-		wp_send_json_success( [
-			'remaining' => $remaining,
-			'processed' => $processed_in_this_batch,
-		] );
+		wp_send_json_success(
+			array(
+				'remaining' => $remaining,
+				'processed' => $processed_in_this_batch,
+			)
+		);
 	}
 }

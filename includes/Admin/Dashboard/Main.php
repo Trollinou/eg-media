@@ -47,11 +47,11 @@ class Main {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_action( 'admin_init', [ $this->config_tab, 'init_settings' ] );
-		add_action( 'admin_post_eg_media_reset_optimization_status', [ $this, 'handle_reset_optimization_status' ] );
-		add_action( 'admin_post_eg_media_clear_piwigo_cache', [ $this, 'handle_clear_piwigo_cache' ] );
+		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'admin_init', array( $this->config_tab, 'init_settings' ) );
+		add_action( 'admin_post_eg_media_reset_optimization_status', array( $this, 'handle_reset_optimization_status' ) );
+		add_action( 'admin_post_eg_media_clear_piwigo_cache', array( $this, 'handle_clear_piwigo_cache' ) );
 	}
 
 	/**
@@ -99,10 +99,10 @@ class Main {
 		// Redirection vers l'onglet de configuration.
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'page' => 'eg-media-dashboard',
 					'tab'  => 'config',
-				],
+				),
 				admin_url( 'upload.php' )
 			)
 		);
@@ -140,10 +140,10 @@ class Main {
 		// Redirection vers l'onglet de configuration.
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'page' => 'eg-media-dashboard',
 					'tab'  => 'config',
-				],
+				),
 				admin_url( 'upload.php' )
 			)
 		);
@@ -156,38 +156,38 @@ class Main {
 	 * @param string $hook Le nom de la page courante dans le back-office.
 	 * @return void
 	 */
-	public function enqueue_admin_assets( string $hook ) : void {
+	public function enqueue_admin_assets( string $hook ): void {
 		if ( 'media_page_eg-media-dashboard' !== $hook ) {
 			return;
 		}
 
 		wp_enqueue_style(
 			'eg-media-admin-dashboard',
-			plugins_url( 'assets/css/admin-dashboard.css', dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/eg-media.php' ),
-			[],
+			plugins_url( 'assets/css/admin-dashboard.css', dirname( dirname( dirname( __DIR__ ) ) ) . '/eg-media.php' ),
+			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_script(
 			'eg-media-admin-dashboard',
-			plugins_url( 'assets/js/admin-dashboard.js', dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/eg-media.php' ),
-			[],
+			plugins_url( 'assets/js/admin-dashboard.js', dirname( dirname( dirname( __DIR__ ) ) ) . '/eg-media.php' ),
+			array(),
 			EG_MEDIA_VERSION,
 			true
 		);
 
-		$bulk_processor = new \EG_MEDIA\Services\Image\BulkProcessor();
+		$bulk_processor    = new \EG_MEDIA\Services\Image\BulkProcessor();
 		$unoptimized_count = $bulk_processor->get_unoptimized_count();
 
 		wp_localize_script(
 			'eg-media-admin-dashboard',
 			'egMediaBulk',
-			[
+			array(
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'eg-media-bulk-nonce' ),
 				'unoptimizedCount' => $unoptimized_count,
 				'action'           => 'eg_media_process_bulk_batch',
-			]
+			)
 		);
 	}
 
@@ -203,7 +203,7 @@ class Main {
 			'EG Media Manager',
 			'manage_options',
 			'eg-media-dashboard',
-			[ $this, 'render_dashboard' ]
+			array( $this, 'render_dashboard' )
 		);
 	}
 

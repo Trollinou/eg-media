@@ -22,12 +22,12 @@ class Processor {
 	/**
 	 * MIME types supportés pour l'optimisation.
 	 */
-	public const array SUPPORTED_MIMES = [
+	public const array SUPPORTED_MIMES = array(
 		'image/jpeg',
 		'image/png',
 		'image/webp',
 		'image/avif',
-	];
+	);
 
 	/**
 	 * Enregistre le hook de traitement d'image.
@@ -35,9 +35,9 @@ class Processor {
 	 * @return void
 	 */
 	public function register(): void {
-		add_filter( 'wp_handle_upload', [ $this, 'process_upload' ] );
-		add_action( 'add_attachment', [ $this, 'flag_new_attachment_as_optimized' ] );
-		add_action( 'delete_attachment', [ $this, 'invalidate_unoptimized_count_cache' ] );
+		add_filter( 'wp_handle_upload', array( $this, 'process_upload' ) );
+		add_action( 'add_attachment', array( $this, 'flag_new_attachment_as_optimized' ) );
+		add_action( 'delete_attachment', array( $this, 'invalidate_unoptimized_count_cache' ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Processor {
 			clearstatcache( true, $file_path );
 			$original_size = (int) @filesize( $file_path );
 
-			$imagick = new \Imagick( $file_path );
+			$imagick  = new \Imagick( $file_path );
 			$settings = Image_Settings::load_from_options();
 
 			// 1. Redressement automatique
@@ -143,17 +143,17 @@ class Processor {
 			if ( 'PNG' === $format ) {
 				$png_level = $settings->get_png_compression_enum()->to_imagick_level() * 10;
 				$imagick->setCompressionQuality( $png_level );
-			} elseif ( in_array( $format, [ 'JPEG', 'JPG', 'WEBP', 'AVIF' ], true ) ) {
+			} elseif ( in_array( $format, array( 'JPEG', 'JPG', 'WEBP', 'AVIF' ), true ) ) {
 				$imagick->setImageCompressionQuality( $settings->compression_quality );
 			}
 
 			// 5. Chrominance 4:2:0 (Sampling factors pour JPEG/WebP)
-			if ( $settings->use_chrominance && in_array( $format, [ 'JPEG', 'JPG' ], true ) ) {
-				$imagick->setSamplingFactors( [ '2x2', '1x1', '1x1' ] );
+			if ( $settings->use_chrominance && in_array( $format, array( 'JPEG', 'JPG' ), true ) ) {
+				$imagick->setSamplingFactors( array( '2x2', '1x1', '1x1' ) );
 			}
 
 			// 6. Mode progressif (Interlace)
-			if ( $settings->use_interlace && in_array( $format, [ 'JPEG', 'JPG', 'PNG' ], true ) ) {
+			if ( $settings->use_interlace && in_array( $format, array( 'JPEG', 'JPG', 'PNG' ), true ) ) {
 				$imagick->setImageInterlaceScheme( \Imagick::INTERLACE_PLANE );
 			}
 
@@ -227,13 +227,12 @@ class Processor {
 						default => null,
 					};
 					if ( $rotated ) {
-						imagedestroy( $image );
 						$image = $rotated;
 					}
 				}
 			}
 
-			// 2. Redimensionnement
+			// 2. Redimensionnement.
 			$width  = imagesx( $image );
 			$height = imagesy( $image );
 			if ( $settings->max_width > 0 && $width > $settings->max_width ) {
@@ -241,40 +240,40 @@ class Processor {
 				$new_height = (int) round( $height * ( $settings->max_width / $width ) );
 				$resized    = @imagescale( $image, $new_width, $new_height, IMG_BILINEAR_FIXED );
 				if ( $resized ) {
-					imagedestroy( $image );
 					$image = $resized;
 				}
 			}
 
-			// 3. Unsharp Mask
+			// 3. Unsharp Mask.
 			if ( $settings->use_unsharp_mask ) {
-				$matrix = [
-					[ -1.0, -1.0, -1.0 ],
-					[ -1.0,  9.0, -1.0 ],
-					[ -1.0, -1.0, -1.0 ],
-				];
+				$matrix = array(
+					array( -1.0, -1.0, -1.0 ),
+					array( -1.0, 9.0, -1.0 ),
+					array( -1.0, -1.0, -1.0 ),
+				);
 				@imageconvolution( $image, $matrix, 1.0, 0.0 );
 			}
 
-			// 4. Mode progressif (Interlace)
-			if ( $settings->use_interlace && in_array( $mime, [ 'image/jpeg', 'image/png' ], true ) ) {
+			// 4. Mode progressif (Interlace).
+			if ( $settings->use_interlace && in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
 				@imageinterlace( $image, true );
 			}
 
-			// 5. Sauvegarde selon le format
+			// 5. Sauvegarde selon le format.
 			$saved = match ( $mime ) {
 				'image/jpeg' => @imagejpeg( $image, $file_path, $settings->compression_quality ),
 				'image/webp' => function_exists( 'imagewebp' ) ? @imagewebp( $image, $file_path, $settings->compression_quality ) : false,
 				'image/avif' => function_exists( 'imageavif' ) ? @imageavif( $image, $file_path, $settings->compression_quality ) : false,
-				'image/png'  => @imagepng( $image, $file_path, match ( $settings->get_png_compression_enum() ) {
+				'image/png'  => @imagepng(
+					$image,
+					$file_path, match ( $settings->get_png_compression_enum() ) {
 					Png_Compression::LOW    => 3,
 					Png_Compression::MEDIUM => 6,
 					Png_Compression::HIGH   => 9,
-				} ),
+					}
+				),
 				default      => false,
 			};
-
-			imagedestroy( $image );
 
 			if ( ! $saved ) {
 				error_log( "EG Media Manager - Fallback : Impossible de sauvegarder l'image optimisée : {$file_path}" );

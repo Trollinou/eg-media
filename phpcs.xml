@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<ruleset name="EG_Media_WordPress_Standards">
+    <description>Standard de code WordPress strict pour le plugin EG Media Manager.</description>
+
+    <!-- 1. Utiliser le standard officiel WordPress complet -->
+    <rule ref="WordPress" />
+
+    <!-- Configurer le text domain pour l'i18n -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="eg-media" />
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Définir la version minimale de WP supportée : 7.1 -->
+    <config name="minimum_wp_version" value="7.1" />
+
+    <!-- Exclusion du nommage de fichier WordPress classique pour respecter la convention PSR-4 / PascalCase du projet -->
+    <rule ref="WordPress.Files.FileName">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Ne pas imposer les conditions Yoda en PHP 8.4 -->
+    <rule ref="WordPress.PHP.YodaConditions">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Autoriser l'opérateur Elvis / ternaire court (standard PHP moderne) -->
+    <rule ref="Universal.Operators.DisallowShortTernary">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Ignorer les fichiers index.php de silence de sécurité -->
+    <rule ref="Squiz.Commenting.FileComment.Missing">
+        <exclude-pattern>*/index.php</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Commenting.FileComment.WrongStyle">
+        <exclude-pattern>*/index.php</exclude-pattern>
+    </rule>
+
+    <!-- 2. Fichiers & dossiers à analyser -->
+    <file>eg-media.php</file>
+    <file>includes</file>
+
+    <!-- 3. Exclusions obligatoires -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/build/*</exclude-pattern>
+    <exclude-pattern>/tests/*</exclude-pattern>
+    <exclude-pattern>/dist-temp/*</exclude-pattern>
+
+    <!-- 4. Paramètres d'exécution -->
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <arg name="extensions" value="php"/>
+</ruleset>

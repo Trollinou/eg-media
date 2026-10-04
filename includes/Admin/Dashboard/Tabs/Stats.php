@@ -106,16 +106,16 @@ class Stats {
 			return '0 Ko';
 		}
 
-		$units = [ 'Octets', 'Ko', 'Mo', 'Go', 'To' ];
+		$units = array( 'Octets', 'Ko', 'Mo', 'Go', 'To' );
 		$power = floor( log( $bytes, 1024 ) );
 		$power = min( $power, count( $units ) - 1 );
 
 		$value = $bytes / pow( 1024, $power );
 
 		if ( 0.0 === $power ) {
-			return sprintf( '%d %s', $value, $units[(int) $power] );
+			return sprintf( '%d %s', $value, $units[ (int) $power ] );
 		}
 
-		return sprintf( '%.2f %s', $value, $units[(int) $power] );
+		return sprintf( '%.2f %s', $value, $units[ (int) $power ] );
 	}
 }

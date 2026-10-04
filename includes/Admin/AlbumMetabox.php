@@ -1,4 +1,10 @@
 <?php
+/**
+ * Album Metabox Admin Handler.
+ *
+ * @package EG_Media
+ */
+
 declare(strict_types=1);
 
 namespace EG_MEDIA\Admin;
@@ -18,9 +24,9 @@ class AlbumMetabox {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'add_meta_boxes_eg_media_album', [ $this, 'add_album_meta_box' ] );
-		add_action( 'save_post_eg_media_album', [ $this, 'save_album_meta_box' ], 10, 2 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		add_action( 'add_meta_boxes_eg_media_album', array( $this, 'add_album_meta_box' ) );
+		add_action( 'save_post_eg_media_album', array( $this, 'save_album_meta_box' ), 10, 2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
 	/**
@@ -38,14 +44,14 @@ class AlbumMetabox {
 		wp_enqueue_style(
 			'eg-media-admin-album-metabox',
 			plugins_url( 'assets/css/admin-album-metabox.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
-			[],
+			array(),
 			EG_MEDIA_VERSION
 		);
 
 		wp_enqueue_script(
 			'eg-media-admin-album-metabox',
 			plugins_url( 'assets/js/admin-album-metabox.js', dirname( __DIR__, 2 ) . '/eg-media.php' ),
-			[],
+			array(),
 			EG_MEDIA_VERSION,
 			true
 		);
@@ -60,7 +66,7 @@ class AlbumMetabox {
 		add_meta_box(
 			'eg_media_album_settings',
 			"Contenu et Organisation de l'Album",
-			[ $this, 'render_meta_box' ],
+			array( $this, 'render_meta_box' ),
 			'eg_media_album',
 			'normal',
 			'high'
@@ -76,28 +82,30 @@ class AlbumMetabox {
 	public function render_meta_box( \WP_Post $post ): void {
 		wp_nonce_field( 'eg_media_save_album_meta', 'eg_media_album_nonce' );
 
-		// Récupérer les valeurs existantes
+		// Récupérer les valeurs existantes.
 		$sort_mode = get_post_meta( $post->ID, '_eg_media_album_sort', true );
 		if ( empty( $sort_mode ) ) {
 			$sort_mode = 'manual';
 		}
 
 		$items_meta = get_post_meta( $post->ID, '_eg_media_album_items', true );
-		$items = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : [];
+		$items      = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : array();
 		if ( ! is_array( $items ) ) {
-			$items = [];
+			$items = array();
 		}
 
-		// Récupérer les galeries locales
-		$local_terms = get_terms( [
-			'taxonomy'   => 'eg_media_gallery',
-			'hide_empty' => false,
-		] );
-		$local_galleries = is_array( $local_terms ) ? $local_terms : [];
+		// Récupérer les galeries locales.
+		$local_terms     = get_terms(
+			array(
+				'taxonomy'   => 'eg_media_gallery',
+				'hide_empty' => false,
+			)
+		);
+		$local_galleries = is_array( $local_terms ) ? $local_terms : array();
 
-		// Récupérer les albums Piwigo
+		// Récupérer les albums Piwigo.
 		$piwigo_service = new \EG_MEDIA\Services\Piwigo();
-		$piwigo_albums = $piwigo_service->get_albums();
+		$piwigo_albums  = $piwigo_service->get_albums();
 
 		?>
 		<div class="eg-album-metabox">
@@ -180,42 +188,43 @@ class AlbumMetabox {
 	 * @return void
 	 */
 	public function save_album_meta_box( int $post_id, \WP_Post $post ): void {
-		// Vérification du nonce
-		if ( ! isset( $_POST['eg_media_album_nonce'] ) || ! wp_verify_nonce( $_POST['eg_media_album_nonce'], 'eg_media_save_album_meta' ) ) {
+		// Vérification du nonce.
+		$nonce = isset( $_POST['eg_media_album_nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['eg_media_album_nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'eg_media_save_album_meta' ) ) {
 			return;
 		}
 
-		// Vérification des droits
+		// Vérification des droits.
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 
-		// Sauvegarde du mode de tri
+		// Sauvegarde du mode de tri.
 		if ( isset( $_POST['eg_media_album_sort'] ) ) {
-			$sort_mode = sanitize_text_field( $_POST['eg_media_album_sort'] );
+			$sort_mode = sanitize_text_field( wp_unslash( (string) $_POST['eg_media_album_sort'] ) );
 			update_post_meta( $post_id, '_eg_media_album_sort', $sort_mode );
 		}
 
-		// Sauvegarde des éléments
+		// Sauvegarde des éléments.
 		if ( isset( $_POST['eg_media_album_items'] ) ) {
-			$items_raw = wp_unslash( (string) $_POST['eg_media_album_items'] );
+			$items_raw     = sanitize_text_field( wp_unslash( (string) $_POST['eg_media_album_items'] ) );
 			$items_decoded = json_decode( $items_raw, true );
 
 			if ( is_array( $items_decoded ) ) {
-				// Sanitization des entrées
-				$sanitized_items = [];
+				// Sanitization des entrées.
+				$sanitized_items = array();
 				foreach ( $items_decoded as $item ) {
 					if ( isset( $item['type'], $item['id'], $item['name'] ) ) {
-						$sanitized_items[] = [
+						$sanitized_items[] = array(
 							'type' => sanitize_text_field( (string) $item['type'] ),
 							'id'   => (int) $item['id'],
 							'name' => sanitize_text_field( (string) $item['name'] ),
-						];
+						);
 					}
 				}
 				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( $sanitized_items ) );
 			} else {
-				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( [] ) );
+				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( array() ) );
 			}
 		}
 	}

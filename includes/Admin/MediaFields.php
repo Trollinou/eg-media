@@ -1,4 +1,10 @@
 <?php
+/**
+ * Media Fields Admin Handler.
+ *
+ * @package EG_Media
+ */
+
 declare(strict_types=1);
 
 namespace EG_MEDIA\Admin;
@@ -19,12 +25,12 @@ class MediaFields {
 	 * @return void
 	 */
 	public function register(): void {
-		add_filter( 'attachment_fields_to_edit', [ $this, 'add_gallery_fields' ], 10, 2 );
-		add_filter( 'attachment_fields_to_save', [ $this, 'save_gallery_fields' ], 10, 2 );
-		add_filter( 'wp_prepare_attachment_for_js', [ $this, 'prepare_attachment_for_js' ], 10, 3 );
-		add_filter( 'manage_media_columns', [ $this, 'register_custom_media_columns' ], 99, 1 );
-		add_action( 'manage_media_custom_column', [ $this, 'render_custom_media_column' ], 10, 2 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ], 10, 1 );
+		add_filter( 'attachment_fields_to_edit', array( $this, 'add_gallery_fields' ), 10, 2 );
+		add_filter( 'attachment_fields_to_save', array( $this, 'save_gallery_fields' ), 10, 2 );
+		add_filter( 'wp_prepare_attachment_for_js', array( $this, 'prepare_attachment_for_js' ), 10, 3 );
+		add_filter( 'manage_media_columns', array( $this, 'register_custom_media_columns' ), 99, 1 );
+		add_action( 'manage_media_custom_column', array( $this, 'render_custom_media_column' ), 10, 2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ), 10, 1 );
 	}
 
 	/**
@@ -34,7 +40,7 @@ class MediaFields {
 	 * @return void
 	 */
 	public function enqueue_admin_assets( string $hook_suffix ): void {
-		$allowed_hooks = [ 'post.php', 'post-new.php', 'upload.php', 'media.php' ];
+		$allowed_hooks = array( 'post.php', 'post-new.php', 'upload.php', 'media.php' );
 		if ( ! in_array( $hook_suffix, $allowed_hooks, true ) ) {
 			return;
 		}
@@ -42,7 +48,7 @@ class MediaFields {
 		wp_enqueue_style(
 			'eg-media-admin-media-fields',
 			plugins_url( 'assets/css/admin-media-fields.css', dirname( __DIR__, 2 ) . '/eg-media.php' ),
-			[],
+			array(),
 			EG_MEDIA_VERSION
 		);
 	}
@@ -56,16 +62,18 @@ class MediaFields {
 	 */
 	public function add_gallery_fields( array $form_fields, \WP_Post $post ): array {
 		// Récupérer toutes les galeries existantes.
-		$terms = get_terms( [
-			'taxonomy'   => 'eg_media_gallery',
-			'hide_empty' => false,
-		] );
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'eg_media_gallery',
+				'hide_empty' => false,
+			)
+		);
 
 		// S'assurer que $terms est bien un tableau de WP_Term.
-		$galleries = is_array( $terms ) ? $terms : [];
+		$galleries = is_array( $terms ) ? $terms : array();
 
 		// Récupérer la galerie actuellement associée à ce média.
-		$associated_terms = get_the_terms( $post->ID, 'eg_media_gallery' );
+		$associated_terms   = get_the_terms( $post->ID, 'eg_media_gallery' );
 		$current_gallery_id = 0;
 
 		if ( is_array( $associated_terms ) && ! empty( $associated_terms ) ) {
@@ -106,19 +114,19 @@ class MediaFields {
 			</select>
 
 			<input type="text" 
-				   name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_new_gallery]" 
-				   id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_new_gallery" 
-				   placeholder="<?php esc_attr_e( 'Nouvelle galerie...', 'eg-media' ); ?>" 
-				   class="eg-media-gallery-fields__input" />
+					name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_new_gallery]" 
+					id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_new_gallery" 
+					placeholder="<?php esc_attr_e( 'Nouvelle galerie...', 'eg-media' ); ?>" 
+					class="eg-media-gallery-fields__input" />
 
 			<div class="eg-media-gallery-fields__reference-wrap">
 				<label for="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" class="eg-media-gallery-fields__reference-label">
 					<input type="checkbox" 
-						   name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_is_reference]" 
-						   id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" 
-						   value="1" 
-						   <?php checked( $is_reference ); ?> 
-						   <?php disabled( 0 === $current_gallery_id ); ?> />
+							name="attachments[<?php echo esc_attr( (string) $post->ID ); ?>][eg_media_is_reference]" 
+							id="attachments-<?php echo esc_attr( (string) $post->ID ); ?>-eg_media_is_reference" 
+							value="1" 
+							<?php checked( $is_reference ); ?> 
+							<?php disabled( 0 === $current_gallery_id ); ?> />
 					<?php esc_html_e( 'Image de référence de la galerie', 'eg-media' ); ?>
 				</label>
 			</div>
@@ -130,11 +138,11 @@ class MediaFields {
 		<?php
 		$html_content = ob_get_clean();
 
-		$form_fields['eg_media_gallery_select'] = [
+		$form_fields['eg_media_gallery_select'] = array(
 			'label' => __( 'Galerie', 'eg-media' ),
 			'input' => 'html',
 			'html'  => (string) $html_content,
-		];
+		);
 
 		return $form_fields;
 	}
@@ -166,7 +174,7 @@ class MediaFields {
 		$can_create_terms = current_user_can( $taxonomy->cap->edit_terms );
 
 		$target_gallery_id = 0;
-		$old_gallery_id = 0;
+		$old_gallery_id    = 0;
 
 		// Récupérer la galerie actuelle associée avant traitement.
 		$associated_terms = get_the_terms( $post_id, 'eg_media_gallery' );
@@ -197,20 +205,17 @@ class MediaFields {
 						$target_gallery_id = (int) $term_info['term_id'];
 						wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
 					}
-				} else {
+				} elseif ( isset( $attachment['eg_media_gallery_select'] ) ) {
 					// Fallback si l'utilisateur ne peut pas créer de termes : on utilise la galerie existante si sélectionnée.
-					if ( isset( $attachment['eg_media_gallery_select'] ) ) {
-						$gallery_val = sanitize_text_field( (string) $attachment['eg_media_gallery_select'] );
-						if ( '' !== $gallery_val ) {
-							$target_gallery_id = (int) $gallery_val;
-							wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
-						}
+					$gallery_val = sanitize_text_field( (string) $attachment['eg_media_gallery_select'] );
+					if ( '' !== $gallery_val ) {
+						$target_gallery_id = (int) $gallery_val;
+						wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
 					}
 				}
 			}
-		}
-		// 2. Sinon, on utilise la galerie existante sélectionnée.
-		elseif ( isset( $attachment['eg_media_gallery_select'] ) ) {
+		} elseif ( isset( $attachment['eg_media_gallery_select'] ) ) {
+			// 2. Sinon, on utilise la galerie existante sélectionnée.
 			$gallery_val = sanitize_text_field( (string) $attachment['eg_media_gallery_select'] );
 
 			if ( '' !== $gallery_val ) {
@@ -218,7 +223,7 @@ class MediaFields {
 				wp_set_object_terms( $post_id, $target_gallery_id, 'eg_media_gallery' );
 			} else {
 				// Si l'option vide "-- Aucune galerie --" est choisie, on dissocie.
-				wp_set_object_terms( $post_id, [], 'eg_media_gallery' );
+				wp_set_object_terms( $post_id, array(), 'eg_media_gallery' );
 			}
 		} else {
 			$target_gallery_id = $old_gallery_id;
@@ -265,7 +270,7 @@ class MediaFields {
 	 * @return array<string, mixed> Données JSON modifiées.
 	 */
 	public function prepare_attachment_for_js( array $response, \WP_Post $attachment, mixed $meta ): array {
-		$response['eg_media_is_reference'] = false;
+		$response['eg_media_is_reference']           = false;
 		$response['eg_media_reference_gallery_name'] = '';
 
 		$associated_terms = get_the_terms( $attachment->ID, 'eg_media_gallery' );
@@ -274,7 +279,7 @@ class MediaFields {
 				if ( $term instanceof \WP_Term ) {
 					$ref_id = (int) get_term_meta( $term->term_id, '_eg_media_featured_image_id', true );
 					if ( $ref_id === $attachment->ID ) {
-						$response['eg_media_is_reference'] = true;
+						$response['eg_media_is_reference']           = true;
 						$response['eg_media_reference_gallery_name'] = $term->name;
 						break;
 					}
@@ -317,26 +322,26 @@ class MediaFields {
 			return;
 		}
 
-		$out = [];
+		$out = array();
 		foreach ( $terms as $term ) {
 			if ( $term instanceof \WP_Term ) {
-				$posts_in_term_args = [
-					'post_type' => 'attachment',
+				$posts_in_term_args = array(
+					'post_type'        => 'attachment',
 					'eg_media_gallery' => $term->slug,
-				];
-				$url = esc_url( add_query_arg( $posts_in_term_args, 'upload.php' ) );
-				$term_link = sprintf( '<a href="%s">%s</a>', $url, esc_html( $term->name ) );
+				);
+				$url                = esc_url( add_query_arg( $posts_in_term_args, 'upload.php' ) );
+				$term_link          = sprintf( '<a href="%s">%s</a>', $url, esc_html( $term->name ) );
 
 				// Vérifier si ce post est l'image de référence de ce terme.
 				$ref_id = (int) get_term_meta( $term->term_id, '_eg_media_featured_image_id', true );
 				if ( $ref_id === $post_id ) {
-					$star_html = ' <span class="dashicons dashicons-star-filled eg-media-star-icon" title="' . esc_attr__( 'Image de référence de la galerie', 'eg-media' ) . '"></span>';
+					$star_html  = ' <span class="dashicons dashicons-star-filled eg-media-star-icon" title="' . esc_attr__( 'Image de référence de la galerie', 'eg-media' ) . '"></span>';
 					$term_link .= $star_html;
 				}
 				$out[] = $term_link;
 			}
 		}
 
-		echo implode( ', ', $out );
+		echo implode( ', ', $out ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }

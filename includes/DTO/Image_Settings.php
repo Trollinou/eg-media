@@ -18,13 +18,13 @@ use EG_MEDIA\Enums\Png_Compression;
  */
 readonly class Image_Settings {
 
-	final public const int DEFAULT_MAX_WIDTH = 2000;
+	final public const int DEFAULT_MAX_WIDTH           = 2000;
 	final public const int DEFAULT_COMPRESSION_QUALITY = 80;
-	final public const string DEFAULT_PNG_COMPRESSION = 'moyenne';
-	final public const bool DEFAULT_UNSHARP_MASK = true;
-	final public const bool DEFAULT_AUTO_ORIENT = true;
-	final public const bool DEFAULT_CHROMINANCE = false;
-	final public const bool DEFAULT_INTERLACE = true;
+	final public const string DEFAULT_PNG_COMPRESSION  = 'moyenne';
+	final public const bool DEFAULT_UNSHARP_MASK       = true;
+	final public const bool DEFAULT_AUTO_ORIENT        = true;
+	final public const bool DEFAULT_CHROMINANCE        = false;
+	final public const bool DEFAULT_INTERLACE          = true;
 
 	/**
 	 * Constructeur avec Constructor Property Promotion.

@@ -44,41 +44,41 @@ class Piwigo {
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/albums',
-			[
+			array(
 				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_piwigo_albums' ],
-				'permission_callback' => [ $this, 'check_permission' ],
-			]
+				'callback'            => array( $this, 'get_piwigo_albums' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			)
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/album-images',
-			[
+			array(
 				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_piwigo_album_images' ],
-				'permission_callback' => [ $this, 'check_permission' ],
-			]
+				'callback'            => array( $this, 'get_piwigo_album_images' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			)
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/import-featured-image',
-			[
+			array(
 				'methods'             => 'POST',
-				'callback'            => [ $this, 'import_featured_image' ],
-				'permission_callback' => [ $this, 'check_permission' ],
-			]
+				'callback'            => array( $this, 'import_featured_image' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			)
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/import-image',
-			[
+			array(
 				'methods'             => 'POST',
-				'callback'            => [ $this, 'import_image' ],
-				'permission_callback' => [ $this, 'check_permission' ],
-			]
+				'callback'            => array( $this, 'import_image' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			)
 		);
 	}
 
@@ -88,9 +88,9 @@ class Piwigo {
 	 * @param WP_REST_Request $request La requête REST WordPress.
 	 * @return WP_REST_Response|WP_Error La réponse REST ou une erreur.
 	 */
-	public function get_piwigo_albums( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
+	public function get_piwigo_albums( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$force_refresh = '1' === $request->get_param( 'force' );
-		$albums = $this->piwigo_service->get_albums( $force_refresh );
+		$albums        = $this->piwigo_service->get_albums( $force_refresh );
 
 		return new WP_REST_Response( $albums, 200 );
 	}
@@ -101,10 +101,10 @@ class Piwigo {
 	 * @param WP_REST_Request $request La requête REST WordPress.
 	 * @return WP_REST_Response|WP_Error La réponse REST ou une erreur.
 	 */
-	public function get_piwigo_album_images( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
+	public function get_piwigo_album_images( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$album_id = (int) $request->get_param( 'id' );
 		if ( $album_id <= 0 ) {
-			return new WP_Error( 'invalid_id', 'ID d\'album invalide ou manquant.', [ 'status' => 400 ] );
+			return new WP_Error( 'invalid_id', 'ID d\'album invalide ou manquant.', array( 'status' => 400 ) );
 		}
 
 		$images = $this->piwigo_service->get_album_images( $album_id );
@@ -120,40 +120,40 @@ class Piwigo {
 	 * @param string $album_name      Nom de l'album Piwigo pour catégorisation.
 	 * @return int|\WP_Error ID de la pièce jointe créée ou erreur.
 	 */
-	private function import_piwigo_image_to_media_library( int $piwigo_image_id, int $post_id, string $album_name = '' ) : int|\WP_Error {
-		// Récupérer les informations de l'image sur Piwigo
+	private function import_piwigo_image_to_media_library( int $piwigo_image_id, int $post_id, string $album_name = '' ): int|\WP_Error {
+		// Récupérer les informations de l'image sur Piwigo.
 		$image_info = $this->piwigo_service->get_image_info( $piwigo_image_id );
 		if ( ! is_array( $image_info ) || empty( $image_info['element_url'] ) ) {
 			return new \WP_Error( 'piwigo_error', 'Impossible de récupérer les informations de l\'image depuis Piwigo.' );
 		}
 
-		$image_url = (string) $image_info['element_url'];
+		$image_url  = (string) $image_info['element_url'];
 		$image_name = (string) ( $image_info['name'] ?? $image_info['file'] ?? 'piwigo-image' );
 
-		// Charger les utilitaires de WordPress
+		// Charger les utilitaires de WordPress.
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 
-		// Télécharger l'image dans un dossier temporaire
+		// Télécharger l'image dans un dossier temporaire.
 		$tmp_file = download_url( $image_url );
 		if ( is_wp_error( $tmp_file ) ) {
 			return $tmp_file;
 		}
 
-		// Préparer le fichier simulé pour sideload
-		$file_array = [
+		// Préparer le fichier simulé pour sideload.
+		$file_array = array(
 			'name'     => basename( (string) wp_parse_url( $image_url, PHP_URL_PATH ) ) ?: 'image.jpg',
 			'tmp_name' => $tmp_file,
-		];
+		);
 
-		// Préparer les données de publication pour l'attachement (évite les titres temporaires ou vides)
-		$post_data = [
+		// Préparer les données de publication pour l'attachement (évite les titres temporaires ou vides).
+		$post_data = array(
 			'post_title'   => $image_name,
 			'post_content' => $image_name,
-		];
+		);
 
-		// Insérer dans la médiathèque
+		// Insérer dans la médiathèque.
 		$attachment_id = media_handle_sideload( $file_array, $post_id, $image_name, $post_data );
 
 		if ( is_wp_error( $attachment_id ) ) {
@@ -161,10 +161,10 @@ class Piwigo {
 			return $attachment_id;
 		}
 
-		// Rangement dans la galerie locale "Piwigo - [Nom de l'album]"
+		// Rangement dans la galerie locale "Piwigo - [Nom de l'album]".
 		if ( ! empty( $album_name ) ) {
 			$gallery_name = 'Piwigo - ' . $album_name;
-			$term = get_term_by( 'name', $gallery_name, 'eg_media_gallery' );
+			$term         = get_term_by( 'name', $gallery_name, 'eg_media_gallery' );
 
 			if ( ! $term ) {
 				$new_term = wp_insert_term( $gallery_name, 'eg_media_gallery' );
@@ -178,7 +178,7 @@ class Piwigo {
 			}
 
 			if ( $term_id > 0 ) {
-				wp_set_object_terms( $attachment_id, [ $term_id ], 'eg_media_gallery' );
+				wp_set_object_terms( $attachment_id, array( $term_id ), 'eg_media_gallery' );
 			}
 		}
 
@@ -191,31 +191,31 @@ class Piwigo {
 	 * @param WP_REST_Request $request La requête REST WordPress.
 	 * @return WP_REST_Response|WP_Error La réponse REST ou une erreur.
 	 */
-	public function import_featured_image( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
+	public function import_featured_image( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$post_id         = (int) $request->get_param( 'post_id' );
 		$piwigo_image_id = (int) $request->get_param( 'piwigo_image_id' );
 		$album_name      = sanitize_text_field( (string) $request->get_param( 'album_name' ) );
 
 		if ( $post_id <= 0 || $piwigo_image_id <= 0 ) {
-			return new WP_Error( 'invalid_params', 'Paramètres post_id ou piwigo_image_id manquants.', [ 'status' => 400 ] );
+			return new WP_Error( 'invalid_params', 'Paramètres post_id ou piwigo_image_id manquants.', array( 'status' => 400 ) );
 		}
 
 		$attachment_id = $this->import_piwigo_image_to_media_library( $piwigo_image_id, $post_id, $album_name );
 
 		if ( is_wp_error( $attachment_id ) ) {
-			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), [ 'status' => 500 ] );
+			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), array( 'status' => 500 ) );
 		}
 
-		// Définir comme image mise en avant
+		// Définir comme image mise en avant.
 		$set_thumbnail = set_post_thumbnail( $post_id, $attachment_id );
 		if ( ! $set_thumbnail ) {
-			return new WP_Error( 'thumbnail_association_failed', 'Impossible d\'associer l\'image mise en avant au post.', [ 'status' => 500 ] );
+			return new WP_Error( 'thumbnail_association_failed', 'Impossible d\'associer l\'image mise en avant au post.', array( 'status' => 500 ) );
 		}
 
-		$response_data = [
+		$response_data = array(
 			'attachment_id' => $attachment_id,
 			'url'           => wp_get_attachment_url( $attachment_id ),
-		];
+		);
 
 		return new WP_REST_Response( $response_data, 200 );
 	}
@@ -226,25 +226,25 @@ class Piwigo {
 	 * @param WP_REST_Request $request La requête REST WordPress.
 	 * @return WP_REST_Response|WP_Error La réponse REST ou une erreur.
 	 */
-	public function import_image( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
+	public function import_image( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$post_id         = (int) $request->get_param( 'post_id' );
 		$piwigo_image_id = (int) $request->get_param( 'piwigo_image_id' );
 		$album_name      = sanitize_text_field( (string) $request->get_param( 'album_name' ) );
 
 		if ( $piwigo_image_id <= 0 ) {
-			return new WP_Error( 'invalid_params', 'Paramètre piwigo_image_id manquant.', [ 'status' => 400 ] );
+			return new WP_Error( 'invalid_params', 'Paramètre piwigo_image_id manquant.', array( 'status' => 400 ) );
 		}
 
 		$attachment_id = $this->import_piwigo_image_to_media_library( $piwigo_image_id, $post_id, $album_name );
 
 		if ( is_wp_error( $attachment_id ) ) {
-			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), [ 'status' => 500 ] );
+			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), array( 'status' => 500 ) );
 		}
 
-		$response_data = [
+		$response_data = array(
 			'attachment_id' => $attachment_id,
 			'url'           => wp_get_attachment_url( $attachment_id ),
-		];
+		);
 
 		return new WP_REST_Response( $response_data, 200 );
 	}

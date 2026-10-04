@@ -27,11 +27,15 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 - Adaptation dynamique aux styles et thèmes WordPress :
   - **Back-Office (Admin)** : Utilisation des variables CSS natives du noyau WordPress (`var(--wp-admin-theme-color)`) pour une adaptation immédiate aux schémas de couleurs de profil de l'administrateur.
   - **Front-End (Shortcode Album & Bloc Visionneuse)** : Intégration transparente aux thèmes modernes (Full Site Editing / Block Themes via les presets `--wp--preset--color--*`, `--wp--preset--font-family--*`, `.wp-element-button`) avec fallbacks en cascade pour les thèmes classiques.
-- Migration complète du code JavaScript vers **TypeScript 6.0.3** en mode strict (`strict: true`, `noImplicitAny: true`).
-- Script utilitaire de synchronisation de version (`script/version-sync.cjs` via `npm run version-sync`).
-- Configuration Webpack avancée pour compiler les scripts TypeScript autonomes directement vers `assets/js/` et les blocs Gutenberg dans `build/`.
+- Mise en place et configuration de **PHP CodeSniffer (PHPCS)** et **PHPCBF** avec les standards officiels WordPress Coding Standards (WPCS `wp-coding-standards/wpcs`), aligné sur l'écosystème DAME.
+- Uniformisation de la chaîne de compilation avec les autres plugins (DAME) :
+  - Compilation ultra-rapide des scripts TypeScript autonomes via `esbuild` (`build-js.js` $\rightarrow$ `assets/js/`) sans émission de métadonnées `.asset.php` superflues.
+  - Compilation des feuilles de style SCSS via `sass` et `rtlcss` (`build-css.js` $\rightarrow$ `assets/css/`).
+  - Restriction de `@wordpress/scripts` et Webpack exclusivement aux blocs Gutenberg (`build/blocks/`).
+- Mappings PSR-4 `autoload` (`EG_MEDIA\`) et `autoload-dev` (`EG_MEDIA\Tests\`) dans `composer.json`.
 
 ### Changed
+- Conformité intégrale de l'ensemble des classes PHP aux standards de code WordPress (WPCS) et validation stricte (0 erreur PHPCS, 0 erreur PHPStan Level 8).
 - Suppression intégrale de tous les styles inline, des balises `<style>` embarquées et des appels `wp_add_inline_style()` dans les classes PHP au profit de classes CSS BEM modulaires enfilées via `wp_enqueue_style()`.
 - Remplacement des déclarations de polices statiques en dur (`-apple-system, ...`) par une typographie héritée du thème actif (`font-family: inherit`).
 - Élévation du prérequis système minimal à **WordPress 7.1**.
