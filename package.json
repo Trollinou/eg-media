@@ -4,7 +4,10 @@
   "description": "Gestionnaire de Média by EG",
   "main": "eg-media.php",
   "scripts": {
-    "build": "wp-scripts build --experimental-modules",
+    "build:blocks": "wp-scripts build --experimental-modules",
+    "build:js": "node build-js.js",
+    "build:css": "node build-css.js",
+    "build": "npm run build:blocks && npm run build:js && npm run build:css",
     "start": "wp-scripts start --experimental-modules",
     "type-check": "tsc --noEmit",
     "version-sync": "node script/version-sync.cjs",
@@ -25,9 +28,11 @@
     "@types/wordpress__i18n": "^3.4.0",
     "@wordpress/scripts": "^32.6.0",
     "adm-zip": "^0.5.18",
+    "esbuild": "^0.27.7",
     "minimatch": "^10.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "sass": "^1.105.1",
     "typescript": "6.0.3"
   },
   "author": "Etienne Gagnon",
