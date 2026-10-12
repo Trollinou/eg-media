@@ -41,20 +41,26 @@ class AlbumMetabox {
 			return;
 		}
 
-		wp_enqueue_style(
+		wp_register_style(
 			'eg-media-admin-album-metabox',
 			EG_MEDIA_URL . 'assets/css/admin-album-metabox.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
-		wp_enqueue_script(
+		wp_register_script(
 			'eg-media-admin-album-metabox',
 			EG_MEDIA_URL . 'assets/js/admin-album-metabox.js',
 			array(),
 			EG_MEDIA_VERSION,
-			true
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
 		);
+
+		wp_enqueue_style( 'eg-media-admin-album-metabox' );
+		wp_enqueue_script( 'eg-media-admin-album-metabox' );
 	}
 
 	/**

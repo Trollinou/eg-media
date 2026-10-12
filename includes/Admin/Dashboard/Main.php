@@ -157,20 +157,26 @@ class Main {
 			return;
 		}
 
-		wp_enqueue_style(
+		wp_register_style(
 			'eg-media-admin-dashboard',
 			EG_MEDIA_URL . 'assets/css/admin-dashboard.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
-		wp_enqueue_script(
+		wp_register_script(
 			'eg-media-admin-dashboard',
 			EG_MEDIA_URL . 'assets/js/admin-dashboard.js',
 			array(),
 			EG_MEDIA_VERSION,
-			true
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
 		);
+
+		wp_enqueue_style( 'eg-media-admin-dashboard' );
+		wp_enqueue_script( 'eg-media-admin-dashboard' );
 
 		$bulk_processor    = new \EG_MEDIA\Services\Image\BulkProcessor();
 		$unoptimized_count = $bulk_processor->get_unoptimized_count();

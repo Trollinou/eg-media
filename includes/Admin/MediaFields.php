@@ -45,12 +45,14 @@ class MediaFields {
 			return;
 		}
 
-		wp_enqueue_style(
+		wp_register_style(
 			'eg-media-admin-media-fields',
 			EG_MEDIA_URL . 'assets/css/admin-media-fields.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
+
+		wp_enqueue_style( 'eg-media-admin-media-fields' );
 	}
 
 	/**

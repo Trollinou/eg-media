@@ -18,7 +18,7 @@ if ( ! function_exists( '__' ) ) {
 }
 
 if ( ! defined( 'EG_MEDIA_VERSION' ) ) {
-	define( 'EG_MEDIA_VERSION', '1.1.5' );
+	define( 'EG_MEDIA_VERSION', '1.2.0' );
 }
 
 if ( ! defined( 'EG_MEDIA_FILE' ) ) {

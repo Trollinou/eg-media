@@ -28,3 +28,12 @@ trigger: always_on
 - **Styles SCSS & RTL** : Utiliser **Dart Sass (`sass`) + `rtlcss`** (`scripts/build-css.js`) vers `assets/css/*.css` avec génération automatique des variantes `*-rtl.css`.
 - **Organisation `scripts/`** : Tous les scripts Node utilitaires (`build-js.js`, `build-css.js`, `package.cjs`, `version-sync.cjs`) doivent résider exclusivement dans le sous-dossier `scripts/`, jamais à la racine du projet.
 - **Versionnage PHP** : Les classes PHP ne doivent jamais coder de version en dur ; elles consomment la constante globale racine (ex: `EG_MEDIA_VERSION`).
+
+## 6. Optimisation des Assets & Couverture de Code (DevTools Coverage / PageSpeed)
+- **Séparation stricte Register vs Enqueue** : Ne jamais appeler `wp_enqueue_*()` de manière inconditionnelle ou globale. Toujours enregistrer les ressources via `wp_register_style()` / `wp_register_script()` avant de les mettre en file selon le besoin.
+- **Chargement contextuel à la demande** :
+  - *Front-end* : Enfiler les assets uniquement dans le callback du shortcode (`render`), ou laisser `block.json` gérer les styles/scripts des blocs Gutenberg à la demande.
+  - *Back-end / Admin* : Conditionner systématiquement la mise en file d'attente à la page active en vérifiant `$hook_suffix` (`admin_enqueue_scripts`) ou le `$post_type`.
+  - *Éviter les redondances* : Ne jamais ré-enfiler un style ou script déjà géré par un module parent ou connexe.
+- **Stratégie de chargement des scripts** : Spécifier systématiquement la stratégie `defer` ou `async` via l'argument `$args` de `wp_register_script()` / `wp_enqueue_script()` :
+  `array( 'strategy' => 'defer', 'in_footer' => true )`.

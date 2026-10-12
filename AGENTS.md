@@ -261,6 +261,18 @@ Pour les fonctionnalités à multiples facettes (ex: une page d'options à ongle
   - Utiliser `$wpdb->prepare` pour toute requête SQL directe.
   - **Préfixe Table** : Toujours construire dynamiquement : `{$wpdb->prefix}[DB_SLUG]_` (ex: `{$wpdb->prefix}roi_`). Jamais de préfixe en dur.
 
+### Optimisation des Assets & Couverture de Code (DevTools Coverage / PageSpeed)
+- **Séparation stricte Register vs Enqueue** : Ne jamais appeler `wp_enqueue_*()` de manière inconditionnelle ou globale. Toujours enregistrer les ressources via `wp_register_style()` / `wp_register_script()` avant de les mettre en file selon le besoin réel.
+- **Chargement contextuel à la demande** :
+  - *Front-end* : Enfiler les assets uniquement dans le callback du shortcode (`render`), ou laisser `block.json` gérer les styles/scripts des blocs Gutenberg à la demande.
+  - *Back-end / Admin* : Conditionner systématiquement la mise en file d'attente à la page active en vérifiant `$hook_suffix` (`admin_enqueue_scripts`) ou le `$post_type`.
+  - *Éviter les redondances* : Ne jamais ré-enfiler un style ou script déjà géré par un module parent ou connexe.
+- **Stratégie de chargement des scripts** : Spécifier systématiquement la stratégie `defer` ou `async` via l'argument `$args` de `wp_register_script()` / `wp_enqueue_script()` :
+  `array( 'strategy' => 'defer', 'in_footer' => true )`.
+- **Typage Strict WP_HTML_Tag_Processor (WP 7.1)** : Toujours passer un tableau associatif typé pour le filtrage de balises dans `next_tag()` : `$processor->next_tag( array( 'tag_name' => 'img' ) );`.
+- **Formats Média Modernes** : Prendre en charge nativement le format **AVIF** (`image/avif`) en plus de **WebP**, **JPEG** et **PNG**.
+- **Versionnage PHP** : Les classes PHP ne doivent jamais coder de version en dur ; elles consomment la constante globale racine (ex: `EG_MEDIA_VERSION`).
+
 ### Formulaires & Mapping des Meta-données
 - **Front-end (HTML)** : Les attributs `name` des champs de formulaire (`<input>`, `<select>`) ne doivent **jamais** commencer par un underscore `_` (ex: `name="ceb_eleve_nom"`) pour des raisons de propreté HTML.
 - **Back-end (PHP)** : Lors de la sauvegarde en base de données, l'agent doit **obligatoirement** re-mapper ces champs avec un underscore initial pour respecter la convention des "Post Meta cachées" de WordPress (ex: `update_post_meta($id, '_ceb_eleve_nom', $valeur)`).

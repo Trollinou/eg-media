@@ -7,6 +7,19 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Added
+- Directives strictes d'optimisation des assets et couverture de code (DevTools Coverage / PageSpeed) intégrées dans [`AGENTS.md`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/AGENTS.md) et [`.agents/rules/wordpress_standards.md`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/.agents/rules/wordpress_standards.md).
+- Stratégie native de chargement asynchrone non-bloquant (`defer`) appliquée systématiquement à tous les scripts front-end et back-end via `wp_register_script()` / `wp_enqueue_script()`.
+
+### Changed
+- Séparation stricte de l'enregistrement (`wp_register_style()`, `wp_register_script()`) et de la mise en file d'attente (`wp_enqueue_style()`, `wp_enqueue_script()`) à travers l'ensemble des modules d'administration et du cœur.
+- Optimisation du chargement contextuel des styles et scripts d'administration (`DashboardMain`, `AlbumMetabox`, `MediaUpload`, `MediaFields`) avec vérification stricte de `$hook_suffix` et du `$post_type`.
+- Suppression de la constante de classe dupliquée `Plugin::VERSION` au profit de la constante globale racine `EG_MEDIA_VERSION`.
+
+### Fixed
+- Élimination de l'enqueue en doublon de `admin-media-fields.css` dans `MediaUpload.php`.
+- Alignement de la version constante dans `tests/phpstan/bootstrap.php` sur la version courante du plugin (`1.2.0`).
+
 ## [1.2.0] - 2026-10-04
 
 ### Added

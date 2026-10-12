@@ -36,10 +36,6 @@ final class Plugin {
 	 */
 	private static ?self $instance = null;
 
-	/**
-	 * Version du plugin.
-	 */
-	public const string VERSION = '1.1.5';
 
 	/**
 	 * Constructeur privé pour le Singleton.
@@ -150,15 +146,18 @@ final class Plugin {
 			'eg-media-public-album',
 			EG_MEDIA_URL . 'assets/css/public-album.css',
 			array(),
-			self::VERSION
+			EG_MEDIA_VERSION
 		);
 
 		wp_register_script(
 			'eg-media-public-album',
 			EG_MEDIA_URL . 'assets/js/public-album.js',
 			array(),
-			self::VERSION,
-			true
+			EG_MEDIA_VERSION,
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
 		);
 	}
 }

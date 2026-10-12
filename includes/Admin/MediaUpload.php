@@ -97,27 +97,26 @@ class MediaUpload {
 			return;
 		}
 
-		wp_enqueue_style(
+		wp_register_style(
 			'eg-media-admin-upload',
 			EG_MEDIA_URL . 'assets/css/admin-upload.css',
 			array(),
 			EG_MEDIA_VERSION
 		);
 
-		wp_enqueue_style(
-			'eg-media-admin-media-fields',
-			EG_MEDIA_URL . 'assets/css/admin-media-fields.css',
-			array(),
-			EG_MEDIA_VERSION
-		);
-
-		wp_enqueue_script(
+		wp_register_script(
 			'eg-media-admin-upload',
 			EG_MEDIA_URL . 'assets/js/admin-upload.js',
 			array( 'jquery', 'media-views' ),
 			EG_MEDIA_VERSION,
-			true
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
 		);
+
+		wp_enqueue_style( 'eg-media-admin-upload' );
+		wp_enqueue_script( 'eg-media-admin-upload' );
 
 		$terms = get_terms(
 			array(
