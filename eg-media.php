@@ -3,7 +3,7 @@
  * Plugin Name:       EG Media Manager
  * Plugin URI:        https://example.com/eg-media
  * Description:       Gestionnaire de Média by EG
- * Version:           1.3.0
+ * Version:           1.3.1
  * Requires at least: 7.1
  * Requires PHP:      8.4
  * Author:            Etienne Gagnon
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Constantes globales du plugin.
-define( 'EG_MEDIA_VERSION', '1.3.0' );
+define( 'EG_MEDIA_VERSION', '1.3.1' );
 define( 'EG_MEDIA_FILE', __FILE__ );
 define( 'EG_MEDIA_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EG_MEDIA_URL', plugin_dir_url( __FILE__ ) );
@@ -44,6 +44,14 @@ spl_autoload_register(
 		if ( file_exists( $file ) ) {
 			require $file;
 		}
+	}
+);
+
+// Hook d'activation du plugin pour préparer l'environnement et les répertoires nécessaires.
+register_activation_hook(
+	EG_MEDIA_FILE,
+	static function (): void {
+		\EG_MEDIA\Services\Backup\Locations::on_activation();
 	}
 );
 

@@ -97,24 +97,25 @@ Sous WordPress 7.1 et les thèmes basés sur les blocs (Block Themes / FSE), vou
 EG Media Manager s'intègre nativement à l'extension **EG Backup & Restore** pour garantir une politique de reprise après panne sans aucune perte de données :
 
 ### Qu'est-ce qui est sauvegardé ?
-1. **Base de Données** :
-   - Vos albums (`eg_media_album`), vos galeries de médias (`eg_media_gallery`), les réglages du tableau de bord et les métadonnées de chaque photo sont automatiquement inclus dans les sauvegardes SQL de EG Backup (Sauvegardes de type *Complet* ou *Cœur*).
-2. **Fichiers Physiques sur le Disque** :
-   - Grâce à l'enregistrement automatique via le filtre `eg_backup_registered_locations`, EG Backup identifie et catégorise vos dossiers de données :
-     - **`eg_media_originals`** (`wp-content/uploads/eg-media/originals/`) : Copies brutes haute définition de vos images avant redimensionnement ou compression destructive. Ce dossier est coché par défaut (`recommended`).
-     - **`eg_media_data`** (`wp-content/uploads/eg-media/`) : Racine de stockage des données, galeries et fichiers générés par le plugin.
+1. **Base de Données & Médiathèque Principale** :
+   - Vos albums (`eg_media_album`), vos galeries de médias (`eg_media_gallery`), les réglages du tableau de bord et les photos optimisées de la médiathèque (`wp-content/uploads/`) sont automatiquement sauvegardés par les routines complètes de EG Backup.
+2. **Originaux d'Images (Fichiers Bruts)** :
+   - Si vous avez activé la conservation des originaux, le dossier **`eg_media_originals`** (`wp-content/uploads/eg-media/originals/`) est déclaré auprès de EG Backup via le filtre `eg_backup_registered_locations`. Il est coché par défaut (`recommended: true`).
+   - Le dossier est automatiquement créé et protégé lors de l'activation du plugin ou de l'enregistrement de l'option.
 
-### Activer / Désactiver la Sauvegarde des Originaux
+### Contrôler la Sauvegarde des Originaux
 1. Rendez-vous dans **Médias** -> **EG Media Manager** -> onglet **Configuration**.
-2. Dans la section **Paramètres Imagick**, cochez ou décochez l'option **"Sauvegarder les originaux avant optimisation"** (activée par défaut pour une sécurité maximale).
+2. Dans la section **Paramètres Imagick**, cochez ou décochez l'option **"Sauvegarder les originaux avant optimisation"** :
+   - **Cochée** : les images sources brutes sont conservées dans `uploads/eg-media/originals/`, et l'emplacement est publié pour être sauvegardé par EG Backup.
+   - **Décochée** : aucun fichier original n'est conservé, et le hook n'est pas publié (aucun dossier superflu n'apparaît dans EG Backup).
 3. Cliquez sur **Enregistrer les modifications**.
 
 ### Déclencher une Sauvegarde via WP-CLI
-Vous pouvez cibler spécifiquement les données d'EG Media lors de la création d'archives de sauvegarde :
+Vous pouvez cibler spécifiquement l'emplacement des originaux lors d'une sauvegarde de médias :
 
 ```bash
-# Sauvegarder les originaux et données EG Media en ligne de commande
-wp eg-backup create --type=media --include-locations=eg_media_originals,eg_media_data
+# Sauvegarder uniquement les images originales EG Media
+wp eg-backup create --type=media --include-locations=eg_media_originals
 
 # Ou effectuer une sauvegarde complète incluant médias et BDD
 wp eg-backup create --type=full

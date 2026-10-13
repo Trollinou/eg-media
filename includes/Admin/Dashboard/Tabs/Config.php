@@ -97,7 +97,7 @@ class Config {
 			'eg_media_backup_originals',
 			array(
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'sanitize_callback' => array( $this, 'sanitize_backup_originals' ),
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_BACKUP_ORIGINALS,
 			)
 		);
@@ -280,6 +280,20 @@ class Config {
 	 */
 	public function sanitize_boolean( mixed $value ): bool {
 		return (bool) $value;
+	}
+
+	/**
+	 * Nettoie la valeur pour la sauvegarde des originaux et assure la création du répertoire si activé.
+	 *
+	 * @param mixed $value Valeur brute.
+	 * @return bool Valeur nettoyée.
+	 */
+	public function sanitize_backup_originals( mixed $value ): bool {
+		$enabled = (bool) $value;
+		if ( $enabled ) {
+			\EG_MEDIA\Services\Backup\Locations::ensure_directory_exists();
+		}
+		return $enabled;
 	}
 
 	/**

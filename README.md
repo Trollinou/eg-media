@@ -67,12 +67,14 @@ Dès qu'une image au format **AVIF**, **WebP**, **JPEG** ou **PNG** est ajoutée
 
 ### 8. Sauvegarde, Protection des Données & Intégration EG Backup
 - **Protection Anti-Perte de Données** : Sauvegarde miroir préventive des fichiers images bruts dans `wp-content/uploads/eg-media/originals/` avant tout traitement ou compression destructive (Imagick/GD).
+- **Création Proactive à l'Installation** : Le répertoire de stockage est automatiquement initialisé et sécurisé (`index.php`) lors de l'activation du plugin via `register_activation_hook`.
+- **Contrôle Utilisateur Intégral** : L'option applicative *"Sauvegarder les originaux avant optimisation"* dans le tableau de bord permet d'activer ou désactiver cette fonctionnalité selon les besoins en espace disque.
+- **Publication Conditionnelle du Hook** :
+  - **Option activée** : Le hook `eg_backup_registered_locations` est publié auprès de **EG Backup & Restore** pour inclure automatiquement `eg_media_originals` (`category: media`, `recommended: true`).
+  - **Option désactivée** : Le hook n'est pas publié, évitant toute déclaration de répertoire superflu.
 - **Restauration Automatique sur Incident** : En cas d'erreur ou d'interruption serveur lors de l'optimisation, l'image source d'origine est automatiquement restaurée.
-- **API de Hooks EG Backup & Restore** : Déclaration native des répertoires de stockage via le filtre `eg_backup_registered_locations` :
-  - `eg_media_originals` : Emplacement des sauvegardes d'images originales (`category: media`, `recommended: true`).
-  - `eg_media_data` : Répertoire central des galeries, données et fichiers générés (`category: documents`, `recommended: true`).
-- **Filtrage des Fichiers Parasites** : Exclusion automatique des fichiers temporaires (`*.tmp`, `.cache`, `transients`).
-- **Support WP-CLI** : Prise en charge des sauvegardes et restaurations ciblées via la CLI `wp eg-backup`.
+- **Filtrage des Fichiers Parasites** : Exclusion automatique des fichiers temporaires (`*.tmp`, `.cache`, `temp`).
+- **Support WP-CLI** : Prise en charge des sauvegardes ciblées via la commande `wp eg-backup create --include-locations=eg_media_originals`.
 
 ---
 

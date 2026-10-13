@@ -12,15 +12,10 @@ namespace EG_MEDIA\Services\Backup;
 /**
  * Class Locations
  *
- * Enregistre les répertoires physiques spécifiques de EG Media Manager via le hook
- * 'eg_backup_registered_locations' pour inclusion automatique dans les sauvegardes.
+ * Gère la préparation du répertoire de sauvegarde des images originales et son enregistrement
+ * conditionnel via le hook 'eg_backup_registered_locations' selon les préférences de l'utilisateur.
  */
 class Locations {
-
-	/**
-	 * Sous-répertoire relatif à wp-content/uploads pour les données du plugin.
-	 */
-	public const string SUBDIR_BASE = 'eg-media';
 
 	/**
 	 * Sous-répertoire relatif à wp-content/uploads pour les images originales.
@@ -28,24 +23,57 @@ class Locations {
 	public const string SUBDIR_ORIGINALS = 'eg-media/originals';
 
 	/**
-	 * Enregistre les hooks WordPress.
+	 * Enregistre les hooks WordPress si l'utilisateur a activé la sauvegarde des originaux.
 	 *
 	 * @return void
 	 */
 	public function register(): void {
+		$backup_originals = (bool) get_option( 'eg_media_backup_originals', true );
+
+		// Si l'utilisateur ne souhaite pas conserver les originaux, le hook n'est pas publié.
+		if ( ! $backup_originals ) {
+			return;
+		}
+
 		add_filter( 'eg_backup_registered_locations', array( $this, 'register_backup_locations' ) );
 	}
 
 	/**
-	 * Fournit le chemin absolu vers le répertoire central de stockage de EG Media.
+	 * Déclenché lors de l'activation du plugin pour préparer le répertoire des originaux si l'option est active.
 	 *
-	 * @return string Chemin absolu vers wp-content/uploads/eg-media.
+	 * @return void
 	 */
-	public static function get_base_dir(): string {
-		$upload_dir = wp_upload_dir();
-		$basedir    = (string) ( $upload_dir['basedir'] ?? '' );
+	public static function on_activation(): void {
+		$backup_originals = (bool) get_option( 'eg_media_backup_originals', true );
 
-		return '' !== $basedir ? $basedir . '/' . self::SUBDIR_BASE : '';
+		if ( $backup_originals ) {
+			self::ensure_directory_exists();
+		}
+	}
+
+	/**
+	 * S'assure de l'existence du répertoire de stockage des originaux avec un fichier index.php de protection.
+	 *
+	 * @return bool Vrai si le répertoire existe ou a été créé avec succès, faux sinon.
+	 */
+	public static function ensure_directory_exists(): bool {
+		$originals_dir = self::get_originals_dir();
+		if ( '' === $originals_dir ) {
+			return false;
+		}
+
+		if ( ! is_dir( $originals_dir ) ) {
+			if ( ! wp_mkdir_p( $originals_dir ) ) {
+				return false;
+			}
+		}
+
+		$index_file = $originals_dir . '/index.php';
+		if ( ! file_exists( $index_file ) ) {
+			file_put_contents( $index_file, "<?php\n// Silence is golden.\n" );
+		}
+
+		return true;
 	}
 
 	/**
@@ -61,16 +89,19 @@ class Locations {
 	}
 
 	/**
-	 * Déclare les emplacements physiques de EG Media auprès de EG Backup & Restore.
+	 * Déclare l'emplacement des originaux auprès de EG Backup & Restore si l'option est active et le dossier présent.
 	 *
 	 * @param array<string, array<string, mixed>> $locations Liste des emplacements déjà enregistrés.
-	 * @return array<string, array<string, mixed>> Liste enrichie des emplacements de EG Media.
+	 * @return array<string, array<string, mixed>> Liste enrichie de l'emplacement des originaux.
 	 */
 	public function register_backup_locations( array $locations ): array {
-		$base_dir      = self::get_base_dir();
-		$originals_dir = self::get_originals_dir();
+		$backup_originals = (bool) get_option( 'eg_media_backup_originals', true );
+		if ( ! $backup_originals ) {
+			return $locations;
+		}
 
-		if ( '' === $base_dir || '' === $originals_dir ) {
+		$originals_dir = self::get_originals_dir();
+		if ( '' === $originals_dir || ! is_dir( $originals_dir ) ) {
 			return $locations;
 		}
 
@@ -86,22 +117,6 @@ class Locations {
 				'*.tmp',
 				'temp',
 				'.cache',
-			),
-		);
-
-		$locations['eg_media_data'] = array(
-			'id'          => 'eg_media_data',
-			'label'       => __( 'EG Media — Données et Galeries', 'eg-media' ),
-			'plugin_name' => 'EG Media Manager',
-			'path'        => $base_dir,
-			'category'    => 'documents',
-			'recommended' => true,
-			'description' => __( 'Dossier central des données, exports et fichiers générés par EG Media Manager.', 'eg-media' ),
-			'exclude'     => array(
-				'*.tmp',
-				'temp',
-				'.cache',
-				'transients',
 			),
 		);
 

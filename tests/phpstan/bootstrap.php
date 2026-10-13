@@ -57,3 +57,29 @@ if ( ! function_exists( 'add_filter' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_option' ) ) {
+	function get_option( string $option, mixed $default = false ): mixed {
+		global $wp_test_options;
+		return $wp_test_options[ $option ] ?? $default;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	function update_option( string $option, mixed $value ): bool {
+		global $wp_test_options;
+		$wp_test_options[ $option ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_mkdir_p' ) ) {
+	function wp_mkdir_p( string $target ): bool {
+		return is_dir( $target ) || mkdir( $target, 0755, true );
+	}
+}
+
+if ( ! function_exists( 'register_activation_hook' ) ) {
+	function register_activation_hook( string $file, callable $callback ): void {}
+}
+
+
