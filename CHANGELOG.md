@@ -7,6 +7,8 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-13
+
 ### Added
 - Intégration de l'API de hooks de **EG Backup & Restore** via le filtre `eg_backup_registered_locations` avec la classe [`Locations.php`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/includes/Services/Backup/Locations.php) pour référencer et sécuriser automatiquement les répertoires `eg_media_originals` et `eg_media_data`.
 - Sauvegarde miroir préventive des fichiers images originaux dans `wp-content/uploads/eg-media/originals/` avant toute optimisation destructive (Imagick ou GD) et mécanisme de restauration automatique en cas d'erreur ou d'interruption serveur.
