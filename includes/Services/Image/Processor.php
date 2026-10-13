@@ -11,6 +11,7 @@ namespace EG_MEDIA\Services\Image;
 
 use EG_MEDIA\DTO\Image_Settings;
 use EG_MEDIA\Enums\Png_Compression;
+use EG_MEDIA\Services\Backup\Locations;
 use EG_MEDIA\Utils\Logger;
 
 /**
@@ -103,6 +104,89 @@ class Processor {
 	}
 
 	/**
+	 * Calcule le chemin de destination pour la sauvegarde d'un fichier original.
+	 *
+	 * @param string $file_path Chemin absolu du fichier source.
+	 * @return string Chemin absolu de la sauvegarde, ou chaîne vide en cas d'erreur.
+	 */
+	public function get_backup_path_for_file( string $file_path ): string {
+		$originals_dir = Locations::get_originals_dir();
+		if ( '' === $originals_dir ) {
+			return '';
+		}
+
+		$upload_dir = wp_upload_dir();
+		$basedir    = (string) ( $upload_dir['basedir'] ?? '' );
+
+		$normalized_file    = wp_normalize_path( $file_path );
+		$normalized_basedir = wp_normalize_path( $basedir );
+
+		if ( '' !== $normalized_basedir && str_starts_with( $normalized_file, $normalized_basedir ) ) {
+			$relative = ltrim( substr( $normalized_file, strlen( $normalized_basedir ) ), '/' );
+		} else {
+			$relative = basename( $file_path );
+		}
+
+		return wp_normalize_path( $originals_dir . '/' . $relative );
+	}
+
+	/**
+	 * Sauvegarde le fichier original avant toute altération.
+	 *
+	 * @param string         $file_path Chemin absolu du fichier source.
+	 * @param Image_Settings $settings  Paramètres d'optimisation.
+	 * @return bool Vrai si la sauvegarde a réussi ou existait déjà, faux sinon.
+	 */
+	public function backup_original( string $file_path, Image_Settings $settings ): bool {
+		if ( ! $settings->backup_originals ) {
+			return true;
+		}
+
+		$backup_path = $this->get_backup_path_for_file( $file_path );
+		if ( '' === $backup_path ) {
+			return false;
+		}
+
+		// Si une sauvegarde existe déjà (ex. ré-optimisation ultérieure), on ne l'écrase pas pour conserver le vrai original.
+		if ( file_exists( $backup_path ) ) {
+			return true;
+		}
+
+		$backup_dir = dirname( $backup_path );
+		if ( ! is_dir( $backup_dir ) && ! wp_mkdir_p( $backup_dir ) ) {
+			Logger::error( "Impossible de créer le répertoire de sauvegarde des originaux : {$backup_dir}" );
+			return false;
+		}
+
+		if ( ! copy( $file_path, $backup_path ) ) {
+			Logger::error( "Échec de la copie de sauvegarde de l'original : {$file_path} vers {$backup_path}" );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Restaure le fichier original depuis sa sauvegarde en cas d'erreur de traitement.
+	 *
+	 * @param string $file_path Chemin absolu du fichier source.
+	 * @return bool Vrai si restauré avec succès, faux sinon.
+	 */
+	public function restore_original( string $file_path ): bool {
+		$backup_path = $this->get_backup_path_for_file( $file_path );
+		if ( '' === $backup_path || ! file_exists( $backup_path ) ) {
+			return false;
+		}
+
+		if ( copy( $backup_path, $file_path ) ) {
+			Logger::debug( "Restauration de l'original effectuée avec succès pour {$file_path}" );
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Optimise un fichier image spécifique sur le disque avec Imagick.
 	 *
 	 * @param string $file_path Chemin absolu du fichier.
@@ -122,8 +206,12 @@ class Processor {
 			$file_size     = filesize( $file_path );
 			$original_size = false !== $file_size ? (int) $file_size : 0;
 
-			$imagick  = new \Imagick( $file_path );
 			$settings = Image_Settings::load_from_options();
+
+			// Sauvegarde de sécurité de l'image originale avant optimisation.
+			$this->backup_original( $file_path, $settings );
+
+			$imagick  = new \Imagick( $file_path );
 
 			// 1. Redressement automatique.
 			if ( $settings->use_auto_orient ) {
@@ -170,8 +258,10 @@ class Processor {
 			return $original_size - $new_size;
 
 		} catch ( \ImagickException $e ) {
+			$this->restore_original( $file_path );
 			Logger::error( "Erreur Imagick lors du traitement de {$file_path} : " . $e->getMessage() );
 		} catch ( \Throwable $e ) {
+			$this->restore_original( $file_path );
 			Logger::error( "Erreur générale lors du traitement de {$file_path} : " . $e->getMessage() );
 		}
 
@@ -199,6 +289,11 @@ class Processor {
 			$file_size     = filesize( $file_path );
 			$original_size = false !== $file_size ? (int) $file_size : 0;
 
+			$settings = Image_Settings::load_from_options();
+
+			// Sauvegarde de sécurité de l'image originale avant optimisation.
+			$this->backup_original( $file_path, $settings );
+
 			$info = getimagesize( $file_path );
 			if ( ! $info ) {
 				return null;
@@ -216,8 +311,6 @@ class Processor {
 			if ( ! $image ) {
 				return null;
 			}
-
-			$settings = Image_Settings::load_from_options();
 
 			// 1. Redressement automatique via EXIF.
 			if ( $settings->use_auto_orient && 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
@@ -281,6 +374,7 @@ class Processor {
 			};
 
 			if ( ! $saved ) {
+				$this->restore_original( $file_path );
 				Logger::error( "Fallback : Impossible de sauvegarder l'image optimisée : {$file_path}" );
 				return null;
 			}
@@ -292,6 +386,7 @@ class Processor {
 			return $original_size - $new_size;
 
 		} catch ( \Throwable $e ) {
+			$this->restore_original( $file_path );
 			Logger::error( "Fallback : Erreur lors du traitement de {$file_path} : " . $e->getMessage() );
 		}
 

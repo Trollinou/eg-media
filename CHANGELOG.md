@@ -8,6 +8,10 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 ## [Unreleased]
 
 ### Added
+- Intégration de l'API de hooks de **EG Backup & Restore** via le filtre `eg_backup_registered_locations` avec la classe [`Locations.php`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/includes/Services/Backup/Locations.php) pour référencer et sécuriser automatiquement les répertoires `eg_media_originals` et `eg_media_data`.
+- Sauvegarde miroir préventive des fichiers images originaux dans `wp-content/uploads/eg-media/originals/` avant toute optimisation destructive (Imagick ou GD) et mécanisme de restauration automatique en cas d'erreur ou d'interruption serveur.
+- Nouveau réglage administrable `eg_media_backup_originals` dans le tableau de bord d'administration (onglet Configuration) et synchronisation dans le DTO `Image_Settings`.
+- Suite de tests unitaires pour le service d'emplacements de sauvegarde ([`tests/Unit/BackupLocationsTest.php`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/tests/Unit/BackupLocationsTest.php)).
 - Directives strictes d'optimisation des assets et couverture de code (DevTools Coverage / PageSpeed) intégrées dans [`AGENTS.md`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/AGENTS.md) et [`.agents/rules/wordpress_standards.md`](file:///c:/Users/egagnon/Personnel/Dev/eg-media/.agents/rules/wordpress_standards.md).
 - Stratégie native de chargement asynchrone non-bloquant (`defer`) appliquée systématiquement à tous les scripts front-end et back-end via `wp_register_script()` / `wp_enqueue_script()`.
 

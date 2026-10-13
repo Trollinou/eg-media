@@ -26,7 +26,8 @@ final class ImageSettingsTest extends TestCase {
 			use_unsharp_mask: true,
 			use_auto_orient: true,
 			use_chrominance: false,
-			use_interlace: true
+			use_interlace: true,
+			backup_originals: true
 		);
 
 		$this->assertSame( 1920, $settings->max_width );
@@ -37,6 +38,7 @@ final class ImageSettingsTest extends TestCase {
 		$this->assertTrue( $settings->use_auto_orient );
 		$this->assertFalse( $settings->use_chrominance );
 		$this->assertTrue( $settings->use_interlace );
+		$this->assertTrue( $settings->backup_originals );
 	}
 
 	public function test_default_constants(): void {
@@ -47,5 +49,6 @@ final class ImageSettingsTest extends TestCase {
 		$this->assertTrue( Image_Settings::DEFAULT_AUTO_ORIENT );
 		$this->assertFalse( Image_Settings::DEFAULT_CHROMINANCE );
 		$this->assertTrue( Image_Settings::DEFAULT_INTERLACE );
+		$this->assertTrue( Image_Settings::DEFAULT_BACKUP_ORIGINALS );
 	}
 }

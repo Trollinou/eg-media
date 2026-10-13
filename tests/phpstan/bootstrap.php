@@ -33,3 +33,27 @@ if ( ! defined( 'EG_MEDIA_URL' ) ) {
 	define( 'EG_MEDIA_URL', 'http://example.com/wp-content/plugins/eg-media/' );
 }
 
+if ( ! function_exists( 'wp_upload_dir' ) ) {
+	/**
+	 * Stub for wp_upload_dir.
+	 *
+	 * @return array<string, mixed>
+	 */
+	function wp_upload_dir(): array {
+		return array(
+			'path'    => '/tmp/wp-content/uploads/2026/10',
+			'url'     => 'http://example.com/wp-content/uploads/2026/10',
+			'subdir'  => '/2026/10',
+			'basedir' => '/tmp/wp-content/uploads',
+			'baseurl' => 'http://example.com/wp-content/uploads',
+			'error'   => false,
+		);
+	}
+}
+
+if ( ! function_exists( 'add_filter' ) ) {
+	function add_filter( string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+		return true;
+	}
+}
+

@@ -25,17 +25,19 @@ readonly class Image_Settings {
 	final public const bool DEFAULT_AUTO_ORIENT        = true;
 	final public const bool DEFAULT_CHROMINANCE        = false;
 	final public const bool DEFAULT_INTERLACE          = true;
+	final public const bool DEFAULT_BACKUP_ORIGINALS   = true;
 
 	/**
 	 * Constructeur avec Constructor Property Promotion.
 	 *
-	 * @param int    $max_width          Largeur maximale de redimensionnement (0 pour désactiver).
-	 * @param int    $compression_quality Qualité de compression JPEG/WebP (1-100).
-	 * @param string $png_compression    Niveau de compression PNG ('faible', 'moyenne', 'forte').
-	 * @param bool   $use_unsharp_mask   Indique s'il faut appliquer un masque de netteté.
-	 * @param bool   $use_auto_orient    Indique s'il faut redresser automatiquement l'image via EXIF.
-	 * @param bool   $use_chrominance    Indique s'il faut utiliser le sous-échantillonnage 4:2:0.
-	 * @param bool   $use_interlace      Indique s'il faut activer l'entrelacement (mode progressif).
+	 * @param int    $max_width           Largeur maximale de redimensionnement (0 pour désactiver).
+	 * @param int    $compression_quality  Qualité de compression JPEG/WebP (1-100).
+	 * @param string $png_compression     Niveau de compression PNG ('faible', 'moyenne', 'forte').
+	 * @param bool   $use_unsharp_mask    Indique s'il faut appliquer un masque de netteté.
+	 * @param bool   $use_auto_orient     Indique s'il faut redresser automatiquement l'image via EXIF.
+	 * @param bool   $use_chrominance     Indique s'il faut utiliser le sous-échantillonnage 4:2:0.
+	 * @param bool   $use_interlace       Indique s'il faut activer l'entrelacement (mode progressif).
+	 * @param bool   $backup_originals    Indique s'il faut sauvegarder les originaux avant optimisation.
 	 */
 	public function __construct(
 		public int $max_width,
@@ -44,7 +46,8 @@ readonly class Image_Settings {
 		public bool $use_unsharp_mask,
 		public bool $use_auto_orient,
 		public bool $use_chrominance,
-		public bool $use_interlace
+		public bool $use_interlace,
+		public bool $backup_originals = self::DEFAULT_BACKUP_ORIGINALS
 	) {}
 
 	/**
@@ -69,7 +72,8 @@ readonly class Image_Settings {
 			use_unsharp_mask: (bool) get_option( 'eg_media_unsharp_mask', self::DEFAULT_UNSHARP_MASK ),
 			use_auto_orient: (bool) get_option( 'eg_media_auto_orient', self::DEFAULT_AUTO_ORIENT ),
 			use_chrominance: (bool) get_option( 'eg_media_chrominance', self::DEFAULT_CHROMINANCE ),
-			use_interlace: (bool) get_option( 'eg_media_interlace', self::DEFAULT_INTERLACE )
+			use_interlace: (bool) get_option( 'eg_media_interlace', self::DEFAULT_INTERLACE ),
+			backup_originals: (bool) get_option( 'eg_media_backup_originals', self::DEFAULT_BACKUP_ORIGINALS )
 		);
 	}
 }

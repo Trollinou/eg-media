@@ -18,6 +18,7 @@ use EG_MEDIA\API\Piwigo as PiwigoAPI;
 use EG_MEDIA\Blocks\Viewer as ViewerBlock;
 use EG_MEDIA\CPT\Albums;
 use EG_MEDIA\CPT\Galleries;
+use EG_MEDIA\Services\Backup\Locations as BackupLocations;
 use EG_MEDIA\Services\Image\BulkProcessor;
 use EG_MEDIA\Services\Image\Processor as ImageProcessor;
 use EG_MEDIA\Shortcodes\Album as AlbumShortcode;
@@ -68,10 +69,13 @@ final class Plugin {
 		// 2. Services globaux de traitement média (nécessaires lors de tout upload)
 		$this->register_media_services();
 
-		// 3. Initialisation principale au déclenchement de plugins_loaded
+		// 3. Intégration des emplacements de sauvegarde pour EG Backup & Restore
+		$this->register_backup_services();
+
+		// 4. Initialisation principale au déclenchement de plugins_loaded
 		add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 
-		// 4. Enregistrement des assets publics
+		// 5. Enregistrement des assets publics
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_public_assets' ) );
 	}
 
@@ -86,6 +90,16 @@ final class Plugin {
 
 		$bulk_processor = new BulkProcessor();
 		$bulk_processor->register();
+	}
+
+	/**
+	 * Enregistre les services d'intégration de sauvegarde.
+	 *
+	 * @return void
+	 */
+	private function register_backup_services(): void {
+		$backup_locations = new BackupLocations();
+		$backup_locations->register();
 	}
 
 	/**

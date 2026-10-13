@@ -92,6 +92,16 @@ class Config {
 			)
 		);
 
+		register_setting(
+			'eg_media_settings_group',
+			'eg_media_backup_originals',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_BACKUP_ORIGINALS,
+			)
+		);
+
 		add_settings_section(
 			'eg_media_main_section',
 			'Paramètres Imagick',
@@ -157,6 +167,15 @@ class Config {
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
 			array( 'label_for' => 'eg_media_interlace' )
+		);
+
+		add_settings_field(
+			'eg_media_backup_originals',
+			'Sauvegarder les originaux avant optimisation',
+			array( $this, 'render_checkbox_field' ),
+			'eg-media-dashboard-config',
+			'eg_media_main_section',
+			array( 'label_for' => 'eg_media_backup_originals' )
 		);
 
 		// Section Piwigo.
@@ -326,11 +345,12 @@ class Config {
 		}
 
 		$default = match ( $id ) {
-			'eg_media_chrominance'  => \EG_MEDIA\DTO\Image_Settings::DEFAULT_CHROMINANCE,
-			'eg_media_unsharp_mask' => \EG_MEDIA\DTO\Image_Settings::DEFAULT_UNSHARP_MASK,
-			'eg_media_auto_orient'  => \EG_MEDIA\DTO\Image_Settings::DEFAULT_AUTO_ORIENT,
-			'eg_media_interlace'    => \EG_MEDIA\DTO\Image_Settings::DEFAULT_INTERLACE,
-			default                 => true,
+			'eg_media_chrominance'     => \EG_MEDIA\DTO\Image_Settings::DEFAULT_CHROMINANCE,
+			'eg_media_unsharp_mask'    => \EG_MEDIA\DTO\Image_Settings::DEFAULT_UNSHARP_MASK,
+			'eg_media_auto_orient'     => \EG_MEDIA\DTO\Image_Settings::DEFAULT_AUTO_ORIENT,
+			'eg_media_interlace'       => \EG_MEDIA\DTO\Image_Settings::DEFAULT_INTERLACE,
+			'eg_media_backup_originals'=> \EG_MEDIA\DTO\Image_Settings::DEFAULT_BACKUP_ORIGINALS,
+			default                    => true,
 		};
 
 		$value = (bool) get_option( $id, $default );

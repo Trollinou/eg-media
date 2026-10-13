@@ -90,3 +90,34 @@ Sous WordPress 7.1 et les thèmes basés sur les blocs (Block Themes / FSE), vou
    - `caption` : Légende du média.
    - `status` : Statut du média (`pending`, `approved`, `rejected`).
 
+---
+
+## 5. Sauvegarde des Données & Intégration EG Backup
+
+EG Media Manager s'intègre nativement à l'extension **EG Backup & Restore** pour garantir une politique de reprise après panne sans aucune perte de données :
+
+### Qu'est-ce qui est sauvegardé ?
+1. **Base de Données** :
+   - Vos albums (`eg_media_album`), vos galeries de médias (`eg_media_gallery`), les réglages du tableau de bord et les métadonnées de chaque photo sont automatiquement inclus dans les sauvegardes SQL de EG Backup (Sauvegardes de type *Complet* ou *Cœur*).
+2. **Fichiers Physiques sur le Disque** :
+   - Grâce à l'enregistrement automatique via le filtre `eg_backup_registered_locations`, EG Backup identifie et catégorise vos dossiers de données :
+     - **`eg_media_originals`** (`wp-content/uploads/eg-media/originals/`) : Copies brutes haute définition de vos images avant redimensionnement ou compression destructive. Ce dossier est coché par défaut (`recommended`).
+     - **`eg_media_data`** (`wp-content/uploads/eg-media/`) : Racine de stockage des données, galeries et fichiers générés par le plugin.
+
+### Activer / Désactiver la Sauvegarde des Originaux
+1. Rendez-vous dans **Médias** -> **EG Media Manager** -> onglet **Configuration**.
+2. Dans la section **Paramètres Imagick**, cochez ou décochez l'option **"Sauvegarder les originaux avant optimisation"** (activée par défaut pour une sécurité maximale).
+3. Cliquez sur **Enregistrer les modifications**.
+
+### Déclencher une Sauvegarde via WP-CLI
+Vous pouvez cibler spécifiquement les données d'EG Media lors de la création d'archives de sauvegarde :
+
+```bash
+# Sauvegarder les originaux et données EG Media en ligne de commande
+wp eg-backup create --type=media --include-locations=eg_media_originals,eg_media_data
+
+# Ou effectuer une sauvegarde complète incluant médias et BDD
+wp eg-backup create --type=full
+```
+
+

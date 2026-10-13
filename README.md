@@ -65,6 +65,15 @@ Dès qu'une image au format **AVIF**, **WebP**, **JPEG** ou **PNG** est ajoutée
 - Rendu en grille moderne responsive avec modal overlay interactif.
 - Ordonnancement global des galeries (tri manuel ou alphabétique) et tri individuel des photos par galerie (date de prise de vue croissante/décroissante, alphabétique A-Z/Z-A).
 
+### 8. Sauvegarde, Protection des Données & Intégration EG Backup
+- **Protection Anti-Perte de Données** : Sauvegarde miroir préventive des fichiers images bruts dans `wp-content/uploads/eg-media/originals/` avant tout traitement ou compression destructive (Imagick/GD).
+- **Restauration Automatique sur Incident** : En cas d'erreur ou d'interruption serveur lors de l'optimisation, l'image source d'origine est automatiquement restaurée.
+- **API de Hooks EG Backup & Restore** : Déclaration native des répertoires de stockage via le filtre `eg_backup_registered_locations` :
+  - `eg_media_originals` : Emplacement des sauvegardes d'images originales (`category: media`, `recommended: true`).
+  - `eg_media_data` : Répertoire central des galeries, données et fichiers générés (`category: documents`, `recommended: true`).
+- **Filtrage des Fichiers Parasites** : Exclusion automatique des fichiers temporaires (`*.tmp`, `.cache`, `transients`).
+- **Support WP-CLI** : Prise en charge des sauvegardes et restaurations ciblées via la CLI `wp eg-backup`.
+
 ---
 
 ## 🛠️ Développement & Qualité (QA)
