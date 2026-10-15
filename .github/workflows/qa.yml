@@ -18,14 +18,33 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: dom, curl, libxml, mbstring, zip, gd, imagick
+          extensions: dom, curl, libxml, mbstring, zip, gd
           coverage: none
+          tools: composer:v2
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPStan (Level 8)
-        run: vendor/bin/phpstan analyze --debug --memory-limit=2G
+        run: vendor/bin/phpstan analyze --memory-limit=2G
+
+      - name: Run PHPUnit Tests
+        run: vendor/bin/phpunit
+
+      - name: Run PHP CodeSniffer (WPCS)
+        run: vendor/bin/phpcs -q
+        continue-on-error: true
 
   js-qa:
     name: JS / TS Quality & Type Check
@@ -41,7 +60,7 @@ jobs:
           cache: 'npm'
 
       - name: Install npm dependencies
-        run: npm ci
+        run: npm ci --prefer-offline
 
       - name: Run TypeScript type check
         run: npm run type-check
