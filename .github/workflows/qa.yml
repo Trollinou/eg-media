@@ -56,11 +56,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: 'npm'
 
       - name: Install npm dependencies
-        run: npm ci --prefer-offline
+        run: npm install --prefer-offline --no-audit
 
       - name: Run TypeScript type check
         run: npm run type-check
