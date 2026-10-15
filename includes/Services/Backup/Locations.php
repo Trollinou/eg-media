@@ -70,6 +70,7 @@ class Locations {
 
 		$index_file = $originals_dir . '/index.php';
 		if ( ! file_exists( $index_file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Direct creation of empty stub.
 			file_put_contents( $index_file, "<?php\n// Silence is golden.\n" );
 		}
 

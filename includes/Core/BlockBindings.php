@@ -76,10 +76,9 @@ class BlockBindings {
 	 *
 	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
 	 * @param WP_Block             $block_instance Instance du bloc WordPress en cours de rendu.
-	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
 	 * @return mixed Valeur résolue pour l'attribut du bloc.
 	 */
-	public function get_gallery_data_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+	public function get_gallery_data_value( array $source_args, WP_Block $block_instance ): mixed {
 		$key        = (string) ( $source_args['key'] ?? '' );
 		$gallery_id = isset( $source_args['galleryId'] ) ? (int) $source_args['galleryId'] : 0;
 
@@ -118,10 +117,9 @@ class BlockBindings {
 	 *
 	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
 	 * @param WP_Block             $block_instance Instance du bloc WordPress en cours de rendu.
-	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
 	 * @return mixed Valeur résolue pour l'attribut du bloc.
 	 */
-	public function get_album_data_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+	public function get_album_data_value( array $source_args, WP_Block $block_instance ): mixed {
 		$key      = (string) ( $source_args['key'] ?? '' );
 		$album_id = isset( $source_args['albumId'] ) ? (int) $source_args['albumId'] : 0;
 
@@ -152,10 +150,9 @@ class BlockBindings {
 	 *
 	 * @param array<string, mixed> $source_args Arguments passés à la source de liaison.
 	 * @param WP_Block             $block_instance Instance du bloc WordPress en cours de rendu.
-	 * @param string               $attribute_name Nom de l'attribut du bloc à renseigner.
 	 * @return mixed Valeur résolue pour l'attribut du bloc.
 	 */
-	public function get_media_metadata_value( array $source_args, WP_Block $block_instance, string $attribute_name ): mixed {
+	public function get_media_metadata_value( array $source_args, WP_Block $block_instance ): mixed {
 		$key           = (string) ( $source_args['key'] ?? '' );
 		$attachment_id = isset( $source_args['attachmentId'] ) ? (int) $source_args['attachmentId'] : 0;
 
@@ -197,7 +194,8 @@ class BlockBindings {
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
 				'posts_per_page' => 1,
-				'tax_query'      => array(
+				'no_found_rows'  => true,
+				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 					array(
 						'taxonomy' => 'eg_media_gallery',
 						'field'    => 'term_id',

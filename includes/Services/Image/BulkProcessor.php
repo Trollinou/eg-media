@@ -71,7 +71,7 @@ class BulkProcessor {
 				'posts_per_page' => 5,
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
-				'meta_query'     => array(
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 					array(
 						'key'     => '_eg_media_optimized',
 						'compare' => 'NOT EXISTS',

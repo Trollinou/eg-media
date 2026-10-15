@@ -211,7 +211,7 @@ class Processor {
 			// Sauvegarde de sécurité de l'image originale avant optimisation.
 			$this->backup_original( $file_path, $settings );
 
-			$imagick  = new \Imagick( $file_path );
+			$imagick = new \Imagick( $file_path );
 
 			// 1. Redressement automatique.
 			if ( $settings->use_auto_orient ) {

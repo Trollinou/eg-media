@@ -25,7 +25,7 @@ class AlbumMetabox {
 	 */
 	public function register(): void {
 		add_action( 'add_meta_boxes_eg_media_album', array( $this, 'add_album_meta_box' ) );
-		add_action( 'save_post_eg_media_album', array( $this, 'save_album_meta_box' ), 10, 2 );
+		add_action( 'save_post_eg_media_album', array( $this, 'save_album_meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
@@ -36,6 +36,10 @@ class AlbumMetabox {
 	 * @return void
 	 */
 	public function enqueue_admin_assets( string $hook ): void {
+		if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+			return;
+		}
+
 		global $post_type;
 		if ( 'eg_media_album' !== $post_type ) {
 			return;
@@ -189,11 +193,10 @@ class AlbumMetabox {
 	/**
 	 * Enregistre les métadonnées lors de la sauvegarde du post.
 	 *
-	 * @param int      $post_id ID de l'album en cours d'enregistrement.
-	 * @param \WP_Post $post    Objet du post courant.
+	 * @param int $post_id ID de l'album en cours d'enregistrement.
 	 * @return void
 	 */
-	public function save_album_meta_box( int $post_id, \WP_Post $post ): void {
+	public function save_album_meta_box( int $post_id ): void {
 		// Vérification du nonce.
 		$nonce = isset( $_POST['eg_media_album_nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['eg_media_album_nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'eg_media_save_album_meta' ) ) {

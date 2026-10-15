@@ -27,7 +27,7 @@ class MediaFields {
 	public function register(): void {
 		add_filter( 'attachment_fields_to_edit', array( $this, 'add_gallery_fields' ), 10, 2 );
 		add_filter( 'attachment_fields_to_save', array( $this, 'save_gallery_fields' ), 10, 2 );
-		add_filter( 'wp_prepare_attachment_for_js', array( $this, 'prepare_attachment_for_js' ), 10, 3 );
+		add_filter( 'wp_prepare_attachment_for_js', array( $this, 'prepare_attachment_for_js' ), 10, 2 );
 		add_filter( 'manage_media_columns', array( $this, 'register_custom_media_columns' ), 99, 1 );
 		add_action( 'manage_media_custom_column', array( $this, 'render_custom_media_column' ), 10, 2 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ), 10, 1 );
@@ -268,10 +268,9 @@ class MediaFields {
 	 *
 	 * @param array<string, mixed> $response   Données JSON renvoyées pour le média.
 	 * @param \WP_Post             $attachment Objet du post de la pièce jointe.
-	 * @param mixed                $meta       Métadonnées de la pièce jointe.
 	 * @return array<string, mixed> Données JSON modifiées.
 	 */
-	public function prepare_attachment_for_js( array $response, \WP_Post $attachment, mixed $meta ): array {
+	public function prepare_attachment_for_js( array $response, \WP_Post $attachment ): array {
 		$response['eg_media_is_reference']           = false;
 		$response['eg_media_reference_gallery_name'] = '';
 

@@ -162,7 +162,7 @@ class MediaFilter {
 		}
 
 		if ( ! isset( $query_args['tax_query'] ) || ! is_array( $query_args['tax_query'] ) ) {
-			$query_args['tax_query'] = array();
+			$query_args['tax_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 		}
 
 		if ( 'orphan' === $gallery_id ) {

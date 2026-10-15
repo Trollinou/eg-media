@@ -99,7 +99,8 @@ class Album {
 						'post_type'      => 'attachment',
 						'post_status'    => 'inherit',
 						'posts_per_page' => -1,
-						'tax_query'      => array(
+						'no_found_rows'  => true,
+						'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 							array(
 								'taxonomy' => 'eg_media_gallery',
 								'field'    => 'term_id',
