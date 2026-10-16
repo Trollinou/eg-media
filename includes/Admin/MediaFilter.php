@@ -56,8 +56,8 @@ class MediaFilter {
 		);
 
 		$galleries          = is_array( $terms ) ? $terms : array();
-		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
-		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
+		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_UNSAFE_RAW );
+		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_UNSAFE_RAW );
 
 		if ( null === $gallery_id_param && null === $gallery_slug_param ) {
 			$selected = 'orphan';
@@ -109,8 +109,8 @@ class MediaFilter {
 			return;
 		}
 
-		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_DEFAULT );
-		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_DEFAULT );
+		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_UNSAFE_RAW );
+		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_UNSAFE_RAW );
 
 		if ( null === $gallery_id_param && null === $gallery_slug_param ) {
 			$gallery_id = 'orphan';

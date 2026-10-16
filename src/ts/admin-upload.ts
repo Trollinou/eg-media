@@ -340,8 +340,8 @@
 
 			const OriginalAttachmentsBrowser = window.wp.media.view.AttachmentsBrowser;
 			window.wp.media.view.AttachmentsBrowser = OriginalAttachmentsBrowser.extend( {
-				createToolbar() {
-					OriginalAttachmentsBrowser.prototype.createToolbar.apply( this, arguments );
+				createToolbar( ...args: unknown[] ) {
+					OriginalAttachmentsBrowser.prototype.createToolbar.apply( this, args );
 
 					if ( window.wp.media.view.Label ) {
 						this.toolbar.set(
@@ -433,10 +433,10 @@
 			if ( window.wp.media.view.Attachment ) {
 				const OriginalAttachment = window.wp.media.view.Attachment;
 				window.wp.media.view.Attachment = OriginalAttachment.extend( {
-					className() {
+					className( ...args: unknown[] ) {
 						let classes = '';
 						if ( typeof OriginalAttachment.prototype.className === 'function' ) {
-							classes = OriginalAttachment.prototype.className.apply( this, arguments );
+							classes = OriginalAttachment.prototype.className.apply( this, args );
 						} else if ( typeof OriginalAttachment.prototype.className === 'string' ) {
 							classes = OriginalAttachment.prototype.className;
 						}
@@ -445,9 +445,9 @@
 						}
 						return classes;
 					},
-					render() {
+					render( ...args: unknown[] ) {
 						if ( typeof OriginalAttachment.prototype.render === 'function' ) {
-							OriginalAttachment.prototype.render.apply( this, arguments );
+							OriginalAttachment.prototype.render.apply( this, args );
 						}
 						if ( this.model.get( 'eg_media_is_reference' ) ) {
 							const galleryName = this.model.get( 'eg_media_reference_gallery_name' ) || '';
@@ -463,10 +463,10 @@
 				if ( window.wp.media.view.Attachment.Library ) {
 					const OriginalAttachmentLibrary = window.wp.media.view.Attachment.Library;
 					window.wp.media.view.Attachment.Library = OriginalAttachmentLibrary.extend( {
-						className() {
+						className( ...args: unknown[] ) {
 							let classes = '';
 							if ( typeof OriginalAttachmentLibrary.prototype.className === 'function' ) {
-								classes = OriginalAttachmentLibrary.prototype.className.apply( this, arguments );
+								classes = OriginalAttachmentLibrary.prototype.className.apply( this, args );
 							} else if ( typeof OriginalAttachmentLibrary.prototype.className === 'string' ) {
 								classes = OriginalAttachmentLibrary.prototype.className;
 							}
@@ -475,9 +475,9 @@
 							}
 							return classes;
 						},
-						render() {
+						render( ...args: unknown[] ) {
 							if ( typeof OriginalAttachmentLibrary.prototype.render === 'function' ) {
-								OriginalAttachmentLibrary.prototype.render.apply( this, arguments );
+								OriginalAttachmentLibrary.prototype.render.apply( this, args );
 							}
 							if ( this.model.get( 'eg_media_is_reference' ) ) {
 								const galleryName = this.model.get( 'eg_media_reference_gallery_name' ) || '';
@@ -525,7 +525,7 @@
                     <input type="text" 
                            name="eg_media_bulk_new_gallery" 
                            class="eg-media-bulk-new-gallery-input" 
-                           placeholder="${ translate( 'Nouvelle galerie...', 'eg-media' ) }" 
+                           placeholder="${ translate( 'Nouvelle galerie…', 'eg-media' ) }" 
                            style="vertical-align: middle; height: 30px; line-height: 30px; font-size: 13px; padding: 0 8px;" />
                 `;
 
@@ -533,8 +533,8 @@
 					selector.parentNode.insertBefore( container, selector.nextSibling );
 				}
 
-				selector.addEventListener( 'change', function ( this: HTMLSelectElement ) {
-					if ( this.value === 'eg_media_bulk_assign' ) {
+				selector.addEventListener( 'change', () => {
+					if ( selector.value === 'eg_media_bulk_assign' ) {
 						container.style.display = 'inline-block';
 					} else {
 						container.style.display = 'none';
@@ -546,8 +546,8 @@
 			const inputs = document.querySelectorAll<HTMLInputElement>( '.eg-media-bulk-new-gallery-input' );
 
 			selects.forEach( ( select ) => {
-				select.addEventListener( 'change', function ( this: HTMLSelectElement ) {
-					const currentVal = this.value;
+				select.addEventListener( 'change', () => {
+					const currentVal = select.value;
 					selects.forEach( ( s ) => {
 						if ( s !== select ) {
 							s.value = currentVal;
@@ -562,8 +562,8 @@
 			} );
 
 			inputs.forEach( ( input ) => {
-				input.addEventListener( 'input', function ( this: HTMLInputElement ) {
-					const currentVal = this.value;
+				input.addEventListener( 'input', () => {
+					const currentVal = input.value;
 					inputs.forEach( ( i ) => {
 						if ( i !== input ) {
 							i.value = currentVal;

@@ -39,7 +39,7 @@ if ( fs.existsSync( packageJsonPath ) ) {
 		if ( pkg.scripts && pkg.scripts.build ) {
 			hasBuildScript = true;
 		}
-	} catch ( e ) {
+	} catch ( _e ) {
 		console.warn( '⚠️  Impossible de lire ou parser package.json.' );
 	}
 }
@@ -48,7 +48,7 @@ if ( hasBuildScript ) {
 	console.log( '🏗️  Compilation des assets locaux (Production)...' );
 	try {
 		execSync( 'npm run build', { cwd: rootDir, stdio: 'inherit' } );
-	} catch ( error ) {
+	} catch ( _error ) {
 		console.error( '❌ Erreur : Le build a échoué. Packaging annulé.' );
 		process.exit( 1 );
 	}
@@ -163,12 +163,13 @@ function copyFiltered( src, dest ) {
 	if ( ! fs.existsSync( src ) ) {
 		return;
 	}
-	const stats = fs.statSync( src );
 	const relPath = path.relative( rootDir, src );
 
 	if ( isIgnored( relPath ) ) {
 		return;
 	}
+
+	const stats = fs.statSync( src );
 
 	if ( stats.isDirectory() ) {
 		fs.mkdirSync( dest, { recursive: true } );
@@ -211,7 +212,7 @@ if ( fs.existsSync( compJson ) ) {
 		try {
 			execSync( 'composer --version', { stdio: 'ignore' } );
 			return { cmd: 'composer', options: { shell: true } };
-		} catch ( e ) {
+		} catch ( _e ) {
 			// Non trouvé, on cherche LocalWP
 		}
 
@@ -370,7 +371,7 @@ if ( fs.existsSync( compJson ) ) {
 				shell: resolver.options.shell,
 			}
 		);
-	} catch ( error ) {
+	} catch ( _error ) {
 		console.error(
 			"\n❌ Erreur : L'installation Composer a échoué dans le dossier temporaire."
 		);
@@ -410,7 +411,7 @@ for ( let i = 0; i < 5; i++ ) {
 		}
 		cleaned = true;
 		break;
-	} catch ( e ) {
+	} catch ( _e ) {
 		// Attendre 1 seconde avant de réessayer (1000ms)
 		Atomics.wait(
 			new Int32Array( new SharedArrayBuffer( 4 ) ),

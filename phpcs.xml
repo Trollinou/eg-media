@@ -1,11 +1,64 @@
 <?xml version="1.0"?>
-<ruleset name="EG_Media_WordPress_Standards">
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="EG_Media_WordPress_Standards" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/PHPCSStandards/PHP_CodeSniffer/master/phpcs.xsd">
     <description>Standard de code WordPress strict pour le plugin EG Media Manager.</description>
 
-    <!-- 1. Utiliser le standard officiel WordPress complet -->
-    <rule ref="WordPress" />
+    <!-- ================================================================== -->
+    <!-- 1. PARAMÈTRES D'EXÉCUTION & PERFORMANCE                            -->
+    <!-- ================================================================== -->
+    <arg name="colors"/>
+    <arg value="sp"/> <!-- s = affiche le nom de la règle, p = affiche la progression -->
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="8"/> <!-- Analyse multi-coeurs ultra rapide -->
+    <arg name="cache" value=".phpcs.cache"/> <!-- Mise en cache des résultats -->
+    <config name="ignore_warnings_on_exit" value="1"/>
 
-    <!-- Configurer le text domain pour l'i18n -->
+    <!-- Versions cibles : WordPress 7.1 et PHP 8.4 minimum -->
+    <config name="minimum_wp_version" value="7.1" />
+    <config name="testVersion" value="8.4-"/>
+
+    <!-- ================================================================== -->
+    <!-- 2. FICHIERS ET DOSSIERS À ANALYSER / EXCLURE                       -->
+    <!-- ================================================================== -->
+    <file>eg-media.php</file>
+    <file>includes</file>
+
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/build/*</exclude-pattern>
+    <exclude-pattern>/tests/*</exclude-pattern>
+    <exclude-pattern>/dist-temp/*</exclude-pattern>
+    <exclude-pattern>*/index.php</exclude-pattern> <!-- Ignore directement les fichiers index.php de sécurité -->
+
+    <!-- ================================================================== -->
+    <!-- 3. STANDARDS DE BASE (Sans WordPress-Docs pour éviter les conflits)-->
+    <!-- ================================================================== -->
+    <rule ref="WordPress-Core" />
+    <rule ref="WordPress-Extra" />
+
+    <!-- Vérification de compatibilité PHP 8.4 (nécessite phpcompatibility/phpcompatibility-wp) -->
+    <rule ref="PHPCompatibilityWP" />
+
+    <!-- ================================================================== -->
+    <!-- 4. MODERNISATION PHP 8.4 & PSR-4 (Suppression des règles héritées) -->
+    <!-- ================================================================== -->
+    <rule ref="WordPress-Core">
+        <!-- Autoriser le nommage des fichiers PSR-4 (PascalCase) -->
+        <exclude name="WordPress.Files.FileName" />
+        <!-- Ne pas imposer les conditions Yoda (inutile avec un typage strict) -->
+        <exclude name="WordPress.PHP.YodaConditions" />
+    </rule>
+
+    <rule ref="WordPress-Extra">
+        <!-- Autoriser l'opérateur ternaire court ?: (Elvis) -->
+        <exclude name="Universal.Operators.DisallowShortTernary" />
+        <!-- Optionnel : Autoriser la syntaxe moderne des tableaux [] au lieu de array() -->
+        <!-- Décommentez la ligne ci-dessous si vous préférez [] à array() -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax" />
+    </rule>
+
+    <!-- ================================================================== -->
+    <!-- 5. CONFIGURATION SPÉCIFIQUE WORDPRESS (i18n & Capacités)           -->
+    <!-- ================================================================== -->
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
@@ -14,43 +67,24 @@
         </properties>
     </rule>
 
-    <!-- Définir la version minimale de WP supportée : 7.1 -->
-    <config name="minimum_wp_version" value="7.1" />
-
-    <!-- Exclusion du nommage de fichier WordPress classique pour respecter la convention PSR-4 / PascalCase du projet -->
-    <rule ref="WordPress.Files.FileName">
-        <severity>0</severity>
+    <rule ref="WordPress.WP.Capabilities">
+        <properties />
     </rule>
 
-    <!-- Ne pas imposer les conditions Yoda en PHP 8.4 -->
-    <rule ref="WordPress.PHP.YodaConditions">
-        <severity>0</severity>
-    </rule>
-
-    <!-- Autoriser l'opérateur Elvis / ternaire court (standard PHP moderne) -->
-    <rule ref="Universal.Operators.DisallowShortTernary">
-        <severity>0</severity>
-    </rule>
-
-    <!-- Ignorer les fichiers index.php de silence de sécurité -->
-    <rule ref="Squiz.Commenting.FileComment.Missing">
-        <exclude-pattern>*/index.php</exclude-pattern>
-    </rule>
-    <rule ref="Squiz.Commenting.FileComment.WrongStyle">
-        <exclude-pattern>*/index.php</exclude-pattern>
-    </rule>
-
+    <!-- ================================================================== -->
+    <!-- 6. EXCEPTIONS ARCHITECTURALES DU PROJET                            -->
+    <!-- ================================================================== -->
     <!-- Autoriser error_log uniquement dans la classe utilitaire Logger -->
     <rule ref="WordPress.PHP.DevelopmentFunctions">
         <exclude-pattern>includes/Utils/Logger.php</exclude-pattern>
     </rule>
 
-    <!-- Autoriser les requêtes directes SQL dans la couche Repository -->
+    <!-- Autoriser les requêtes directes SQL et ignorer le warning de cache dans les Repositories -->
     <rule ref="WordPress.DB.DirectDatabaseQuery">
         <exclude-pattern>includes/Repositories/*</exclude-pattern>
     </rule>
 
-    <!-- Autoriser l'accès aux superglobales dans la couche utilitaire Request -->
+    <!-- Autoriser la manipulation directe de $_POST/$_GET/$_REQUEST dans la couche Request -->
     <rule ref="WordPress.Security.NonceVerification">
         <exclude-pattern>includes/Utils/Request.php</exclude-pattern>
     </rule>
@@ -58,19 +92,9 @@
         <exclude-pattern>includes/Utils/Request.php</exclude-pattern>
     </rule>
 
-    <!-- 2. Fichiers & dossiers à analyser -->
-    <file>eg-media.php</file>
-    <file>includes</file>
+    <!-- Ignorer le faux positif PHPCompatibility sur $this dans les Enums PHP 8.1+ -->
+    <rule ref="PHPCompatibility.Variables.ForbiddenThisUseContexts">
+        <exclude-pattern>includes/Enums/*</exclude-pattern>
+    </rule>
 
-    <!-- 3. Exclusions obligatoires -->
-    <exclude-pattern>/vendor/*</exclude-pattern>
-    <exclude-pattern>/node_modules/*</exclude-pattern>
-    <exclude-pattern>/build/*</exclude-pattern>
-    <exclude-pattern>/tests/*</exclude-pattern>
-    <exclude-pattern>/dist-temp/*</exclude-pattern>
-
-    <!-- 4. Paramètres d'exécution -->
-    <arg name="colors"/>
-    <arg value="sp"/>
-    <arg name="extensions" value="php"/>
 </ruleset>

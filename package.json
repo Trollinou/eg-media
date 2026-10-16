@@ -11,7 +11,9 @@
     "start": "wp-scripts start --experimental-modules",
     "type-check": "tsc --noEmit",
     "version-sync": "node scripts/version-sync.cjs",
-    "package": "node scripts/package.cjs"
+    "package": "node scripts/package.cjs",
+    "lint:js": "wp-scripts lint-js",
+    "lint:js:fix": "wp-scripts lint-js --fix"
   },
   "devDependencies": {
     "@babel/runtime": "^8.0.5",
@@ -26,6 +28,7 @@
     "@types/wordpress__element": "^2.14.1",
     "@types/wordpress__hooks": "^2.11.0",
     "@types/wordpress__i18n": "^3.11.0",
+    "@wordpress/eslint-plugin": "^27.1.0",
     "@wordpress/scripts": "^32.6.0",
     "adm-zip": "^0.6.1",
     "esbuild": "^0.28.2",

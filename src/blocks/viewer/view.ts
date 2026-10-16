@@ -1,7 +1,7 @@
 /**
  * Script front-end Interactivity API pour le bloc Visionneuse de Galerie (WordPress 7.1).
  *
- * ES2022+ TypeScript en mode strict avec @wordpress/interactivity store.
+ * ES2022+ TypeScript en mode strict avec `@wordpress/interactivity` store.
  */
 
 import { store, getContext, getElement } from '@wordpress/interactivity';

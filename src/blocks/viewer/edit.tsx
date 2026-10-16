@@ -27,7 +27,7 @@ import type { PiwigoAlbum } from '../../types/piwigo';
 
 interface EditProps {
 	attributes: ViewerAttributes;
-	setAttributes: ( attributes: Partial<ViewerAttributes> ) => void;
+	setAttributes: ( _attributes: Partial<ViewerAttributes> ) => void;
 }
 
 export default function Edit( { attributes, setAttributes }: EditProps ): React.ReactElement {
@@ -142,7 +142,7 @@ export default function Edit( { attributes, setAttributes }: EditProps ): React.
 						value={ galleryId ? String( galleryId ) : '' }
 						options={ galleryOptions }
 						onChange={ handleGalleryChange }
-						help={ isPiwigoLoading ? ( __( 'Chargement des albums Piwigo...', 'eg-media' ) as string ) : undefined }
+						help={ isPiwigoLoading ? ( __( 'Chargement des albums Piwigo…', 'eg-media' ) as string ) : undefined }
 					/>
 					<SelectControl
 						label={ __( 'Mise en page', 'eg-media' ) as string }

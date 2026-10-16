@@ -29,7 +29,7 @@ interface BaseComponentProps {
 	name?: string;
 	clientId?: string;
 	attributes?: Record<string, unknown>;
-	setAttributes?: ( attrs: Record<string, unknown> ) => void;
+	setAttributes?: ( _attrs: Record<string, unknown> ) => void;
 	[ key: string ]: unknown;
 }
 
@@ -50,7 +50,7 @@ const PiwigoFeaturedImageWrapper = createHigherOrderComponent(
 			}, [] );
 
 			// Récupérer l'action de mise à jour du post
-			const { editPost } = useDispatch( 'core/editor' ) as { editPost?: ( data: Record<string, unknown> ) => void };
+			const { editPost } = useDispatch( 'core/editor' ) as { editPost?: ( _data: Record<string, unknown> ) => void };
 
 			// Charger les albums Piwigo au clic sur le bouton d'ouverture
 			const openModal = () => {
@@ -176,7 +176,8 @@ const PiwigoFeaturedImageWrapper = createHigherOrderComponent(
 											const deriv = img.derivatives || {};
 											const thumbUrl = deriv.thumb?.url || deriv.square?.url || img.element_url || '';
 											return (
-												<div
+												<button
+													type="button"
 													key={ img.id }
 													className="eg-piwigo-image-item"
 													style={ {
@@ -190,6 +191,7 @@ const PiwigoFeaturedImageWrapper = createHigherOrderComponent(
 														flexDirection: 'column',
 														alignItems: 'center',
 														justifyContent: 'center',
+														width: '100%',
 													} }
 													onClick={ () => ! isImporting && importImage( img.id ) }
 												>
@@ -215,7 +217,7 @@ const PiwigoFeaturedImageWrapper = createHigherOrderComponent(
 													>
 														{ img.name || img.file }
 													</span>
-												</div>
+												</button>
 											);
 										} ) }
 									</div>
@@ -239,7 +241,7 @@ const PiwigoFeaturedImageWrapper = createHigherOrderComponent(
 									>
 										<Spinner />
 										<p style={ { marginTop: '10px', fontWeight: 'bold' } }>
-											{ __( 'Téléchargement et association de l\'image...', 'eg-media' ) as string }
+											{ __( 'Téléchargement et association de l\'image…', 'eg-media' ) as string }
 										</p>
 									</div>
 								) }
@@ -428,7 +430,8 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent(
 											const deriv = img.derivatives || {};
 											const thumbUrl = deriv.thumb?.url || deriv.square?.url || img.element_url || '';
 											return (
-												<div
+												<button
+													type="button"
 													key={ img.id }
 													className="eg-piwigo-image-item"
 													style={ {
@@ -442,6 +445,7 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent(
 														flexDirection: 'column',
 														alignItems: 'center',
 														justifyContent: 'center',
+														width: '100%',
 													} }
 													onClick={ () => ! isImporting && importImage( img.id ) }
 												>
@@ -467,7 +471,7 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent(
 													>
 														{ img.name || img.file }
 													</span>
-												</div>
+												</button>
 											);
 										} ) }
 									</div>
@@ -491,7 +495,7 @@ const PiwigoBlockImageWrapper = createHigherOrderComponent(
 									>
 										<Spinner />
 										<p style={ { marginTop: '10px', fontWeight: 'bold' } }>
-											{ __( 'Téléchargement et insertion de l\'image...', 'eg-media' ) as string }
+											{ __( 'Téléchargement et insertion de l\'image…', 'eg-media' ) as string }
 										</p>
 									</div>
 								) }

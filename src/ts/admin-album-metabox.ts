@@ -33,7 +33,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( val ) {
 			items = JSON.parse( val ) as AlbumItem[];
 		}
-	} catch ( e ) {
+	} catch {
 		items = [];
 	}
 
@@ -85,8 +85,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		return false;
 	};
 
-	const handleDragEnd = function( this: HTMLElement ): void {
-		this.classList.remove( 'dragging' );
+	const handleDragEnd = ( e: DragEvent ): void => {
+		const target = e.currentTarget as HTMLElement | null;
+		if ( target ) {
+			target.classList.remove( 'dragging' );
+		}
 		const draggingItems = container.querySelectorAll( '.eg-album-metabox__item, .eg-album-item' );
 		draggingItems.forEach( ( el ) => el.classList.remove( 'dragging' ) );
 	};
