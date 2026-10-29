@@ -24,9 +24,9 @@ class AlbumMetabox {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'add_meta_boxes_eg_media_album', array( $this, 'add_album_meta_box' ) );
-		add_action( 'save_post_eg_media_album', array( $this, 'save_album_meta_box' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'add_meta_boxes_eg_media_album', [ $this, 'add_album_meta_box' ] );
+		add_action( 'save_post_eg_media_album', [ $this, 'save_album_meta_box' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class AlbumMetabox {
 	 * @return void
 	 */
 	public function enqueue_admin_assets( string $hook ): void {
-		if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
 			return;
 		}
 
@@ -48,19 +48,19 @@ class AlbumMetabox {
 		wp_register_style(
 			'eg-media-admin-album-metabox',
 			EG_MEDIA_URL . 'assets/css/admin-album-metabox.css',
-			array(),
+			[],
 			EG_MEDIA_VERSION
 		);
 
 		wp_register_script(
 			'eg-media-admin-album-metabox',
 			EG_MEDIA_URL . 'assets/js/admin-album-metabox.js',
-			array(),
+			[],
 			EG_MEDIA_VERSION,
-			array(
+			[
 				'strategy'  => 'defer',
 				'in_footer' => true,
-			)
+			]
 		);
 
 		wp_enqueue_style( 'eg-media-admin-album-metabox' );
@@ -76,7 +76,7 @@ class AlbumMetabox {
 		add_meta_box(
 			'eg_media_album_settings',
 			"Contenu et Organisation de l'Album",
-			array( $this, 'render_meta_box' ),
+			[ $this, 'render_meta_box' ],
 			'eg_media_album',
 			'normal',
 			'high'
@@ -99,19 +99,19 @@ class AlbumMetabox {
 		}
 
 		$items_meta = get_post_meta( $post->ID, '_eg_media_album_items', true );
-		$items      = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : array();
+		$items      = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : [];
 		if ( ! is_array( $items ) ) {
-			$items = array();
+			$items = [];
 		}
 
 		// Récupérer les galeries locales.
 		$local_terms     = get_terms(
-			array(
+			[
 				'taxonomy'   => 'eg_media_gallery',
 				'hide_empty' => false,
-			)
+			]
 		);
-		$local_galleries = is_array( $local_terms ) ? $local_terms : array();
+		$local_galleries = is_array( $local_terms ) ? $local_terms : [];
 
 		// Récupérer les albums Piwigo.
 		$piwigo_service = new \EG_MEDIA\Services\Piwigo();
@@ -221,24 +221,24 @@ class AlbumMetabox {
 
 			if ( is_array( $items_decoded ) ) {
 				// Sanitization des entrées.
-				$sanitized_items = array();
-				$valid_sorts     = array( 'date_asc', 'date_desc', 'name_asc', 'name_desc' );
+				$sanitized_items = [];
+				$valid_sorts     = [ 'date_asc', 'date_desc', 'name_asc', 'name_desc' ];
 				foreach ( $items_decoded as $item ) {
 					if ( isset( $item['type'], $item['id'], $item['name'] ) ) {
 						$raw_sort   = (string) ( $item['image_sort'] ?? $item['imageSort'] ?? 'date_asc' );
 						$image_sort = in_array( $raw_sort, $valid_sorts, true ) ? $raw_sort : 'date_asc';
 
-						$sanitized_items[] = array(
+						$sanitized_items[] = [
 							'type'       => sanitize_text_field( (string) $item['type'] ),
 							'id'         => (int) $item['id'],
 							'name'       => sanitize_text_field( (string) $item['name'] ),
 							'image_sort' => $image_sort,
-						);
+						];
 					}
 				}
 				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( $sanitized_items ) );
 			} else {
-				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( array() ) );
+				update_post_meta( $post_id, '_eg_media_album_items', wp_json_encode( [] ) );
 			}
 		}
 	}

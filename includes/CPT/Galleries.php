@@ -24,7 +24,29 @@ class Galleries {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'init', array( $this, 'register_taxonomy' ) );
+		add_action( 'init', [ $this, 'register_taxonomy' ] );
+		add_action( 'set_object_terms', [ $this, 'on_set_object_terms' ], 10, 4 );
+	}
+
+	/**
+	 * Invalide le cache Object Cache des galeries lors d'une modification d'association de termes.
+	 *
+	 * @param int               $object_id  ID de l'objet (attachement).
+	 * @param array<int|string> $terms      Nouveaux termes.
+	 * @param array<int|string> $tt_ids     Term taxonomy IDs.
+	 * @param string            $taxonomy   Nom de la taxonomie.
+	 * @return void
+	 */
+	public function on_set_object_terms( int $object_id, array $terms, array $tt_ids, string $taxonomy ): void {
+		if ( 'eg_media_gallery' !== $taxonomy ) {
+			return;
+		}
+
+		foreach ( $terms as $term_id ) {
+			if ( is_numeric( $term_id ) ) {
+				\EG_MEDIA\Repositories\MediaRepository::flush_gallery_cache( (int) $term_id );
+			}
+		}
 	}
 
 	/**
@@ -33,7 +55,7 @@ class Galleries {
 	 * @return void
 	 */
 	public function register_taxonomy(): void {
-		$labels = array(
+		$labels = [
 			'name'              => 'Galeries',
 			'singular_name'     => 'Galerie',
 			'search_items'      => 'Rechercher des galeries',
@@ -45,21 +67,22 @@ class Galleries {
 			'add_new_item'      => 'Ajouter une nouvelle galerie',
 			'new_item_name'     => 'Nom de la nouvelle galerie',
 			'menu_name'         => 'Galeries',
-		);
+		];
 
-		$args = array(
+		$args = [
 			'hierarchical'          => true,
 			'labels'                => $labels,
 			'show_ui'               => true,
+			'show_in_menu'          => false,
 			'show_admin_column'     => true,
 			'query_var'             => true,
-			'rewrite'               => array( 'slug' => 'galerie' ),
+			'rewrite'               => [ 'slug' => 'galerie' ],
 			'show_in_rest'          => true,
 			'public'                => true,
 			'update_count_callback' => '_update_generic_term_count',
-		);
+		];
 
-		register_taxonomy( 'eg_media_gallery', array( 'attachment' ), $args );
+		register_taxonomy( 'eg_media_gallery', [ 'attachment' ], $args );
 
 		// Associe explicitement la taxonomie à l'objet attachment pour l'API REST de Gutenberg.
 		register_taxonomy_for_object_type( 'eg_media_gallery', 'attachment' );

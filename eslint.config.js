@@ -18,7 +18,6 @@ module.exports = [
 			globals: {
 				// Outils globaux de WordPress et du navigateur
 				wp: 'readonly',
-				jQuery: 'readonly',
 				ajaxurl: 'readonly',
 				confirm: 'readonly',
 				alert: 'readonly',
@@ -28,8 +27,8 @@ module.exports = [
 				_: 'readonly',
 
 				// Objets de données localisés de eg-media (variables PHP passées au JS)
-				egMediaBulk: 'readonly',
-				egMediaUploadData: 'readonly',
+				eg_media_bulk_data: 'readonly',
+				eg_media_upload_data: 'readonly',
 			},
 		},
 		rules: {

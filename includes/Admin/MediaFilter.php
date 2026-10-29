@@ -27,9 +27,9 @@ class MediaFilter {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'restrict_manage_posts', array( $this, 'add_gallery_dropdown' ), 10, 1 );
-		add_action( 'parse_query', array( $this, 'filter_attachments_query' ), 10, 1 );
-		add_filter( 'ajax_query_attachments_args', array( $this, 'filter_ajax_attachments_query' ), 10, 1 );
+		add_action( 'restrict_manage_posts', [ $this, 'add_gallery_dropdown' ], 10, 1 );
+		add_action( 'parse_query', [ $this, 'filter_attachments_query' ], 10, 1 );
+		add_filter( 'ajax_query_attachments_args', [ $this, 'filter_ajax_attachments_query' ], 10, 1 );
 	}
 
 	/**
@@ -49,13 +49,13 @@ class MediaFilter {
 
 		// Récupérer toutes les galeries existantes.
 		$terms = get_terms(
-			array(
+			[
 				'taxonomy'   => 'eg_media_gallery',
 				'hide_empty' => false,
-			)
+			]
 		);
 
-		$galleries          = is_array( $terms ) ? $terms : array();
+		$galleries          = is_array( $terms ) ? $terms : [];
 		$gallery_id_param   = filter_input( INPUT_GET, 'eg_media_gallery_filter', FILTER_UNSAFE_RAW );
 		$gallery_slug_param = filter_input( INPUT_GET, 'eg_media_gallery', FILTER_UNSAFE_RAW );
 
@@ -125,22 +125,22 @@ class MediaFilter {
 		$gallery_id = (string) $gallery_id;
 		$tax_query  = $query->get( 'tax_query' );
 		if ( ! is_array( $tax_query ) ) {
-			$tax_query = array();
+			$tax_query = [];
 		}
 
 		if ( 'orphan' === $gallery_id ) {
-			$tax_query[] = array(
+			$tax_query[] = [
 				'taxonomy' => 'eg_media_gallery',
 				'operator' => 'NOT EXISTS',
-			);
+			];
 		} else {
 			$term_id = (int) $gallery_id;
 			if ( $term_id > 0 ) {
-				$tax_query[] = array(
+				$tax_query[] = [
 					'taxonomy' => 'eg_media_gallery',
 					'field'    => 'term_id',
 					'terms'    => $term_id,
-				);
+				];
 			}
 		}
 
@@ -162,22 +162,22 @@ class MediaFilter {
 		}
 
 		if ( ! isset( $query_args['tax_query'] ) || ! is_array( $query_args['tax_query'] ) ) {
-			$query_args['tax_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			$query_args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 		}
 
 		if ( 'orphan' === $gallery_id ) {
-			$query_args['tax_query'][] = array(
+			$query_args['tax_query'][] = [
 				'taxonomy' => 'eg_media_gallery',
 				'operator' => 'NOT EXISTS',
-			);
+			];
 		} else {
 			$term_id = (int) $gallery_id;
 			if ( $term_id > 0 ) {
-				$query_args['tax_query'][] = array(
+				$query_args['tax_query'][] = [
 					'taxonomy' => 'eg_media_gallery',
 					'field'    => 'term_id',
 					'terms'    => $term_id,
-				);
+				];
 			}
 		}
 

@@ -1,5 +1,5 @@
 parameters:
-    level: 7
+    level: 8
     phpVersion: 80400 # Force l'analyse pour PHP 8.4
 
     # =========================================================================
@@ -11,22 +11,24 @@ parameters:
     checkExplicitMixedMissingReturn: true
     checkFunctionNameCase: true
     checkInternalClassCaseSensitivity: true
+    checkMissingCallableSignature: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
 
     # =========================================================================
     # 2. GESTION DES ERREURS IGNORÉES
     # =========================================================================
-    # Mettre à "true" une fois le Level 8 atteint pour nettoyer les vieux @phpstan-ignore inutiles
-    reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: true
 
     # =========================================================================
     # 3. FICHIERS ET DOSSIERS À ANALYSER
     # =========================================================================
     paths:
         - eg-media.php
+        - uninstall.php
         - includes/
 
     bootstrapFiles:
         - tests/phpstan/bootstrap.php
-    
+
     scanFiles:
         - eg-media.php

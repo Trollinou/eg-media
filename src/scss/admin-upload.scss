@@ -117,3 +117,34 @@
 	pointer-events: none;
 	font-family: dashicons, sans-serif;
 }
+
+// Champs d'action groupée en mode liste (upload.php?mode=list)
+.eg-media-bulk-assign-fields {
+	display: none;
+	vertical-align: middle;
+	margin: 0 8px;
+
+	&.is-visible {
+		display: inline-block;
+	}
+
+	.eg-media-bulk-gallery-select {
+		vertical-align: middle;
+		height: 30px;
+	}
+
+	&__separator {
+		font-size: 13px;
+		color: #646970;
+		margin: 0 4px;
+		vertical-align: middle;
+	}
+
+	.eg-media-bulk-new-gallery-input {
+		vertical-align: middle;
+		height: 30px;
+		line-height: 30px;
+		font-size: 13px;
+		padding: 0 8px;
+	}
+}

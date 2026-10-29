@@ -26,7 +26,7 @@ class BulkProcessor {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'wp_ajax_eg_media_process_bulk_batch', array( $this, 'eg_media_process_bulk_batch' ) );
+		add_action( 'wp_ajax_eg_media_process_bulk_batch', [ $this, 'eg_media_process_bulk_batch' ] );
 	}
 
 	/**
@@ -57,27 +57,27 @@ class BulkProcessor {
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
-				array(
+				[
 					'message' => esc_html__( "Vous n'avez pas les permissions nécessaires.", 'eg-media' ),
-				)
+				]
 			);
 		}
 
 		$query = new WP_Query(
-			array(
+			[
 				'post_type'      => 'attachment',
 				'post_mime_type' => Processor::SUPPORTED_MIMES,
 				'post_status'    => 'inherit',
 				'posts_per_page' => 5,
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
+				'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
 						'key'     => '_eg_media_optimized',
 						'compare' => 'NOT EXISTS',
-					),
-				),
-			)
+					],
+				],
+			]
 		);
 
 		/**
@@ -123,27 +123,30 @@ class BulkProcessor {
 		// Mettre à jour les statistiques globales.
 		if ( $processed_in_this_batch > 0 ) {
 			$total_processed = (int) get_option( 'eg_media_processed_count', 0 );
-			update_option( 'eg_media_processed_count', $total_processed + $processed_in_this_batch );
+			update_option( 'eg_media_processed_count', $total_processed + $processed_in_this_batch, false );
 
 			$current_unoptimized = get_transient( 'eg_media_unoptimized_count' );
 			if ( false !== $current_unoptimized ) {
 				$new_unoptimized = max( 0, (int) $current_unoptimized - $processed_in_this_batch );
 				set_transient( 'eg_media_unoptimized_count', $new_unoptimized, 12 * HOUR_IN_SECONDS );
+				wp_cache_set( 'unoptimized_count', $new_unoptimized, MediaRepository::CACHE_GROUP, 12 * HOUR_IN_SECONDS );
+			} else {
+				MediaRepository::flush_unoptimized_count_cache();
 			}
 		}
 
 		if ( $bytes_saved_in_this_batch > 0 ) {
 			$total_saved = (int) get_option( 'eg_media_bytes_saved', 0 );
-			update_option( 'eg_media_bytes_saved', $total_saved + $bytes_saved_in_this_batch );
+			update_option( 'eg_media_bytes_saved', $total_saved + $bytes_saved_in_this_batch, false );
 		}
 
 		$remaining = $this->get_unoptimized_count();
 
 		wp_send_json_success(
-			array(
+			[
 				'remaining' => $remaining,
 				'processed' => $processed_in_this_batch,
-			)
+			]
 		);
 	}
 }

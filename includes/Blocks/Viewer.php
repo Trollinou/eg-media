@@ -22,7 +22,7 @@ class Viewer {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'init', array( $this, 'register_block' ) );
+		add_action( 'init', [ $this, 'register_block' ] );
 	}
 
 	/**

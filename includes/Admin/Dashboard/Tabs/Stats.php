@@ -106,7 +106,7 @@ class Stats {
 			return '0 Ko';
 		}
 
-		$units = array( 'Octets', 'Ko', 'Mo', 'Go', 'To' );
+		$units = [ 'Octets', 'Ko', 'Mo', 'Go', 'To' ];
 		$power = floor( log( $bytes, 1024 ) );
 		$power = min( $power, count( $units ) - 1 );
 

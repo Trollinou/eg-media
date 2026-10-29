@@ -61,7 +61,7 @@ class Piwigo {
 	 * @param array<string, mixed> $body_args Arguments du corps de la requête.
 	 * @return array<string, mixed>|null Résultat de la requête décodé, ou null en cas d'erreur.
 	 */
-	private function make_request( string $method, array $body_args = array() ): ?array {
+	private function make_request( string $method, array $body_args = [] ): ?array {
 		$api_url = $this->get_api_url();
 		$api_key = $this->get_api_key();
 
@@ -71,9 +71,9 @@ class Piwigo {
 
 		$api_url = add_query_arg( 'format', 'json', $api_url );
 
-		$headers = array(
+		$headers = [
 			'Accept' => 'application/json',
-		);
+		];
 
 		$api_secret = trim( (string) get_option( 'eg_media_piwigo_api_secret', '' ) );
 
@@ -84,19 +84,19 @@ class Piwigo {
 		}
 
 		$body = array_merge(
-			array(
+			[
 				'method' => $method,
 				'format' => 'json',
-			),
+			],
 			$body_args
 		);
 
-		$args = array(
+		$args = [
 			'body'      => $body,
 			'headers'   => $headers,
 			'timeout'   => 15,
 			'sslverify' => true,
-		);
+		];
 
 		$response = wp_remote_post( $api_url, $args );
 
@@ -149,16 +149,16 @@ class Piwigo {
 
 		$data = $this->make_request( 'pwg.categories.getList' );
 		if ( null === $data || ! isset( $data['result']['categories'] ) ) {
-			return array();
+			return [];
 		}
 
-		$albums = array();
+		$albums = [];
 		foreach ( $data['result']['categories'] as $category ) {
 			if ( isset( $category['id'], $category['name'] ) ) {
-				$albums[] = array(
+				$albums[] = [
 					'id'   => (int) $category['id'],
 					'name' => (string) $category['name'],
-				);
+				];
 			}
 		}
 
@@ -176,7 +176,7 @@ class Piwigo {
 	 */
 	public function get_album_images( int $album_id, bool $force_refresh = false ): array {
 		if ( $album_id <= 0 ) {
-			return array();
+			return [];
 		}
 
 		$cache_key = 'eg_media_piwigo_album_imgs_v2_' . $album_id;
@@ -190,23 +190,23 @@ class Piwigo {
 
 		$data = $this->make_request(
 			'pwg.categories.getImages',
-			array(
+			[
 				'cat_id'   => $album_id,
 				'per_page' => 500, // On récupère un maximum d'images de l'album.
-			)
+			]
 		);
 
 		if ( null === $data || ! isset( $data['result']['images'] ) ) {
-			return array();
+			return [];
 		}
 
-		$images = array();
+		$images = [];
 		foreach ( $data['result']['images'] as $image ) {
 			if ( ! isset( $image['id'] ) ) {
 				continue;
 			}
 
-			$images[] = array(
+			$images[] = [
 				'id'             => (int) $image['id'],
 				'name'           => (string) ( $image['name'] ?? '' ),
 				'file'           => (string) ( $image['file'] ?? '' ),
@@ -215,8 +215,8 @@ class Piwigo {
 				'element_url'    => (string) ( $image['element_url'] ?? '' ),
 				'width'          => (int) ( $image['width'] ?? 150 ),
 				'height'         => (int) ( $image['height'] ?? 150 ),
-				'derivatives'    => $image['derivatives'] ?? array(),
-			);
+				'derivatives'    => $image['derivatives'] ?? [],
+			];
 		}
 
 		set_transient( $cache_key, $images, self::CACHE_TTL );
@@ -237,7 +237,7 @@ class Piwigo {
 
 		$data = $this->make_request(
 			'pwg.images.getInfo',
-			array( 'image_id' => $image_id )
+			[ 'image_id' => $image_id ]
 		);
 
 		if ( null === $data || ! isset( $data['result'] ) ) {

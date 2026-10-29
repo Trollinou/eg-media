@@ -14,7 +14,6 @@ namespace EG_MEDIA\Admin\Dashboard;
 use EG_MEDIA\Admin\Dashboard\Tabs\Stats;
 use EG_MEDIA\Admin\Dashboard\Tabs\Config;
 use EG_MEDIA\Repositories\MediaRepository;
-use EG_MEDIA\Utils\Request;
 
 /**
  * Classe Main du tableau de bord.
@@ -49,11 +48,11 @@ class Main {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-		add_action( 'admin_init', array( $this->config_tab, 'init_settings' ) );
-		add_action( 'admin_post_eg_media_reset_optimization_status', array( $this, 'handle_reset_optimization_status' ) );
-		add_action( 'admin_post_eg_media_clear_piwigo_cache', array( $this, 'handle_clear_piwigo_cache' ) );
+		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		add_action( 'admin_init', [ $this->config_tab, 'init_settings' ] );
+		add_action( 'admin_post_eg_media_reset_optimization_status', [ $this, 'handle_reset_optimization_status' ] );
+		add_action( 'admin_post_eg_media_clear_piwigo_cache', [ $this, 'handle_clear_piwigo_cache' ] );
 	}
 
 	/**
@@ -92,14 +91,13 @@ class Main {
 		// Sauvegarde des erreurs de réglages de façon temporaire (transient) pour persistance lors du redirect.
 		set_transient( 'settings_errors', get_settings_errors(), 30 );
 
-		// Redirection vers l'onglet de configuration.
+		// Redirection vers la page de réglages.
 		wp_safe_redirect(
 			add_query_arg(
-				array(
-					'page' => 'eg-media-dashboard',
-					'tab'  => 'config',
-				),
-				admin_url( 'upload.php' )
+				[
+					'page' => 'eg-media-settings',
+				],
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -133,49 +131,54 @@ class Main {
 		// Sauvegarde des erreurs de réglages de façon temporaire (transient) pour persistance lors du redirect.
 		set_transient( 'settings_errors', get_settings_errors(), 30 );
 
-		// Redirection vers l'onglet de configuration.
+		// Redirection vers la page de réglages.
 		wp_safe_redirect(
 			add_query_arg(
-				array(
-					'page' => 'eg-media-dashboard',
-					'tab'  => 'config',
-				),
-				admin_url( 'upload.php' )
+				[
+					'page' => 'eg-media-settings',
+				],
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
 	}
 
 	/**
-	 * Charge les assets CSS et JS pour la page du tableau de bord.
+	 * Charge les assets CSS et JS pour les pages d'administration EG Media.
 	 *
 	 * @param string $hook Le nom de la page courante dans le back-office.
 	 * @return void
 	 */
 	public function enqueue_admin_assets( string $hook ): void {
-		if ( 'media_page_eg-media-dashboard' !== $hook ) {
+		if ( 'toplevel_page_eg-media-dashboard' !== $hook && 'eg-media_page_eg-media-settings' !== $hook ) {
 			return;
 		}
 
 		wp_register_style(
 			'eg-media-admin-dashboard',
 			EG_MEDIA_URL . 'assets/css/admin-dashboard.css',
-			array(),
+			[],
 			EG_MEDIA_VERSION
 		);
+
+		wp_enqueue_style( 'eg-media-admin-dashboard' );
+
+		// Enqueue des scripts JS et localisation uniquement sur le tableau de bord.
+		if ( 'toplevel_page_eg-media-dashboard' !== $hook ) {
+			return;
+		}
 
 		wp_register_script(
 			'eg-media-admin-dashboard',
 			EG_MEDIA_URL . 'assets/js/admin-dashboard.js',
-			array(),
+			[],
 			EG_MEDIA_VERSION,
-			array(
+			[
 				'strategy'  => 'defer',
 				'in_footer' => true,
-			)
+			]
 		);
 
-		wp_enqueue_style( 'eg-media-admin-dashboard' );
 		wp_enqueue_script( 'eg-media-admin-dashboard' );
 
 		$bulk_processor    = new \EG_MEDIA\Services\Image\BulkProcessor();
@@ -183,29 +186,60 @@ class Main {
 
 		wp_localize_script(
 			'eg-media-admin-dashboard',
-			'egMediaBulk',
-			array(
+			'eg_media_bulk_data',
+			[
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'eg-media-bulk-nonce' ),
 				'unoptimizedCount' => $unoptimized_count,
 				'action'           => 'eg_media_process_bulk_batch',
-			)
+			]
 		);
 	}
 
 	/**
-	 * Enregistre la sous-page de tableau de bord sous le menu "Médias".
+	 * Enregistre le menu principal et les sous-pages d'administration.
 	 *
 	 * @return void
 	 */
 	public function add_dashboard_page(): void {
-		add_submenu_page(
-			'upload.php',
-			'EG Media Manager',
-			'EG Media Manager',
+		add_menu_page(
+			'Tableau de bord ‹ EG Media',
+			'EG Media',
 			'manage_options',
 			'eg-media-dashboard',
-			array( $this, 'render_dashboard' )
+			[ $this, 'render_dashboard' ],
+			'dashicons-format-gallery',
+			30.6
+		);
+
+		add_submenu_page(
+			'eg-media-dashboard',
+			'Tableau de bord ‹ EG Media',
+			'Tableau de bord',
+			'manage_options',
+			'eg-media-dashboard',
+			[ $this, 'render_dashboard' ],
+			0
+		);
+
+		add_submenu_page(
+			'eg-media-dashboard',
+			'Galeries ‹ EG Media',
+			'Galeries',
+			'manage_categories',
+			'edit-tags.php?taxonomy=eg_media_gallery&post_type=attachment',
+			'',
+			50
+		);
+
+		add_submenu_page(
+			'eg-media-dashboard',
+			'Réglages ‹ EG Media',
+			'Réglages',
+			'manage_options',
+			'eg-media-settings',
+			[ $this, 'render_settings' ],
+			100
 		);
 	}
 
@@ -220,10 +254,57 @@ class Main {
 			wp_die( esc_html( "Vous n'avez pas les permissions nécessaires pour accéder à cette page." ) );
 		}
 
-		// Récupérer l'onglet actif.
-		$active_tab = 'config' === Request::get_string( 'tab' ) ? 'config' : 'stats';
+		$this->display_persisted_errors();
+		?>
+		<div class="wrap eg-media-dashboard">
+			<h1><?php esc_html_e( 'Tableau de bord', 'eg-media' ); ?></h1>
+			<p class="description"><?php esc_html_e( 'Statistiques et optimisation des médias.', 'eg-media' ); ?></p>
 
-		// Récupérer et afficher les notifications persistées.
+			<hr class="wp-header-end">
+
+			<?php settings_errors( 'eg_media_messages' ); ?>
+
+			<div class="eg-media-dashboard__tab-content">
+				<?php $this->stats_tab->render(); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Rendu HTML de la page de réglages.
+	 *
+	 * @return void
+	 */
+	public function render_settings(): void {
+		// Vérification de sécurité des capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html( "Vous n'avez pas les permissions nécessaires pour accéder à cette page." ) );
+		}
+
+		$this->display_persisted_errors();
+		?>
+		<div class="wrap eg-media-dashboard">
+			<h1><?php esc_html_e( 'Réglages EG Media', 'eg-media' ); ?></h1>
+			<p class="description"><?php esc_html_e( 'Configuration des formats d\'image et des intégrations.', 'eg-media' ); ?></p>
+
+			<hr class="wp-header-end">
+
+			<?php settings_errors( 'eg_media_messages' ); ?>
+
+			<div class="eg-media-dashboard__tab-content">
+				<?php $this->config_tab->render(); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Récupère et réinjecte les erreurs de réglages persistées dans un transient.
+	 *
+	 * @return void
+	 */
+	private function display_persisted_errors(): void {
 		$errors = get_transient( 'settings_errors' );
 		if ( is_array( $errors ) ) {
 			// Ré-injection des erreurs dans le flux courant.
@@ -234,31 +315,5 @@ class Main {
 			}
 			delete_transient( 'settings_errors' );
 		}
-
-		?>
-		<div class="wrap eg-media-dashboard">
-			<h1>EG Media Manager</h1>
-			<p class="description">Gestionnaire de Média et optimisation des images.</p>
-
-			<hr class="wp-header-end">
-
-			<?php settings_errors( 'eg_media_messages' ); ?>
-
-			<h2 class="nav-tab-wrapper">
-				<a href="<?php echo esc_url( admin_url( 'upload.php?page=eg-media-dashboard&tab=stats' ) ); ?>" class="nav-tab <?php echo 'stats' === $active_tab ? 'nav-tab-active' : ''; ?>">Statistiques</a>
-				<a href="<?php echo esc_url( admin_url( 'upload.php?page=eg-media-dashboard&tab=config' ) ); ?>" class="nav-tab <?php echo 'config' === $active_tab ? 'nav-tab-active' : ''; ?>">Configuration</a>
-			</h2>
-
-			<div class="eg-media-dashboard__tab-content">
-				<?php
-				if ( 'config' === $active_tab ) {
-					$this->config_tab->render();
-				} else {
-					$this->stats_tab->render();
-				}
-				?>
-			</div>
-		</div>
-		<?php
 	}
 }

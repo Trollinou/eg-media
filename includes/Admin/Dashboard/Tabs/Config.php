@@ -25,81 +25,81 @@ class Config {
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_resize_max_width',
-			array(
+			[
 				'type'              => 'integer',
 				'sanitize_callback' => 'intval',
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_MAX_WIDTH,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_compression_quality',
-			array(
+			[
 				'type'              => 'integer',
-				'sanitize_callback' => array( $this, 'sanitize_quality' ),
+				'sanitize_callback' => [ $this, 'sanitize_quality' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_COMPRESSION_QUALITY,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_png_compression',
-			array(
+			[
 				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_png_compression' ),
+				'sanitize_callback' => [ $this, 'sanitize_png_compression' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_PNG_COMPRESSION,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_unsharp_mask',
-			array(
+			[
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_UNSHARP_MASK,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_auto_orient',
-			array(
+			[
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_AUTO_ORIENT,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_chrominance',
-			array(
+			[
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_CHROMINANCE,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_interlace',
-			array(
+			[
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_boolean' ),
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_INTERLACE,
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_backup_originals',
-			array(
+			[
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_backup_originals' ),
+				'sanitize_callback' => [ $this, 'sanitize_backup_originals' ],
 				'default'           => \EG_MEDIA\DTO\Image_Settings::DEFAULT_BACKUP_ORIGINALS,
-			)
+			]
 		);
 
 		add_settings_section(
@@ -112,7 +112,7 @@ class Config {
 		add_settings_field(
 			'eg_media_resize_max_width',
 			'Largeur Max (Resize)',
-			array( $this, 'render_max_width_field' ),
+			[ $this, 'render_max_width_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section'
 		);
@@ -120,7 +120,7 @@ class Config {
 		add_settings_field(
 			'eg_media_compression_quality',
 			'Qualité JPEG/WebP',
-			array( $this, 'render_quality_field' ),
+			[ $this, 'render_quality_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section'
 		);
@@ -128,7 +128,7 @@ class Config {
 		add_settings_field(
 			'eg_media_png_compression',
 			'Compression PNG',
-			array( $this, 'render_png_compression_field' ),
+			[ $this, 'render_png_compression_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section'
 		);
@@ -136,77 +136,77 @@ class Config {
 		add_settings_field(
 			'eg_media_unsharp_mask',
 			'Améliorer le piqué (Unsharp Mask)',
-			array( $this, 'render_checkbox_field' ),
+			[ $this, 'render_checkbox_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
-			array( 'label_for' => 'eg_media_unsharp_mask' )
+			[ 'label_for' => 'eg_media_unsharp_mask' ]
 		);
 
 		add_settings_field(
 			'eg_media_auto_orient',
 			'Redressement automatique (Auto-orient)',
-			array( $this, 'render_checkbox_field' ),
+			[ $this, 'render_checkbox_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
-			array( 'label_for' => 'eg_media_auto_orient' )
+			[ 'label_for' => 'eg_media_auto_orient' ]
 		);
 
 		add_settings_field(
 			'eg_media_chrominance',
 			'Compression Couleur (Chrominance 4:2:0)',
-			array( $this, 'render_checkbox_field' ),
+			[ $this, 'render_checkbox_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
-			array( 'label_for' => 'eg_media_chrominance' )
+			[ 'label_for' => 'eg_media_chrominance' ]
 		);
 
 		add_settings_field(
 			'eg_media_interlace',
 			'Mode Progressif (Interlace)',
-			array( $this, 'render_checkbox_field' ),
+			[ $this, 'render_checkbox_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
-			array( 'label_for' => 'eg_media_interlace' )
+			[ 'label_for' => 'eg_media_interlace' ]
 		);
 
 		add_settings_field(
 			'eg_media_backup_originals',
 			'Sauvegarder les originaux avant optimisation',
-			array( $this, 'render_checkbox_field' ),
+			[ $this, 'render_checkbox_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_main_section',
-			array( 'label_for' => 'eg_media_backup_originals' )
+			[ 'label_for' => 'eg_media_backup_originals' ]
 		);
 
 		// Section Piwigo.
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_piwigo_url',
-			array(
+			[
 				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_piwigo_url' ),
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_url' ],
 				'default'           => '',
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_piwigo_api_key',
-			array(
+			[
 				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_piwigo_api_key' ),
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_api_key' ],
 				'default'           => '',
-			)
+			]
 		);
 
 		register_setting(
 			'eg_media_settings_group',
 			'eg_media_piwigo_api_secret',
-			array(
+			[
 				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_piwigo_api_secret' ),
+				'sanitize_callback' => [ $this, 'sanitize_piwigo_api_secret' ],
 				'default'           => '',
-			)
+			]
 		);
 
 		add_settings_section(
@@ -219,7 +219,7 @@ class Config {
 		add_settings_field(
 			'eg_media_piwigo_url',
 			'URL de Piwigo',
-			array( $this, 'render_piwigo_url_field' ),
+			[ $this, 'render_piwigo_url_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_piwigo_section'
 		);
@@ -227,7 +227,7 @@ class Config {
 		add_settings_field(
 			'eg_media_piwigo_api_key',
 			'Identifiant public de la clé API',
-			array( $this, 'render_piwigo_api_key_field' ),
+			[ $this, 'render_piwigo_api_key_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_piwigo_section'
 		);
@@ -235,7 +235,7 @@ class Config {
 		add_settings_field(
 			'eg_media_piwigo_api_secret',
 			'Secret de la clé API',
-			array( $this, 'render_piwigo_api_secret_field' ),
+			[ $this, 'render_piwigo_api_secret_field' ],
 			'eg-media-dashboard-config',
 			'eg_media_piwigo_section'
 		);
@@ -265,7 +265,7 @@ class Config {
 	 * @return string Valeur autorisée.
 	 */
 	public function sanitize_png_compression( mixed $value ): string {
-		$allowed = array( 'faible', 'moyenne', 'forte' );
+		$allowed = [ 'faible', 'moyenne', 'forte' ];
 		if ( is_string( $value ) && in_array( $value, $allowed, true ) ) {
 			return $value;
 		}

@@ -56,25 +56,24 @@
 	}
 
 	/**
-	 * Recharge la liste des galeries depuis le serveur et met à jour les sélecteurs HTML.
+	 * Recharge la liste des galeries depuis le serveur via fetch() et met à jour les sélecteurs HTML.
 	 */
 	function refreshGallerySelectors(): void {
-		if ( typeof jQuery === 'undefined' ) {
-			return;
-		}
+		const formData = new FormData();
+		formData.append( 'action', 'eg_media_get_galleries' );
+		formData.append( 'nonce', window.eg_media_upload_data?.nonce || '' );
 
-		jQuery.post(
-			ajaxurl,
-			{
-				action: 'eg_media_get_galleries',
-				nonce: window.egMediaUploadData ? window.egMediaUploadData.nonce : '',
-			},
-			( response: { success: boolean; data?: any[] } ) => {
-				if ( response.success && Array.isArray( response.data ) ) {
+		fetch( ajaxurl, {
+			method: 'POST',
+			body: formData,
+		} )
+			.then( ( res: Response ) => ( res.ok ? res.json() : null ) )
+			.then( ( response: { success?: boolean; data?: Array<{ term_id: number | string; name: string; slug?: string }> } | null ) => {
+				if ( response && response.success && Array.isArray( response.data ) ) {
 					const galleries = response.data;
 
-					if ( window.egMediaUploadData ) {
-						window.egMediaUploadData.galleries = galleries;
+					if ( window.eg_media_upload_data ) {
+						window.eg_media_upload_data.galleries = galleries;
 					}
 
 					const uploadSelect = document.getElementById( 'eg_media_target_gallery' ) as HTMLSelectElement | null;
@@ -114,8 +113,10 @@
 
 					syncLibraryFilterWithTarget();
 				}
-			}
-		);
+			} )
+			.catch( () => {
+				// Silencieux en cas d'erreur réseau transitoire.
+			} );
 	}
 
 	if ( typeof window.wp !== 'undefined' && window.wp.Uploader ) {
@@ -282,23 +283,24 @@
 			}
 		} );
 
-		const triggerElements = [ 'dragover', 'mouseenter', 'click' ];
-		triggerElements.forEach( ( evtName ) => {
-			document.addEventListener(
-				evtName,
-				() => {
-					moveSelectorToTop();
-					bindToGlobalUploader();
-					updateAllUploaders();
-					syncLibraryFilterWithTarget();
-				},
-				{ passive: true }
-			);
-		} );
+		const syncUploaderState = (): void => {
+			moveSelectorToTop();
+			bindToGlobalUploader();
+			updateAllUploaders();
+		};
 
-		moveSelectorToTop();
-		bindToGlobalUploader();
-		updateAllUploaders();
+		// Observer ciblé sur le DOM de la médiathèque / modale au lieu d'écouter mouseenter/dragover sur tout le document.
+		const observerTarget = document.getElementById( 'wpbody-content' ) || document.body;
+		if ( observerTarget && typeof MutationObserver !== 'undefined' ) {
+			const observer = new MutationObserver( () => {
+				if ( document.getElementById( 'drag-drop-area' ) || document.getElementById( 'eg_media_target_gallery' ) ) {
+					syncUploaderState();
+				}
+			} );
+			observer.observe( observerTarget, { childList: true, subtree: true } );
+		}
+
+		syncUploaderState();
 
 		if ( typeof window.wp !== 'undefined' && window.wp.media && window.wp.media.view && window.wp.media.view.AttachmentFilters ) {
 			window.wp.media.view.AttachmentFilters.EGMediaGallery = window.wp.media.view.AttachmentFilters.extend( {
@@ -322,8 +324,8 @@
 						priority: 20,
 					};
 
-					if ( window.egMediaUploadData && window.egMediaUploadData.galleries ) {
-						window.egMediaUploadData.galleries.forEach( ( gallery ) => {
+					if ( window.eg_media_upload_data && window.eg_media_upload_data.galleries ) {
+						window.eg_media_upload_data.galleries.forEach( ( gallery ) => {
 							filters[ gallery.term_id ] = {
 								text: gallery.name,
 								props: {
@@ -362,8 +364,8 @@
 
 						if ( ! filterVal && urlParams.has( 'eg_media_gallery' ) ) {
 							const slug = urlParams.get( 'eg_media_gallery' );
-							if ( window.egMediaUploadData && window.egMediaUploadData.galleries ) {
-								const matched = window.egMediaUploadData.galleries.find(
+							if ( window.eg_media_upload_data && window.eg_media_upload_data.galleries ) {
+								const matched = window.eg_media_upload_data.galleries.find(
 									( g ) => g.slug === slug || String( g.term_id ) === slug
 								);
 								if ( matched ) {
@@ -503,8 +505,8 @@
 
 			let optionsHtml = '<option value="">' + translate( '— Choisir une galerie —', 'eg-media' ) + '</option>';
 			optionsHtml += '<option value="orphan">' + translate( '— Sans affectation —', 'eg-media' ) + '</option>';
-			if ( window.egMediaUploadData && window.egMediaUploadData.galleries ) {
-				window.egMediaUploadData.galleries.forEach( ( gallery ) => {
+			if ( window.eg_media_upload_data && window.eg_media_upload_data.galleries ) {
+				window.eg_media_upload_data.galleries.forEach( ( gallery ) => {
 					optionsHtml += '<option value="' + gallery.term_id + '">' + gallery.name + '</option>';
 				} );
 			}
@@ -512,21 +514,16 @@
 			bulkSelectors.forEach( ( selector ) => {
 				const container = document.createElement( 'span' );
 				container.className = 'eg-media-bulk-assign-fields';
-				container.style.display = 'none';
-				container.style.verticalAlign = 'middle';
-				container.style.marginLeft = '8px';
-				container.style.marginRight = '8px';
 
 				container.innerHTML = `
-                    <select name="eg_media_bulk_gallery" class="eg-media-bulk-gallery-select" style="vertical-align: middle; height: 30px;">
+                    <select name="eg_media_bulk_gallery" class="eg-media-bulk-gallery-select">
                         ${ optionsHtml }
                     </select>
-                    <span style="font-size: 13px; color: #646970; margin: 0 4px; vertical-align: middle;">ou</span>
+                    <span class="eg-media-bulk-assign-fields__separator">ou</span>
                     <input type="text" 
                            name="eg_media_bulk_new_gallery" 
                            class="eg-media-bulk-new-gallery-input" 
-                           placeholder="${ translate( 'Nouvelle galerie…', 'eg-media' ) }" 
-                           style="vertical-align: middle; height: 30px; line-height: 30px; font-size: 13px; padding: 0 8px;" />
+                           placeholder="${ translate( 'Nouvelle galerie…', 'eg-media' ) }" />
                 `;
 
 				if ( selector.parentNode ) {
@@ -534,11 +531,7 @@
 				}
 
 				selector.addEventListener( 'change', () => {
-					if ( selector.value === 'eg_media_bulk_assign' ) {
-						container.style.display = 'inline-block';
-					} else {
-						container.style.display = 'none';
-					}
+					container.classList.toggle( 'is-visible', selector.value === 'eg_media_bulk_assign' );
 				} );
 			} );
 

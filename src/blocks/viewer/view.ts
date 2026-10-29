@@ -8,8 +8,8 @@ import { store, getContext, getElement } from '@wordpress/interactivity';
 import type { ViewerContext } from '../../types/interactivity';
 import type { GalleryImage } from '../../types/gallery';
 
-let slideshowTimer: ReturnType<typeof setInterval> | null = null;
-let wheelTimer: ReturnType<typeof setTimeout> | null = null;
+const slideshowTimers = new WeakMap<HTMLElement, ReturnType<typeof setInterval>>();
+const wheelTimers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
 store( 'eg-media/viewer', {
 	state: {
@@ -220,8 +220,9 @@ store( 'eg-media/viewer', {
 
 			track.style.transition = 'none';
 
-			if ( wheelTimer ) {
-				clearTimeout( wheelTimer );
+			const existingWheelTimer = wheelTimers.get( track );
+			if ( existingWheelTimer ) {
+				clearTimeout( existingWheelTimer );
 			}
 
 			const viewportWidth = ref.clientWidth;
@@ -242,9 +243,12 @@ store( 'eg-media/viewer', {
 
 			track.style.transform = `translateX(${ offset }px)`;
 
-			wheelTimer = setTimeout( () => {
-				track.style.transition = '';
-			}, 150 );
+			wheelTimers.set(
+				track,
+				setTimeout( () => {
+					track.style.transition = '';
+				}, 150 )
+			);
 		},
 	},
 
@@ -286,17 +290,21 @@ store( 'eg-media/viewer', {
 				}
 			}
 
-			// Gestion du diaporama
+			// Gestion du diaporama isolée par instance de visionneuse
+			const existingSlideshowTimer = slideshowTimers.get( viewer );
+			if ( existingSlideshowTimer ) {
+				clearInterval( existingSlideshowTimer );
+				slideshowTimers.delete( viewer );
+			}
+
 			if ( ctx.slideshow && ctx.layout !== 'justified' ) {
-				if ( slideshowTimer ) {
-					clearInterval( slideshowTimer );
-				}
-				slideshowTimer = setInterval( () => {
+				const timerId = setInterval( () => {
 					if ( ! ctx.isFullscreen && viewer.matches( ':hover' ) ) {
 						return; // Pause sur hover hors plein écran
 					}
 					ctx.currentIndex = ( ctx.currentIndex + 1 ) % ( ctx.images.length || 1 );
 				}, ctx.tempo || 3000 );
+				slideshowTimers.set( viewer, timerId );
 			}
 		},
 	},

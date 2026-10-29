@@ -7,6 +7,45 @@ et ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-29
+
+### Added
+- **Désinstallation propre (`uninstall.php`)** : Nettoyage automatique des options, transients (`eg_media_unoptimized_count`, `eg_media_piwigo_albums`) et du groupe Object Cache `eg_media_cache` lors de la suppression du plugin.
+
+### Changed
+- **Navigation d'administration & Menu Dédié** :
+  - Création d'un menu d'administration de premier niveau propre au plugin (`EG Media`) positionné à l'index `30.6` avec l'icône Dashicon `dashicons-format-gallery`.
+  - Restructuration des pages en sous-menus dédiés : `Tableau de bord` (statistiques et optimisation par lots) et `Réglages` (options d'images, configuration Piwigo et outils de maintenance) sans barre d'onglets.
+  - Déplacement du Custom Post Type `eg_media_album` et de la taxonomie `eg_media_gallery` ("Galeries") sous le nouveau menu dédié (`eg-media-dashboard`) avec ordonnancement maîtrisé (Tableau de bord, Tous les albums, Ajouter, Galeries, Réglages).
+  - Redirection automatique post-action (réinitialisation d'optimisation et purge du cache Piwigo) vers la page de réglages (`admin.php?page=eg-media-settings`).
+  - Optimisation contextuelle des assets dans [`Main::enqueue_admin_assets`](file:///Users/etienne/Developments/eg-media/includes/Admin/Dashboard/Main.php) (script JS d'optimisation par lot réservé au tableau de bord, styles CSS partagés).
+- **Alignement strict QA & Standards `AGENTS.md` (Lot 3)** :
+  - Élévation de [`phpstan.neon`](file:///Users/etienne/Developments/eg-media/phpstan.neon) au **Level 8** avec `checkMissingCallableSignature: true`, `checkTooWideReturnTypesInProtectedAndPublicMethods: true` et `reportUnmatchedIgnoredErrors: true`.
+  - Verrouillage de [`phpcs.xml`](file:///Users/etienne/Developments/eg-media/phpcs.xml) (`ignore_warnings_on_exit: 0`, `Generic.PHP.RequireStrictTypes`, `Generic.Arrays.DisallowLongArraySyntax`) et conversion intégrale du dépôt vers la syntaxe courte des tableaux `[]` (208 occurrences dans 20 fichiers).
+  - Ajout de la validation et de l'assainissement déclaratifs (`args` : `type`, `required`, `sanitize_callback`, `validate_callback`) sur les 4 routes REST de [`includes/API/Piwigo.php`](file:///Users/etienne/Developments/eg-media/includes/API/Piwigo.php).
+  - Désactivation de l'autoload (`$autoload = false`) lors de la mise à jour des compteurs de statistiques (`eg_media_processed_count`, `eg_media_bytes_saved`).
+  - Normalisation en `snake_case` préfixé par `eg_media_` des objets globaux exposés via `wp_localize_script()` (`window.eg_media_bulk_data`, `window.eg_media_upload_data`).
+  - Sécurisation de [`scripts/package.cjs`](file:///Users/etienne/Developments/eg-media/scripts/package.cjs) avec exécution bloquante de la suite QA complète avant le build et suppression de l'étape Composer de production inutile (`[VENDOR_PROD] == NON`).
+- **Refactoring TypeScript & Gutenberg (Lot 2)** :
+  - Extraction et mutualisation de la modale de sélection d'images Piwigo dans un composant dédié [`src/blocks/viewer/components/PiwigoPickerModal.tsx`](file:///Users/etienne/Developments/eg-media/src/blocks/viewer/components/PiwigoPickerModal.tsx), réduisant [`src/blocks/viewer/index.tsx`](file:///Users/etienne/Developments/eg-media/src/blocks/viewer/index.tsx) de 516 à 185 lignes (conforme à la règle de granularité < 350 lignes).
+  - Éradication complète des styles inline React (`style={{ ... }}`) dans `index.tsx` et des styles inline HTML/DOM dans `admin-upload.ts` au profit de classes BEM dans `src/blocks/viewer/editor.scss` et `src/scss/admin-upload.scss`.
+  - Remplacement de `jQuery.post()` par l'API native `fetch()` dans `admin-upload.ts` et retrait de la dépendance `'jquery'` dans `MediaUpload::enqueue_upload_scripts()`.
+  - Remplacement des écouteurs globaux `mouseenter`, `dragover` et `click` sur `document` dans `admin-upload.ts` par un `MutationObserver` ciblé sur `#wpbody-content`.
+- **Performance Backend & Object Cache (`MediaRepository`)** :
+  - Ajout de la mise en cache Object Cache (`wp_cache_get` / `wp_cache_set`, groupe `eg_media_cache`) sur le décompte des images non optimisées (`get_unoptimized_count`) avec invalidation déterministe (`flush_unoptimized_count_cache`).
+  - Centralisation et mise en cache Object Cache de la récupération et du tri des pièces jointes d'une galerie locale (`MediaRepository::get_sorted_gallery_attachments`) avec invalidation automatique sur le hook `set_object_terms` (`Galleries::on_set_object_terms`), évitant le doublement des requêtes et des tris EXIF entre la couverture du shortcode `[eg_media_album]` et le rendu des blocs `eg-media/viewer`.
+  - Chargement contextuel de `BulkProcessor` strictement limité au contexte d'administration (`is_admin()`) dans `Plugin::init_admin_modules()`.
+- **Performance Frontend, Web Vitals (INP) & Compatibilité Safari / WebKit** :
+  - Activation du rendu virtuel CSS (`content-visibility: auto; contain-intrinsic-size: ...`) sur les cartes d'albums (`.eg-album__card`) et les vignettes de la grille justifiée (`.eg-viewer__justified-item`).
+  - Suppression de `backdrop-filter: blur(10px)` et de `document.body.style.overflow = 'hidden'` sur le calque modal d'album (`.eg-album__overlay`) au profit de `overscroll-behavior: contain` et d'une isolation matérielle GPU (`isolation: isolate; contain: layout style; transform: translateZ(0)`).
+  - Mutualisation de l'écouteur clavier `Escape` sur `document` dans `public-album.ts` en un écouteur global unique.
+
+### Fixed
+- **Block Bindings API (`BlockBindings`)** : Correction de la clé de Term Meta interrogée pour l'image de référence d'une galerie (`_eg_media_featured_image_id` au lieu de `eg_media_featured_attachment_id`).
+- **Bloc Visionneuse (`src/blocks/viewer/view.ts` & `render.php`)** :
+  - Isolation par instance (`WeakMap<HTMLElement, ...>`) des timers de diaporama (`slideshowTimers`) et de défilement molette (`wheelTimers`) pour permettre la coexistence de plusieurs blocs visionneuse sur une même page.
+  - Délégation de l'événement `data-wp-on--click="actions.selectJustifiedImage"` sur le conteneur `.eg-viewer__justified-grid` afin que les images chargées dynamiquement via "Charger plus" ouvrent bien le mode plein écran au clic.
+
 ## [1.3.1] - 2026-10-13
 
 ## [1.3.0] - 2026-10-13

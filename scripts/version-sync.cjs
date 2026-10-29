@@ -42,13 +42,39 @@ if ( fs.existsSync( mainPhpPath ) ) {
 	updatedCount++;
 }
 
-// 2. Update package.json
+// 1b. Update tests/phpstan/bootstrap.php
+const bootstrapPath = path.join( rootDir, 'tests', 'phpstan', 'bootstrap.php' );
+if ( fs.existsSync( bootstrapPath ) ) {
+	let content = fs.readFileSync( bootstrapPath, 'utf8' );
+	content = content.replace( /(define\(\s*'EG_MEDIA_VERSION',\s*')([^']+)('\s*\);)/, `$1${ newVersion }$3` );
+	fs.writeFileSync( bootstrapPath, content, 'utf8' );
+	console.log( `  ✓ Updated tests/phpstan/bootstrap.php (EG_MEDIA_VERSION)` );
+	updatedCount++;
+}
+
+// 2. Update package.json & package-lock.json
 if ( fs.existsSync( packageJsonPath ) ) {
 	const pkg = JSON.parse( fs.readFileSync( packageJsonPath, 'utf8' ) );
 	pkg.version = newVersion;
 	fs.writeFileSync( packageJsonPath, JSON.stringify( pkg, null, 2 ) + '\n', 'utf8' );
 	console.log( `  ✓ Updated package.json` );
 	updatedCount++;
+}
+
+const packageLockPath = path.join( rootDir, 'package-lock.json' );
+if ( fs.existsSync( packageLockPath ) ) {
+	try {
+		const lock = JSON.parse( fs.readFileSync( packageLockPath, 'utf8' ) );
+		lock.version = newVersion;
+		if ( lock.packages && lock.packages[ '' ] ) {
+			lock.packages[ '' ].version = newVersion;
+		}
+		fs.writeFileSync( packageLockPath, JSON.stringify( lock, null, 2 ) + '\n', 'utf8' );
+		console.log( `  ✓ Updated package-lock.json` );
+		updatedCount++;
+	} catch ( err ) {
+		console.warn( '  ⚠️ Could not update package-lock.json:', err.message );
+	}
 }
 
 // 3. Update all block.json files in src/

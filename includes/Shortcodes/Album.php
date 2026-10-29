@@ -24,7 +24,7 @@ class Album {
 	 * @return void
 	 */
 	public function register(): void {
-		add_shortcode( 'eg_media_album', array( $this, 'render_shortcode' ) );
+		add_shortcode( 'eg_media_album', [ $this, 'render_shortcode' ] );
 	}
 
 	/**
@@ -35,10 +35,10 @@ class Album {
 	 */
 	public function render_shortcode( array|string $atts ): string {
 		$args = shortcode_atts(
-			array(
+			[
 				'id' => 0,
-			),
-			is_array( $atts ) ? $atts : array()
+			],
+			is_array( $atts ) ? $atts : []
 		);
 
 		$album_id = (int) $args['id'];
@@ -54,14 +54,14 @@ class Album {
 		// Récupérer le tri et les éléments.
 		$sort_mode  = get_post_meta( $album_id, '_eg_media_album_sort', true ) ?: 'manual';
 		$items_meta = get_post_meta( $album_id, '_eg_media_album_items', true );
-		$items      = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : array();
+		$items      = ! empty( $items_meta ) ? json_decode( $items_meta, true ) : [];
 
 		if ( ! is_array( $items ) || empty( $items ) ) {
 			return '<p>' . esc_html__( 'Cet album ne contient aucune galerie.', 'eg-media' ) . '</p>';
 		}
 
 		// Charger les détails de couverture et trier si nécessaire.
-		$resolved_items = array();
+		$resolved_items = [];
 		$piwigo_service = new \EG_MEDIA\Services\Piwigo();
 
 		foreach ( $items as $item ) {
@@ -94,43 +94,10 @@ class Album {
 				}
 
 				if ( empty( $cover_url ) ) {
-					// Fallback: première image selon le tri configuré.
-					$query_args  = array(
-						'post_type'      => 'attachment',
-						'post_status'    => 'inherit',
-						'posts_per_page' => -1,
-						'no_found_rows'  => true,
-						'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-							array(
-								'taxonomy' => 'eg_media_gallery',
-								'field'    => 'term_id',
-								'terms'    => $id,
-							),
-						),
-					);
-					$attachments = get_posts( $query_args );
+					// Fallback: première image selon le tri configuré (via le cache Object Cache du Repository).
+					$repository  = new \EG_MEDIA\Repositories\MediaRepository();
+					$attachments = $repository->get_sorted_gallery_attachments( $id, $sort_by, $sort_order );
 					if ( ! empty( $attachments ) ) {
-						usort(
-							$attachments,
-							function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort_order ): int {
-								if ( 'name' === $sort_by ) {
-									$val_a      = ! empty( $a->post_title ) ? $a->post_title : basename( (string) get_attached_file( $a->ID ) );
-									$val_b      = ! empty( $b->post_title ) ? $b->post_title : basename( (string) get_attached_file( $b->ID ) );
-									$comparison = strcasecmp( (string) $val_a, (string) $val_b );
-								} else {
-									$meta_a = wp_get_attachment_metadata( $a->ID );
-									$meta_b = wp_get_attachment_metadata( $b->ID );
-
-									$time_a = ! empty( $meta_a['image_meta']['created_timestamp'] ) ? (int) $meta_a['image_meta']['created_timestamp'] : strtotime( $a->post_date );
-									$time_b = ! empty( $meta_b['image_meta']['created_timestamp'] ) ? (int) $meta_b['image_meta']['created_timestamp'] : strtotime( $b->post_date );
-
-									$comparison = $time_a <=> $time_b;
-								}
-
-								return 'DESC' === $sort_order ? -$comparison : $comparison;
-							}
-						);
-
 						$first_att = $attachments[0];
 						$cover_url = wp_get_attachment_image_url( $first_att->ID, 'medium_large' )
 							?: wp_get_attachment_image_url( $first_att->ID, 'medium' )
@@ -160,7 +127,7 @@ class Album {
 					);
 
 					$first_img   = $p_images[0];
-					$derivatives = $first_img['derivatives'] ?? array();
+					$derivatives = $first_img['derivatives'] ?? [];
 					$cover_url   = (string) ( $derivatives['medium']['url'] ?? $derivatives['small']['url'] ?? $first_img['element_url'] ?? '' );
 				}
 			}
@@ -170,14 +137,14 @@ class Album {
 				$cover_url = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%23eee"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23aaa">Aucune image</text></svg>';
 			}
 
-			$resolved_items[] = array(
+			$resolved_items[] = [
 				'type'       => $type,
 				'id'         => $id,
 				'name'       => $name,
 				'cover_url'  => $cover_url,
 				'sort_by'    => $sort_by,
 				'sort_order' => $sort_order,
-			);
+			];
 		}
 
 		// Tri alphabétique si demandé.
@@ -220,17 +187,17 @@ class Album {
 				$unique_item_id = $item['type'] . '-' . $item['id'];
 				// Générer le bloc Gutenberg de visionneuse.
 				$viewer_block_html = render_block(
-					array(
+					[
 						'blockName' => 'eg-media/viewer',
-						'attrs'     => array(
+						'attrs'     => [
 							'galleryId'     => $item['id'],
 							'gallerySource' => $item['type'],
 							'sortBy'        => $item['sort_by'],
 							'sortOrder'     => $item['sort_order'],
 							'layout'        => 'justified',
 							'imagesPerPage' => 30,
-						),
-					)
+						],
+					]
 				);
 				?>
 				<div id="eg-viewer-overlay-<?php echo esc_attr( $unique_item_id ); ?>" class="eg-album__overlay">
@@ -250,7 +217,7 @@ class Album {
 		if ( class_exists( 'WP_HTML_Tag_Processor' ) && is_string( $html ) ) {
 			$processor = new \WP_HTML_Tag_Processor( $html );
 
-			while ( $processor->next_tag( array( 'tag_name' => 'img' ) ) ) {
+			while ( $processor->next_tag( [ 'tag_name' => 'img' ] ) ) {
 				$processor->set_attribute( 'loading', 'lazy' );
 				$processor->set_attribute( 'decoding', 'async' );
 			}

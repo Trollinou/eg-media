@@ -35,7 +35,7 @@ class Locations {
 			return;
 		}
 
-		add_filter( 'eg_backup_registered_locations', array( $this, 'register_backup_locations' ) );
+		add_filter( 'eg_backup_registered_locations', [ $this, 'register_backup_locations' ] );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class Locations {
 			return $locations;
 		}
 
-		$locations['eg_media_originals'] = array(
+		$locations['eg_media_originals'] = [
 			'id'          => 'eg_media_originals',
 			'label'       => __( 'EG Media — Sauvegarde des Images Originales', 'eg-media' ),
 			'plugin_name' => 'EG Media Manager',
@@ -114,12 +114,12 @@ class Locations {
 			'category'    => 'media',
 			'recommended' => true,
 			'description' => __( 'Copies de sécurité des fichiers images originaux conservées avant optimisation et compression destructive.', 'eg-media' ),
-			'exclude'     => array(
+			'exclude'     => [
 				'*.tmp',
 				'temp',
 				'.cache',
-			),
-		);
+			],
+		];
 
 		return $locations;
 	}

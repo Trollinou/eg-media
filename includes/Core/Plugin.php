@@ -73,10 +73,10 @@ final class Plugin {
 		$this->register_backup_services();
 
 		// 4. Initialisation principale au déclenchement de plugins_loaded
-		add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
+		add_action( 'plugins_loaded', [ $this, 'on_plugins_loaded' ] );
 
 		// 5. Enregistrement des assets publics
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_public_assets' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_public_assets' ] );
 	}
 
 	/**
@@ -87,9 +87,6 @@ final class Plugin {
 	private function register_media_services(): void {
 		$image_processor = new ImageProcessor();
 		$image_processor->register();
-
-		$bulk_processor = new BulkProcessor();
-		$bulk_processor->register();
 	}
 
 	/**
@@ -125,7 +122,7 @@ final class Plugin {
 		}
 
 		// Context: REST API.
-		add_action( 'rest_api_init', array( $this, 'init_rest_api' ) );
+		add_action( 'rest_api_init', [ $this, 'init_rest_api' ] );
 	}
 
 	/**
@@ -134,6 +131,7 @@ final class Plugin {
 	 * @return void
 	 */
 	private function init_admin_modules(): void {
+		( new BulkProcessor() )->register();
 		( new DashboardMain() )->init();
 		( new AlbumMetabox() )->register();
 		( new MediaFields() )->register();
@@ -159,19 +157,19 @@ final class Plugin {
 		wp_register_style(
 			'eg-media-public-album',
 			EG_MEDIA_URL . 'assets/css/public-album.css',
-			array(),
+			[],
 			EG_MEDIA_VERSION
 		);
 
 		wp_register_script(
 			'eg-media-public-album',
 			EG_MEDIA_URL . 'assets/js/public-album.js',
-			array(),
+			[],
 			EG_MEDIA_VERSION,
-			array(
+			[
 				'strategy'  => 'defer',
 				'in_footer' => true,
-			)
+			]
 		);
 	}
 }

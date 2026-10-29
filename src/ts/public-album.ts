@@ -7,6 +7,15 @@
 document.addEventListener( 'DOMContentLoaded', () => {
 	const cards = document.querySelectorAll<HTMLElement>( '.eg-album__card' );
 
+	const closeOverlay = ( overlay: HTMLElement ): void => {
+		overlay.classList.remove( 'is-active' );
+		setTimeout( () => {
+			if ( ! overlay.classList.contains( 'is-active' ) ) {
+				overlay.style.display = 'none';
+			}
+		}, 350 );
+	};
+
 	cards.forEach( ( card: HTMLElement ) => {
 		card.addEventListener( 'click', () => {
 			const targetId = card.dataset.targetViewer;
@@ -20,9 +29,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			}
 
 			// Ouvrir le modal
-			overlay.classList.add( 'is-active' );
 			overlay.style.display = 'flex';
-			document.body.style.overflow = 'hidden';
+			requestAnimationFrame( () => {
+				overlay.classList.add( 'is-active' );
+			} );
 
 			// Déclencher le recalcul de la grille justified si nécessaire
 			window.dispatchEvent( new Event( 'resize' ) );
@@ -35,34 +45,30 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	overlays.forEach( ( overlay: HTMLElement ) => {
 		const closeBtn = overlay.querySelector<HTMLElement>( '.eg-album__overlay-close' );
 
-		const closeModal = (): void => {
-			overlay.classList.remove( 'is-active' );
-			// Attendre la fin de la transition d'opacité avant de masquer
-			setTimeout( () => {
-				overlay.style.display = 'none';
-			}, 350 );
-			document.body.style.overflow = '';
-		};
-
 		if ( closeBtn ) {
 			closeBtn.addEventListener( 'click', ( e: MouseEvent ) => {
 				e.stopPropagation();
-				closeModal();
+				closeOverlay( overlay );
 			} );
 		}
 
 		// Fermer au clic en dehors du contenu
 		overlay.addEventListener( 'click', ( e: MouseEvent ) => {
 			if ( e.target === overlay ) {
-				closeModal();
-			}
-		} );
-
-		// Échappe pour fermer
-		document.addEventListener( 'keydown', ( e: KeyboardEvent ) => {
-			if ( e.key === 'Escape' && overlay.classList.contains( 'is-active' ) ) {
-				closeModal();
+				closeOverlay( overlay );
 			}
 		} );
 	} );
+
+	// Écouteur global unique sur Escape pour fermer l'overlay actif
+	if ( overlays.length > 0 ) {
+		document.addEventListener( 'keydown', ( e: KeyboardEvent ) => {
+			if ( e.key === 'Escape' && ! document.fullscreenElement ) {
+				const activeOverlay = document.querySelector<HTMLElement>( '.eg-album__overlay.is-active' );
+				if ( activeOverlay ) {
+					closeOverlay( activeOverlay );
+				}
+			}
+		} );
+	}
 } );

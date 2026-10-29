@@ -27,7 +27,7 @@ class BlockBindings {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'init', array( $this, 'register_bindings_sources' ) );
+		add_action( 'init', [ $this, 'register_bindings_sources' ] );
 	}
 
 	/**
@@ -43,31 +43,31 @@ class BlockBindings {
 		// 1. Source Données de Galerie
 		register_block_bindings_source(
 			'eg-media/gallery-data',
-			array(
+			[
 				'label'              => __( 'Données de Galerie (EG Media)', 'eg-media' ),
-				'get_value_callback' => array( $this, 'get_gallery_data_value' ),
-				'uses_context'       => array( 'postId', 'postType' ),
-			)
+				'get_value_callback' => [ $this, 'get_gallery_data_value' ],
+				'uses_context'       => [ 'postId', 'postType' ],
+			]
 		);
 
 		// 2. Source Données d'Album
 		register_block_bindings_source(
 			'eg-media/album-data',
-			array(
+			[
 				'label'              => __( "Données d'Album (EG Media)", 'eg-media' ),
-				'get_value_callback' => array( $this, 'get_album_data_value' ),
-				'uses_context'       => array( 'postId', 'postType' ),
-			)
+				'get_value_callback' => [ $this, 'get_album_data_value' ],
+				'uses_context'       => [ 'postId', 'postType' ],
+			]
 		);
 
 		// 3. Source Métadonnées de Média
 		register_block_bindings_source(
 			'eg-media/media-metadata',
-			array(
+			[
 				'label'              => __( 'Métadonnées Média (EG Media)', 'eg-media' ),
-				'get_value_callback' => array( $this, 'get_media_metadata_value' ),
-				'uses_context'       => array( 'postId', 'postType' ),
-			)
+				'get_value_callback' => [ $this, 'get_media_metadata_value' ],
+				'uses_context'       => [ 'postId', 'postType' ],
+			]
 		);
 	}
 
@@ -180,7 +180,7 @@ class BlockBindings {
 	 * @return string|null URL de l'image ou null.
 	 */
 	private function get_featured_image_url( int $gallery_id ): ?string {
-		$attachment_id = (int) get_term_meta( $gallery_id, 'eg_media_featured_attachment_id', true );
+		$attachment_id = (int) get_term_meta( $gallery_id, '_eg_media_featured_image_id', true );
 		if ( $attachment_id > 0 ) {
 			$url = wp_get_attachment_image_url( $attachment_id, 'full' );
 			if ( $url ) {
@@ -190,19 +190,19 @@ class BlockBindings {
 
 		// Fallback : première image de la galerie.
 		$attachments = get_posts(
-			array(
+			[
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
 				'posts_per_page' => 1,
 				'no_found_rows'  => true,
-				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-					array(
+				'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					[
 						'taxonomy' => 'eg_media_gallery',
 						'field'    => 'term_id',
 						'terms'    => $gallery_id,
-					),
-				),
-			)
+					],
+				],
+			]
 		);
 
 		if ( ! empty( $attachments ) ) {

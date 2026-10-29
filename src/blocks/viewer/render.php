@@ -104,44 +104,13 @@ if ( 'piwigo' === $gallery_source ) {
 	$first_image_alt = (string) ( $first_img['name'] ?: $first_img['file'] );
 
 } else {
-	// Récupérer les pièces jointes locales
-	$query_args = [
-		'post_type'      => 'attachment',
-		'post_status'    => 'inherit',
-		'posts_per_page' => -1,
-		'tax_query'      => [
-			[
-				'taxonomy' => 'eg_media_gallery',
-				'field'    => 'term_id',
-				'terms'    => $gallery_id,
-			],
-		],
-	];
-
-	$attachments = get_posts( $query_args );
+	// Récupérer et trier les pièces jointes locales via le Repository (avec Object Cache)
+	$repository  = new \EG_MEDIA\Repositories\MediaRepository();
+	$attachments = $repository->get_sorted_gallery_attachments( $gallery_id, (string) $sort_by, (string) $sort_order );
 
 	if ( empty( $attachments ) ) {
 		return;
 	}
-
-	// Logique de tri locale
-	usort( $attachments, function ( \WP_Post $a, \WP_Post $b ) use ( $sort_by, $sort_order ) : int {
-		if ( 'name' === $sort_by ) {
-			$val_a = ! empty( $a->post_title ) ? $a->post_title : basename( get_attached_file( $a->ID ) ?: '' );
-			$val_b = ! empty( $b->post_title ) ? $b->post_title : basename( get_attached_file( $b->ID ) ?: '' );
-			$comparison = strcasecmp( (string) $val_a, (string) $val_b );
-		} else {
-			$meta_a = wp_get_attachment_metadata( $a->ID );
-			$meta_b = wp_get_attachment_metadata( $b->ID );
-
-			$time_a = ! empty( $meta_a['image_meta']['created_timestamp'] ) ? (int) $meta_a['image_meta']['created_timestamp'] : strtotime( $a->post_date );
-			$time_b = ! empty( $meta_b['image_meta']['created_timestamp'] ) ? (int) $meta_b['image_meta']['created_timestamp'] : strtotime( $b->post_date );
-
-			$comparison = $time_a <=> $time_b;
-		}
-
-		return 'DESC' === $sort_order ? -$comparison : $comparison;
-	} );
 
 	// Construire le tableau de données d'images pour l'Interactivity API
 	foreach ( $attachments as $index => $attachment ) {
@@ -205,7 +174,7 @@ ob_start();
 			data-wp-on--click="actions.closeFullscreen">&times;</button>
 
 	<?php if ( 'justified' === $layout ) : ?>
-		<div class="eg-viewer__justified-grid">
+		<div class="eg-viewer__justified-grid" data-wp-on--click="actions.selectJustifiedImage">
 			<?php
 			$initial_count = min( count( $images_data ), $images_per_page );
 			for ( $i = 0; $i < $initial_count; $i++ ) :
@@ -215,7 +184,6 @@ ob_start();
 			?>
 				<div class="eg-viewer__justified-item"
 					 data-index="<?php echo $i; ?>"
-					 data-wp-on--click="actions.selectJustifiedImage"
 					 style="flex-grow: <?php echo $aspect_ratio; ?>; flex-basis: <?php echo $flex_basis; ?>px;">
 					<img src="<?php echo esc_url( $img_data['thumbSrc'] ); ?>"
 						 alt="<?php echo esc_attr( $img_data['alt'] ); ?>" />

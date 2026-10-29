@@ -2,40 +2,26 @@
  * Script d'administration TypeScript pour la gestion de l'optimisation en masse.
  */
 
-interface EgMediaBulkConfig {
-	action: string;
-	nonce: string;
-	ajaxUrl: string;
-	unoptimizedCount: string | number;
-}
-
-declare const egMediaBulk: EgMediaBulkConfig | undefined;
-
 document.addEventListener( 'DOMContentLoaded', () => {
 	const startButton = document.getElementById( 'eg-media-bulk-start' ) as HTMLButtonElement | null;
 	const countSpan = document.getElementById( 'eg-media-bulk-count' ) as HTMLElement | null;
 	const progressBar = document.getElementById( 'eg-media-bulk-progress' ) as HTMLProgressElement | null;
 	const statusDiv = document.getElementById( 'eg-media-bulk-status' ) as HTMLElement | null;
+	const bulkData = window.eg_media_bulk_data;
 
-	if (
-		! startButton ||
-		! countSpan ||
-		! progressBar ||
-		! statusDiv ||
-		typeof egMediaBulk === 'undefined'
-	) {
+	if ( ! startButton || ! countSpan || ! progressBar || ! statusDiv || ! bulkData ) {
 		return;
 	}
 
-	const totalToOptimize = parseInt( String( egMediaBulk.unoptimizedCount ), 10 );
+	const totalToOptimize = parseInt( String( bulkData.unoptimizedCount ), 10 );
 	let optimizedSoFar = 0;
 
 	const processBatch = (): void => {
 		const formData = new FormData();
-		formData.append( 'action', egMediaBulk.action );
-		formData.append( 'nonce', egMediaBulk.nonce );
+		formData.append( 'action', bulkData.action );
+		formData.append( 'nonce', bulkData.nonce );
 
-		fetch( egMediaBulk.ajaxUrl, {
+		fetch( bulkData.ajaxUrl, {
 			method: 'POST',
 			body: formData,
 		} )

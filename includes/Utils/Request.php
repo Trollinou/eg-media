@@ -43,7 +43,7 @@ final class Request {
 	 * @param array<string, mixed> $default_value Valeur par défaut si absente.
 	 * @return array<string, mixed> Tableau nettoyé ou vide.
 	 */
-	public static function post_array( string $key, array $default_value = array() ): array {
+	public static function post_array( string $key, array $default_value = [] ): array {
 		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) {
 			return $default_value;
 		}

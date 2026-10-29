@@ -18,7 +18,7 @@ if ( ! function_exists( '__' ) ) {
 }
 
 if ( ! defined( 'EG_MEDIA_VERSION' ) ) {
-	define( 'EG_MEDIA_VERSION', '1.3.1' );
+	define( 'EG_MEDIA_VERSION', '1.4.0' );
 }
 
 if ( ! defined( 'EG_MEDIA_FILE' ) ) {
@@ -65,7 +65,7 @@ if ( ! function_exists( 'get_option' ) ) {
 }
 
 if ( ! function_exists( 'update_option' ) ) {
-	function update_option( string $option, mixed $value ): bool {
+	function update_option( string $option, mixed $value, string|bool|null $autoload = null ): bool {
 		global $wp_test_options;
 		$wp_test_options[ $option ] = $value;
 		return true;

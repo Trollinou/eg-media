@@ -36,7 +36,7 @@ class Piwigo {
 	}
 
 	/**
-	 * Enregistre les routes REST API de WordPress.
+	 * Enregistre les routes REST API de WordPress avec validation déclarative.
 	 *
 	 * @return void
 	 */
@@ -44,41 +44,96 @@ class Piwigo {
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/albums',
-			array(
+			[
 				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_piwigo_albums' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-			)
+				'callback'            => [ $this, 'get_piwigo_albums' ],
+				'permission_callback' => [ $this, 'check_permission' ],
+				'args'                => [
+					'force' => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/album-images',
-			array(
+			[
 				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_piwigo_album_images' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-			)
+				'callback'            => [ $this, 'get_piwigo_album_images' ],
+				'permission_callback' => [ $this, 'check_permission' ],
+				'args'                => [
+					'id' => [
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static fn( mixed $param ): bool => is_numeric( $param ) && (int) $param > 0,
+					],
+				],
+			]
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/import-featured-image',
-			array(
+			[
 				'methods'             => 'POST',
-				'callback'            => array( $this, 'import_featured_image' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-			)
+				'callback'            => [ $this, 'import_featured_image' ],
+				'permission_callback' => [ $this, 'check_permission' ],
+				'args'                => [
+					'post_id'         => [
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static fn( mixed $param ): bool => is_numeric( $param ) && (int) $param > 0,
+					],
+					'piwigo_image_id' => [
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static fn( mixed $param ): bool => is_numeric( $param ) && (int) $param > 0,
+					],
+					'album_name'      => [
+						'type'              => 'string',
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
 		);
 
 		register_rest_route(
 			'eg-media/v1',
 			'/piwigo/import-image',
-			array(
+			[
 				'methods'             => 'POST',
-				'callback'            => array( $this, 'import_image' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-			)
+				'callback'            => [ $this, 'import_image' ],
+				'permission_callback' => [ $this, 'check_permission' ],
+				'args'                => [
+					'post_id'         => [
+						'type'              => 'integer',
+						'required'          => false,
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					],
+					'piwigo_image_id' => [
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static fn( mixed $param ): bool => is_numeric( $param ) && (int) $param > 0,
+					],
+					'album_name'      => [
+						'type'              => 'string',
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
 		);
 	}
 
@@ -104,7 +159,7 @@ class Piwigo {
 	public function get_piwigo_album_images( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$album_id = (int) $request->get_param( 'id' );
 		if ( $album_id <= 0 ) {
-			return new WP_Error( 'invalid_id', 'ID d\'album invalide ou manquant.', array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_id', 'ID d\'album invalide ou manquant.', [ 'status' => 400 ] );
 		}
 
 		$images = $this->piwigo_service->get_album_images( $album_id );
@@ -142,16 +197,16 @@ class Piwigo {
 		}
 
 		// Préparer le fichier simulé pour sideload.
-		$file_array = array(
+		$file_array = [
 			'name'     => basename( (string) wp_parse_url( $image_url, PHP_URL_PATH ) ) ?: 'image.jpg',
 			'tmp_name' => $tmp_file,
-		);
+		];
 
 		// Préparer les données de publication pour l'attachement (évite les titres temporaires ou vides).
-		$post_data = array(
+		$post_data = [
 			'post_title'   => $image_name,
 			'post_content' => $image_name,
-		);
+		];
 
 		// Insérer dans la médiathèque.
 		$attachment_id = media_handle_sideload( $file_array, $post_id, $image_name, $post_data );
@@ -178,7 +233,7 @@ class Piwigo {
 			}
 
 			if ( $term_id > 0 ) {
-				wp_set_object_terms( $attachment_id, array( $term_id ), 'eg_media_gallery' );
+				wp_set_object_terms( $attachment_id, [ $term_id ], 'eg_media_gallery' );
 			}
 		}
 
@@ -197,25 +252,25 @@ class Piwigo {
 		$album_name      = sanitize_text_field( (string) $request->get_param( 'album_name' ) );
 
 		if ( $post_id <= 0 || $piwigo_image_id <= 0 ) {
-			return new WP_Error( 'invalid_params', 'Paramètres post_id ou piwigo_image_id manquants.', array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_params', 'Paramètres post_id ou piwigo_image_id manquants.', [ 'status' => 400 ] );
 		}
 
 		$attachment_id = $this->import_piwigo_image_to_media_library( $piwigo_image_id, $post_id, $album_name );
 
 		if ( is_wp_error( $attachment_id ) ) {
-			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), array( 'status' => 500 ) );
+			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), [ 'status' => 500 ] );
 		}
 
 		// Définir comme image mise en avant.
 		$set_thumbnail = set_post_thumbnail( $post_id, $attachment_id );
 		if ( ! $set_thumbnail ) {
-			return new WP_Error( 'thumbnail_association_failed', 'Impossible d\'associer l\'image mise en avant au post.', array( 'status' => 500 ) );
+			return new WP_Error( 'thumbnail_association_failed', 'Impossible d\'associer l\'image mise en avant au post.', [ 'status' => 500 ] );
 		}
 
-		$response_data = array(
+		$response_data = [
 			'attachment_id' => $attachment_id,
 			'url'           => wp_get_attachment_url( $attachment_id ),
-		);
+		];
 
 		return new WP_REST_Response( $response_data, 200 );
 	}
@@ -232,19 +287,19 @@ class Piwigo {
 		$album_name      = sanitize_text_field( (string) $request->get_param( 'album_name' ) );
 
 		if ( $piwigo_image_id <= 0 ) {
-			return new WP_Error( 'invalid_params', 'Paramètre piwigo_image_id manquant.', array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_params', 'Paramètre piwigo_image_id manquant.', [ 'status' => 400 ] );
 		}
 
 		$attachment_id = $this->import_piwigo_image_to_media_library( $piwigo_image_id, $post_id, $album_name );
 
 		if ( is_wp_error( $attachment_id ) ) {
-			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), array( 'status' => 500 ) );
+			return new WP_Error( 'import_failed', $attachment_id->get_error_message(), [ 'status' => 500 ] );
 		}
 
-		$response_data = array(
+		$response_data = [
 			'attachment_id' => $attachment_id,
 			'url'           => wp_get_attachment_url( $attachment_id ),
-		);
+		];
 
 		return new WP_REST_Response( $response_data, 200 );
 	}

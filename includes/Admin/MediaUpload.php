@@ -26,13 +26,13 @@ class MediaUpload {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'pre-upload-ui', array( $this, 'render_gallery_selector' ), 10, 0 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_upload_scripts' ), 10, 1 );
-		add_action( 'add_attachment', array( $this, 'save_uploaded_media_gallery' ), 10, 1 );
-		add_filter( 'bulk_actions-upload', array( $this, 'register_bulk_actions' ), 10, 1 );
-		add_filter( 'handle_bulk_actions-upload', array( $this, 'handle_bulk_actions' ), 10, 3 );
-		add_action( 'admin_notices', array( $this, 'show_bulk_action_notice' ) );
-		add_action( 'wp_ajax_eg_media_get_galleries', array( $this, 'ajax_get_galleries' ) );
+		add_action( 'pre-upload-ui', [ $this, 'render_gallery_selector' ], 10, 0 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_upload_scripts' ], 10, 1 );
+		add_action( 'add_attachment', [ $this, 'save_uploaded_media_gallery' ], 10, 1 );
+		add_filter( 'bulk_actions-upload', [ $this, 'register_bulk_actions' ], 10, 1 );
+		add_filter( 'handle_bulk_actions-upload', [ $this, 'handle_bulk_actions' ], 10, 3 );
+		add_action( 'admin_notices', [ $this, 'show_bulk_action_notice' ] );
+		add_action( 'wp_ajax_eg_media_get_galleries', [ $this, 'ajax_get_galleries' ] );
 	}
 
 	/**
@@ -42,13 +42,13 @@ class MediaUpload {
 	 */
 	public function render_gallery_selector(): void {
 		$terms = get_terms(
-			array(
+			[
 				'taxonomy'   => 'eg_media_gallery',
 				'hide_empty' => false,
-			)
+			]
 		);
 
-		$galleries = is_array( $terms ) ? $terms : array();
+		$galleries = is_array( $terms ) ? $terms : [];
 		?>
 		<div class="eg-media-upload-gallery-container">
 			<label for="eg_media_target_gallery" class="eg-media-upload-gallery-container__label">
@@ -86,12 +86,12 @@ class MediaUpload {
 	 * @return void
 	 */
 	public function enqueue_upload_scripts( string $hook_suffix ): void {
-		$allowed_hooks = array(
+		$allowed_hooks = [
 			'post.php',
 			'post-new.php',
 			'media-new.php',
 			'upload.php',
-		);
+		];
 
 		if ( ! in_array( $hook_suffix, $allowed_hooks, true ) ) {
 			return;
@@ -100,51 +100,51 @@ class MediaUpload {
 		wp_register_style(
 			'eg-media-admin-upload',
 			EG_MEDIA_URL . 'assets/css/admin-upload.css',
-			array(),
+			[],
 			EG_MEDIA_VERSION
 		);
 
 		wp_register_script(
 			'eg-media-admin-upload',
 			EG_MEDIA_URL . 'assets/js/admin-upload.js',
-			array( 'jquery', 'media-views' ),
+			[ 'media-views' ],
 			EG_MEDIA_VERSION,
-			array(
+			[
 				'strategy'  => 'defer',
 				'in_footer' => true,
-			)
+			]
 		);
 
 		wp_enqueue_style( 'eg-media-admin-upload' );
 		wp_enqueue_script( 'eg-media-admin-upload' );
 
 		$terms = get_terms(
-			array(
+			[
 				'taxonomy'   => 'eg_media_gallery',
 				'hide_empty' => false,
-			)
+			]
 		);
 
-		$galleries_data = array();
+		$galleries_data = [];
 		if ( is_array( $terms ) ) {
 			foreach ( $terms as $term ) {
 				if ( $term instanceof \WP_Term ) {
-					$galleries_data[] = array(
+					$galleries_data[] = [
 						'term_id' => $term->term_id,
 						'name'    => $term->name,
 						'slug'    => $term->slug,
-					);
+					];
 				}
 			}
 		}
 
 		wp_localize_script(
 			'eg-media-admin-upload',
-			'egMediaUploadData',
-			array(
+			'eg_media_upload_data',
+			[
 				'galleries' => $galleries_data,
 				'nonce'     => wp_create_nonce( 'eg-media-upload-nonce' ),
-			)
+			]
 		);
 	}
 
@@ -273,7 +273,7 @@ class MediaUpload {
 			$post_id = (int) $post_id;
 			if ( $post_id > 0 && current_user_can( 'edit_post', $post_id ) ) {
 				if ( 'orphan' === $gallery_id && '' === trim( $new_gallery ) ) {
-					wp_set_object_terms( $post_id, array(), 'eg_media_gallery' );
+					wp_set_object_terms( $post_id, [], 'eg_media_gallery' );
 				} elseif ( $final_gallery_id > 0 ) {
 					wp_set_object_terms( $post_id, $final_gallery_id, 'eg_media_gallery' );
 				}
@@ -328,20 +328,20 @@ class MediaUpload {
 		}
 
 		$terms = get_terms(
-			array(
+			[
 				'taxonomy'   => 'eg_media_gallery',
 				'hide_empty' => false,
-			)
+			]
 		);
 
-		$galleries_data = array();
+		$galleries_data = [];
 		if ( is_array( $terms ) ) {
 			foreach ( $terms as $term ) {
 				if ( $term instanceof \WP_Term ) {
-					$galleries_data[] = array(
+					$galleries_data[] = [
 						'term_id' => $term->term_id,
 						'name'    => $term->name,
-					);
+					];
 				}
 			}
 		}

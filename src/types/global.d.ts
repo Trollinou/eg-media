@@ -26,10 +26,15 @@ declare module '@wordpress/interactivity' {
 }
 
 interface Window {
-	egMediaUploadData?: {
-		nonce?: string;
+	readonly eg_media_bulk_data?: {
+		readonly action: string;
+		readonly nonce: string;
+		readonly ajaxUrl: string;
+		readonly unoptimizedCount: string | number;
+	};
+	readonly eg_media_upload_data?: {
+		readonly nonce?: string;
 		galleries?: Array<{ term_id: number | string; name: string; slug?: string }>;
-		[ key: string ]: any;
 	};
 	wp?: any;
 	uploader?: any;
@@ -37,7 +42,6 @@ interface Window {
 }
 
 declare const ajaxurl: string;
-declare const jQuery: any;
 declare const wp: any;
 declare const uploader: any;
 declare const _: any;

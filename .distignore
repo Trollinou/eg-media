@@ -11,7 +11,9 @@ AGENTS.md
 # Configuration Linters, QA & Tests
 .editorconfig
 .eslintrc.json
+eslint.config.js
 phpcs.xml
+.phpcs.cache
 phpstan.neon
 phpunit.xml
 phpunit.xml.dist

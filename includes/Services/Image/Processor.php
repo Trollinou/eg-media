@@ -24,12 +24,12 @@ class Processor {
 	/**
 	 * MIME types supportés pour l'optimisation.
 	 */
-	public const array SUPPORTED_MIMES = array(
+	public const array SUPPORTED_MIMES = [
 		'image/jpeg',
 		'image/png',
 		'image/webp',
 		'image/avif',
-	);
+	];
 
 	/**
 	 * Enregistre le hook de traitement d'image.
@@ -37,9 +37,9 @@ class Processor {
 	 * @return void
 	 */
 	public function register(): void {
-		add_filter( 'wp_handle_upload', array( $this, 'process_upload' ) );
-		add_action( 'add_attachment', array( $this, 'flag_new_attachment_as_optimized' ) );
-		add_action( 'delete_attachment', array( $this, 'invalidate_unoptimized_count_cache' ) );
+		add_filter( 'wp_handle_upload', [ $this, 'process_upload' ] );
+		add_action( 'add_attachment', [ $this, 'flag_new_attachment_as_optimized' ] );
+		add_action( 'delete_attachment', [ $this, 'invalidate_unoptimized_count_cache' ] );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Processor {
 	 * @return void
 	 */
 	public function invalidate_unoptimized_count_cache(): void {
-		delete_transient( 'eg_media_unoptimized_count' );
+		\EG_MEDIA\Repositories\MediaRepository::flush_unoptimized_count_cache();
 	}
 
 	/**
@@ -92,11 +92,11 @@ class Processor {
 
 		if ( null !== $bytes_saved ) {
 			$processed_count = (int) get_option( 'eg_media_processed_count', 0 );
-			update_option( 'eg_media_processed_count', $processed_count + 1 );
+			update_option( 'eg_media_processed_count', $processed_count + 1, false );
 
 			if ( $bytes_saved > 0 ) {
 				$total_saved = (int) get_option( 'eg_media_bytes_saved', 0 );
-				update_option( 'eg_media_bytes_saved', $total_saved + $bytes_saved );
+				update_option( 'eg_media_bytes_saved', $total_saved + $bytes_saved, false );
 			}
 		}
 
@@ -233,17 +233,17 @@ class Processor {
 			if ( 'PNG' === $format ) {
 				$png_level = $settings->get_png_compression_enum()->to_imagick_level() * 10;
 				$imagick->setCompressionQuality( $png_level );
-			} elseif ( in_array( $format, array( 'JPEG', 'JPG', 'WEBP', 'AVIF' ), true ) ) {
+			} elseif ( in_array( $format, [ 'JPEG', 'JPG', 'WEBP', 'AVIF' ], true ) ) {
 				$imagick->setImageCompressionQuality( $settings->compression_quality );
 			}
 
 			// 5. Chrominance 4:2:0 (Sampling factors pour JPEG/WebP).
-			if ( $settings->use_chrominance && in_array( $format, array( 'JPEG', 'JPG' ), true ) ) {
-				$imagick->setSamplingFactors( array( '2x2', '1x1', '1x1' ) );
+			if ( $settings->use_chrominance && in_array( $format, [ 'JPEG', 'JPG' ], true ) ) {
+				$imagick->setSamplingFactors( [ '2x2', '1x1', '1x1' ] );
 			}
 
 			// 6. Mode progressif (Interlace).
-			if ( $settings->use_interlace && in_array( $format, array( 'JPEG', 'JPG', 'PNG' ), true ) ) {
+			if ( $settings->use_interlace && in_array( $format, [ 'JPEG', 'JPG', 'PNG' ], true ) ) {
 				$imagick->setImageInterlaceScheme( \Imagick::INTERLACE_PLANE );
 			}
 
@@ -343,16 +343,16 @@ class Processor {
 
 			// 3. Unsharp Mask.
 			if ( $settings->use_unsharp_mask ) {
-				$matrix = array(
-					array( -1.0, -1.0, -1.0 ),
-					array( -1.0, 9.0, -1.0 ),
-					array( -1.0, -1.0, -1.0 ),
-				);
+				$matrix = [
+					[ -1.0, -1.0, -1.0 ],
+					[ -1.0, 9.0, -1.0 ],
+					[ -1.0, -1.0, -1.0 ],
+				];
 				imageconvolution( $image, $matrix, 1.0, 0.0 );
 			}
 
 			// 4. Mode progressif (Interlace).
-			if ( $settings->use_interlace && in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
+			if ( $settings->use_interlace && in_array( $mime, [ 'image/jpeg', 'image/png' ], true ) ) {
 				imageinterlace( $image, true );
 			}
 
